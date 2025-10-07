@@ -28,6 +28,45 @@ class ApiService {
       return 'Offline';
     }
   }
+//signup
+static Future<Map<String, dynamic>> signUp({
+    required String username,
+    required String email,
+    required String password,
+  }) async {
+    final url = Uri.parse("$baseApiUrl/api/register");
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "username": username,
+          "email": email,
+          "password": password,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        final body = jsonDecode(response.body);
+        return {
+          "success": true,
+          "message": body["message"] ?? "Đăng ký thành công!",
+        };
+      } else {
+        final body = jsonDecode(response.body);
+        return {
+          "success": false,
+          "message": body["message"] ?? "Đăng ký thất bại!",
+        };
+      }
+    } catch (e) {
+      return {
+        "success": false,
+        "message": "Không thể kết nối đến server.\nLỗi: $e",
+      };
+    }
+  }
 
   Future<LoginResponse> login({
     required String identifier,
