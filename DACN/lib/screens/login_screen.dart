@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
+import '../screens/signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -46,7 +47,8 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final identifier = _emailController.text.trim();
       final password = _passwordController.text;
-      final result = await _api.login(identifier: identifier, password: password);
+      final result =
+          await _api.login(identifier: identifier, password: password);
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('auth_token', result.token);
@@ -108,7 +110,8 @@ class _LoginScreenState extends State<LoginScreen> {
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -121,31 +124,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                     ),
                     const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.18),
-                        borderRadius: BorderRadius.circular(999),
-                        border: Border.all(color: Colors.white24),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.health_and_safety, color: Colors.white, size: 16),
-                          const SizedBox(width: 8),
-                          Text(
-                            _health,
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ],
-                      ),
-                    ),
+
                     const SizedBox(height: 24),
                     // Form Card
                     Card(
                       color: Colors.white,
                       elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20)),
                       child: Padding(
                         padding: const EdgeInsets.all(20),
                         child: Form(
@@ -163,8 +149,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                   if (value == null || value.trim().isEmpty) {
                                     return 'Enter your email';
                                   }
-                                  final email = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
-                                  if (!email.hasMatch(value.trim())) return 'Invalid email';
+                                  final email =
+                                      RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+                                  if (!email.hasMatch(value.trim()))
+                                    return 'Invalid email';
                                   return null;
                                 },
                               ),
@@ -176,13 +164,18 @@ class _LoginScreenState extends State<LoginScreen> {
                                   labelText: 'Password',
                                   prefixIcon: const Icon(Icons.lock_outline),
                                   suffixIcon: IconButton(
-                                    onPressed: () => setState(() => _obscure = !_obscure),
-                                    icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off),
+                                    onPressed: () =>
+                                        setState(() => _obscure = !_obscure),
+                                    icon: Icon(_obscure
+                                        ? Icons.visibility
+                                        : Icons.visibility_off),
                                   ),
                                 ),
                                 validator: (value) {
-                                  if (value == null || value.isEmpty) return 'Enter your password';
-                                  if (value.length < 6) return 'Must be at least 6 characters';
+                                  if (value == null || value.isEmpty)
+                                    return 'Enter your password';
+                                  if (value.length < 6)
+                                    return 'Must be at least 6 characters';
                                   return null;
                                 },
                               ),
@@ -207,7 +200,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                           width: 20,
                                           child: CircularProgressIndicator(
                                             strokeWidth: 2,
-                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                    Colors.white),
                                           ),
                                         )
                                       : const Text('Sign in'),
@@ -219,7 +214,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                 children: [
                                   const Text("Don't have an account?"),
                                   TextButton(
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                const SignUpScreen()),
+                                      );
+                                    },
                                     child: const Text('Create account'),
                                   ),
                                 ],
@@ -230,18 +232,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    // Secondary CTA
-                    TextButton.icon(
-                      onPressed: _loadHealth,
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Refresh server status'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: Colors.white.withOpacity(0.12),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -252,5 +242,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-
-
