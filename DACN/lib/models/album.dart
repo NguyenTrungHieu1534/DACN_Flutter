@@ -1,5 +1,5 @@
 class Album {
-  final int id;
+  final String id;
   final String name;
   final String artist;
   final String url;
@@ -13,10 +13,10 @@ class Album {
 
   factory Album.fromJson(Map<String, dynamic> json) {
     return Album(
-      id: json['_id'],
-      name: json['name'],
-      artist: json['artist'],
-      url: json['url'],
+      id: json['_id']?.toString() ?? '',
+      name: json['name'] ?? '',
+      artist: json['artist'] ?? '',
+      url: json['url'] ?? '',
     );
   }
 }

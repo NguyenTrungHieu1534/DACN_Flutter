@@ -3,17 +3,17 @@ import 'package:http/http.dart' as http;
 import '../models/album.dart';
 
 class AlbumService {
-  static const String baseApiUrl = 'https://backend-dacn-9l4w.onrender.com';
-
   static Future<List<Album>> fetchAlbums() async {
-    final uri = Uri.parse("$baseApiUrl/api/albums");
-    final response = await http.get(Uri.parse("$baseApiUrl/api/albums"));
-    print(response.body);
+    final url = Uri.parse('https://backend-dacn-9l4w.onrender.com/api/albums');
+    final response = await http.get(url);
+
     if (response.statusCode == 200) {
-      final List data = jsonDecode(response.body);
-      return data.map((json) => Album.fromJson(json)).toList();
+      final List<dynamic> data = jsonDecode(response.body);
+      final albums = data.map((e) => Album.fromJson(e)).toList();
+      print('Fetched ${albums.length} albums');
+      return albums;
     } else {
-      throw Exception("Lỗi tải album: ${response.statusCode}");
+      throw Exception('Lỗi tải album: ${response.statusCode}');
     }
   }
 }
