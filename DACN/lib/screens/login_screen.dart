@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../services/api_service.dart';
+import '../services/api_user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
 import '../screens/signup_screen.dart';
@@ -16,7 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final ApiService _api = ApiService();
+  final UserService _api = UserService();
 
   bool _obscure = true;
   String _health = 'Checking…';

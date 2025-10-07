@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:music_login/screens/home_screen.dart';
 
 import 'theme/app_theme.dart';
 import 'screens/login_screen.dart';
@@ -29,7 +30,7 @@ class MusicLoginApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Wave Music',
       theme: AppTheme.buildTheme(base),
-      home: const LoginScreen(),
+      home: const HomeScreen(),
     );
   }
 }
