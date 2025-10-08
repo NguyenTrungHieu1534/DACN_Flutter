@@ -31,7 +31,7 @@ class MusicLoginApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Wave Music',
       theme: AppTheme.buildTheme(base),
-      home: const LoginScreen(),
+      home: const HomeScreen(),
       routes: {
         '/home': (context) => const HomeScreen(),
       },
