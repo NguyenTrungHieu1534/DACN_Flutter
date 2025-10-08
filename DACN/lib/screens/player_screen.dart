@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
 class PlayerScreen extends StatefulWidget {
-  const PlayerScreen({super.key, required this.title, required this.subtitle});
+  const PlayerScreen({super.key, required this.title, required this.subtitle, this.imageUrl, this.heroTag});
 
   final String title;
   final String subtitle;
+  final String? imageUrl;
+  final Object? heroTag;
 
   @override
   State<PlayerScreen> createState() => _PlayerScreenState();
@@ -69,11 +71,20 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
                   ),
                 ),
                 const SizedBox(height: 12),
-                // Spinning disc
-                RotationTransition(
-                  turns: _spinController,
-                  child: _Disc(),
-                ),
+                // Spinning disc or album art
+                if (widget.imageUrl != null && widget.imageUrl!.isNotEmpty)
+                  Hero(
+                    tag: widget.heroTag ?? widget.imageUrl!,
+                    child: RotationTransition(
+                      turns: _spinController,
+                      child: _AlbumArt(imageUrl: widget.imageUrl!),
+                    ),
+                  )
+                else
+                  RotationTransition(
+                    turns: _spinController,
+                    child: _Disc(),
+                  ),
                 const SizedBox(height: 24),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -243,6 +254,57 @@ class _Disc extends StatelessWidget {
             child: const Icon(Icons.music_note, size: 34, color: Colors.black45),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _AlbumArt extends StatelessWidget {
+  const _AlbumArt({required this.imageUrl});
+
+  final String imageUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 320,
+      width: 320,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 24,
+            offset: const Offset(0, 16),
+          )
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.network(
+            imageUrl,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(
+              color: Colors.white,
+              child: const Icon(Icons.album, size: 64, color: Colors.black45),
+            ),
+          ),
+          // Center label hole overlay
+          Align(
+            alignment: Alignment.center,
+            child: Container(
+              height: 64,
+              width: 64,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.black.withOpacity(0.08),
+                border: Border.all(color: Colors.white24, width: 1),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
