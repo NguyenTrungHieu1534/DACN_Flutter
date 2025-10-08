@@ -21,6 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscure = true;
   String _health = 'Checking…';
   bool _isSubmitting = false;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -43,7 +44,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _onSubmit() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _isSubmitting = true);
+    setState(() {
+      _isSubmitting = true;
+      _errorMessage = null;
+    });
     try {
       final identifier = _emailController.text.trim();
       final password = _passwordController.text;
@@ -54,21 +58,12 @@ class _LoginScreenState extends State<LoginScreen> {
       await prefs.setString('auth_token', result.token);
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result.message),
-          backgroundColor: Colors.green.shade600,
-        ),
-      );
-      // TODO: Navigate to the next screen if needed
+      Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString().replaceFirst('Exception: ', '')),
-          backgroundColor: Colors.red.shade600,
-        ),
-      );
+      setState(() {
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      });
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -151,8 +146,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   }
                                   final email =
                                       RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
-                                  if (!email.hasMatch(value.trim()))
+                                  if (!email.hasMatch(value.trim())) {
                                     return 'Invalid email';
+                                  }
                                   return null;
                                 },
                               ),
@@ -172,13 +168,25 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 ),
                                 validator: (value) {
-                                  if (value == null || value.isEmpty)
+                                  if (value == null || value.isEmpty) {
                                     return 'Enter your password';
-                                  if (value.length < 6)
+                                  }
+                                  if (value.length < 6) {
                                     return 'Must be at least 6 characters';
+                                  }
                                   return null;
                                 },
                               ),
+                              if (_errorMessage != null) ...[
+                                const SizedBox(height: 8),
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    _errorMessage!,
+                                    style: const TextStyle(color: Colors.red),
+                                  ),
+                                ),
+                              ],
                               const SizedBox(height: 8),
                               Row(
                                 children: [
