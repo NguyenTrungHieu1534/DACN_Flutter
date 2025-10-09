@@ -1,9 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+<<<<<<< Updated upstream
 import '../screens/home_screen.dart';
 import '../screens/search_screen.dart';
 import '../screens/fav_screen.dart';
 import '../screens/user_screen.dart';
+=======
+import 'package:music_login/screens/home_screen.dart';
+import 'package:music_login/screens/login_screen.dart';
+import 'package:music_login/screens/forgot_password_screen.dart';
+import 'package:music_login/screens/verify_otp_screen.dart';
+import 'package:music_login/screens/reset_password_screen.dart';
+
+import 'theme/app_theme.dart';
+>>>>>>> Stashed changes
 
 void main() {
   runApp(const WaveMusicApp());
@@ -16,6 +26,7 @@ class WaveMusicApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Wave Music',
+<<<<<<< Updated upstream
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
@@ -102,3 +113,16 @@ class _MainNavigationState extends State<MainNavigation>
     );
   }
 }
+=======
+      theme: AppTheme.buildTheme(base),
+      home: const LoginScreen(),
+      routes: {
+        '/home': (context) => const HomeScreen(),
+        '/forgotPassword': (context) => const ForgotPasswordScreen(),
+        '/verifyOTP': (context) => const VerifyOtpScreen(email: ''),
+        '/resetPassword': (context) => const ResetPasswordScreen(email: '', otp: ''),
+      },
+    );
+  }
+}
+>>>>>>> Stashed changes

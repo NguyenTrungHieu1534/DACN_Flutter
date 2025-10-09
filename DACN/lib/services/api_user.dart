@@ -1,17 +1,16 @@
 import 'dart:convert';
-
 import 'package:http/http.dart' as http;
 import '../models/album.dart';
+
 class UserService {
   UserService({http.Client? client}) : _client = client ?? http.Client();
 
   final http.Client _client;
-
-  // Base API URL for your backend server
   static const String baseApiUrl = 'https://backend-dacn-9l4w.onrender.com';
   static const String baseHealthUrl =
       'https://backend-dacn-9l4w.onrender.com/health';
 
+  // ------------------------- HEALTH CHECK -------------------------
   Future<String> checkHealth() async {
     try {
       final response = await _client
@@ -28,8 +27,9 @@ class UserService {
       return 'Offline';
     }
   }
-//signup
-static Future<Map<String, dynamic>> signUp({
+
+  // ------------------------- SIGN UP -------------------------
+  static Future<Map<String, dynamic>> signUp({
     required String username,
     required String email,
     required String password,
@@ -47,19 +47,11 @@ static Future<Map<String, dynamic>> signUp({
         }),
       );
 
-      if (response.statusCode == 201) {
-        final body = jsonDecode(response.body);
-        return {
-          "success": true,
-          "message": body["message"] ?? "Đăng ký thành công!",
-        };
-      } else {
-        final body = jsonDecode(response.body);
-        return {
-          "success": false,
-          "message": body["message"] ?? "Đăng ký thất bại!",
-        };
-      }
+      final body = jsonDecode(response.body);
+      return {
+        "success": response.statusCode == 201,
+        "message": body["message"] ?? "Đăng ký thành công!",
+      };
     } catch (e) {
       return {
         "success": false,
@@ -68,6 +60,7 @@ static Future<Map<String, dynamic>> signUp({
     }
   }
 
+  // ------------------------- LOGIN -------------------------
   Future<LoginResponse> login({
     required String identifier,
     required String password,
@@ -84,7 +77,9 @@ static Future<Map<String, dynamic>> signUp({
         .timeout(const Duration(seconds: 12));
 
     final Map<String, dynamic> data =
-        response.body.isNotEmpty ? jsonDecode(response.body) as Map<String, dynamic> : {};
+    response.body.isNotEmpty
+        ? jsonDecode(response.body) as Map<String, dynamic>
+        : {};
 
     if (response.statusCode == 200) {
       final token = data['token']?.toString();
@@ -98,6 +93,78 @@ static Future<Map<String, dynamic>> signUp({
     final errorMessage = data['message']?.toString() ?? 'Đăng nhập thất bại';
     throw Exception(errorMessage);
   }
+
+  // ------------------------- FORGOT PASSWORD -------------------------
+  Future<Map<String, dynamic>> sendForgotPasswordOtp({
+    required String username,
+    required String email,
+  }) async {
+    final uri = Uri.parse('$baseApiUrl/forgot-password');
+    try {
+      final response = await _client.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'username': username, 'email': email}),
+      ).timeout(const Duration(seconds: 30));
+
+      final body = jsonDecode(response.body);
+      return {
+        'success': response.statusCode == 200,
+        'message': body['message'] ?? 'Đã gửi OTP hoặc link xác thực đến email của bạn.',
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Lỗi kết nối: $e'};
+    }
+  }
+
+  Future<Map<String, dynamic>> verifyOtp({
+    required String email,
+    required String otp,
+  }) async {
+    final uri = Uri.parse('$baseApiUrl/api/verify-otp');
+    try {
+      final response = await _client.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'otp': otp}),
+      );
+
+      final body = jsonDecode(response.body);
+      return {
+        'success': response.statusCode == 200,
+        'message': body['message'] ?? 'Xác minh OTP thành công!',
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Lỗi kết nối: $e'};
+    }
+  }
+
+  Future<Map<String, dynamic>> resetPassword({
+    required String email,
+    required String otp,
+    required String password,
+  }) async {
+    final uri = Uri.parse('$baseApiUrl/api/reset-password');
+    try {
+      final response = await _client.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+          'otp': otp,
+        }),
+      );
+
+      final body = jsonDecode(response.body);
+      return {
+        'success': response.statusCode == 200,
+        'message': body['message'] ?? 'Đặt lại mật khẩu thành công!',
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Lỗi kết nối: $e'};
+    }
+  }
 }
 
 class LoginResponse {
@@ -106,7 +173,3 @@ class LoginResponse {
   final String token;
   final String message;
 }
-
-
-
-
