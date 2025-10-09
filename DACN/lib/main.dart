@@ -30,14 +30,14 @@ class WaveMusicApp extends StatelessWidget {
       title: 'Wave Music',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.buildTheme(base),
-      home: const LoginScreen(),
-      routes: {
-        '/home': (context) => const MainNavigation(),
-        '/forgotPassword': (context) => const ForgotPasswordScreen(),
-        '/verifyOTP': (context) => const VerifyOtpScreen(email: ''),
-        '/resetPassword': (context) =>
-        const ResetPasswordScreen(email: '', otp: ''),
-      },
+      home: const MainNavigation(),
+      // routes: {
+      //   '/home': (context) => const MainNavigation(),
+      //   '/forgotPassword': (context) => const ForgotPasswordScreen(),
+      //   '/verifyOTP': (context) => const VerifyOtpScreen(email: ''),
+      //   '/resetPassword': (context) =>
+      //       const ResetPasswordScreen(email: '', otp: ''),
+      // },
     );
   }
 }
@@ -54,10 +54,10 @@ class _MainNavigationState extends State<MainNavigation>
   int _currentIndex = 0;
 
   final _screens = const [
-    HomeScreen(),
-    SearchScreen(),
-    FavScreen(),
-    UserScreen(),
+    HomeScreen(key: ValueKey('home')),
+    SearchScreen(key: ValueKey('search')),
+    FavScreen(key: ValueKey('fav')),
+    UserScreen(key: ValueKey('user')),
   ];
 
   @override
