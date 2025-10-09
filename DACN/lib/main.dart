@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../screens/home_screen.dart';
-import '../screens/search_screen.dart';
-import '../screens/fav_screen.dart';
-import '../screens/user_screen.dart';
-
-
 import 'package:music_login/screens/home_screen.dart';
 import 'package:music_login/screens/login_screen.dart';
 import 'package:music_login/screens/forgot_password_screen.dart';
