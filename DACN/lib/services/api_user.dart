@@ -99,7 +99,7 @@ class UserService {
     required String username,
     required String email,
   }) async {
-    final uri = Uri.parse('$baseApiUrl/forgot-password');
+    final uri = Uri.parse('$baseApiUrl/api/forgot-password');
     try {
       final response = await _client.post(
         uri,
