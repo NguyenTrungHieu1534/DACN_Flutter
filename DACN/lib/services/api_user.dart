@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import '../models/album.dart';
 class UserService {
   UserService({http.Client? client}) : _client = client ?? http.Client();
 

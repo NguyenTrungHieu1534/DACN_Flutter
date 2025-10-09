@@ -112,9 +112,9 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
                       const SizedBox(height: 16),
                       // Animated chill slider (value fixed at 0)
                       _ChillSlider(controller: _shimmerController),
-                      Row(
+                      const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
+                        children: [
                           Text('0:00', style: TextStyle(color: Colors.white70)),
                           Text('0:00', style: TextStyle(color: Colors.white70)),
                         ],
@@ -239,7 +239,7 @@ class _Disc extends StatelessWidget {
       ),
       child: Container(
         margin: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           shape: BoxShape.circle,
           color: Colors.white,
         ),
@@ -412,10 +412,10 @@ class LyricsScreen extends StatelessWidget {
             ],
           ),
         ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+        child: const SingleChildScrollView(
+          padding: EdgeInsets.all(16),
           child: Column(
-            children: const [
+            children: [
               SizedBox(height: 16),
               Text(
                 'Lyrics will be displayed here.\n\nThis page is ready for integration with real lyrics later.',
