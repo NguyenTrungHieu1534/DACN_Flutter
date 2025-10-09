@@ -45,16 +45,6 @@ class WaveMusicApp extends StatelessWidget {
         '/resetPassword': (context) =>
         const ResetPasswordScreen(email: '', otp: ''),
       },
-
-      home: const MainNavigation(),
-      // routes: {
-      //   '/home': (context) => const MainNavigation(),
-      //   '/forgotPassword': (context) => const ForgotPasswordScreen(),
-      //   '/verifyOTP': (context) => const VerifyOtpScreen(email: ''),
-      //   '/resetPassword': (context) =>
-      //       const ResetPasswordScreen(email: '', otp: ''),
-      // },
-
     );
   }
 }
