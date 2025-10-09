@@ -6,11 +6,15 @@ import '../screens/search_screen.dart';
 import '../screens/fav_screen.dart';
 import '../screens/user_screen.dart';
 
+
 import 'package:music_login/screens/home_screen.dart';
 import 'package:music_login/screens/login_screen.dart';
 import 'package:music_login/screens/forgot_password_screen.dart';
 import 'package:music_login/screens/verify_otp_screen.dart';
 import 'package:music_login/screens/reset_password_screen.dart';
+import 'package:music_login/screens/search_screen.dart';
+import 'package:music_login/screens/fav_screen.dart';
+import 'package:music_login/screens/user_screen.dart';
 
 import 'theme/app_theme.dart';
 
@@ -23,15 +27,24 @@ class WaveMusicApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final base = ThemeData(
+      useMaterial3: true,
+      textTheme: GoogleFonts.poppinsTextTheme(),
+      scaffoldBackgroundColor: const Color(0xFFF8F9FB),
+    );
+
     return MaterialApp(
       title: 'Wave Music',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        textTheme: GoogleFonts.poppinsTextTheme(),
-        scaffoldBackgroundColor: const Color(0xFFF8F9FB),
-      ),
-     home: const MainNavigation()
+      theme: AppTheme.buildTheme(base),
+      home: const LoginScreen(),
+      routes: {
+        '/home': (context) => const MainNavigation(),
+        '/forgotPassword': (context) => const ForgotPasswordScreen(),
+        '/verifyOTP': (context) => const VerifyOtpScreen(email: ''),
+        '/resetPassword': (context) =>
+        const ResetPasswordScreen(email: '', otp: ''),
+      },
     );
   }
 }
