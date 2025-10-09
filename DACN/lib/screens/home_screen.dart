@@ -197,31 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             },
           ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Container(
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.35),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white30, width: 0.6),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  const _NavIcon(icon: Icons.home_filled, label: 'Home', active: true),
-                  const _NavIcon(icon: Icons.search, label: 'Search'),
-                  const _NavIcon(icon: Icons.library_music, label: 'Library'),
-                  _NavIcon(
-                    icon: Icons.person_outline,
-                    label: 'Profile',
-                    onTap: () => _showProfileSheet(context),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          
         ],
       ),
     );
