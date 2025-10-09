@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/songs.dart';
 
-class Songservice {
+class SongService {
   static Future<List<Songs>> fetchSongs() async {
     final url = Uri.parse('https://backend-dacn-9l4w.onrender.com/api/songs');
     final response = await http.get(url);

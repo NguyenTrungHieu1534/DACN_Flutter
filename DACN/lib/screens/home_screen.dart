@@ -8,9 +8,12 @@ import 'search_screen.dart';
 import 'library_screen.dart';
 import 'section_list_screen.dart';
 import '../theme/app_theme.dart';
+import '../models/songs.dart';
+import '../services/api_songs.dart';
+import 'dart:math';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -18,187 +21,109 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late Future<List<Album>> _albumsFuture;
+  late Future<List<Songs>> _songsFuture;
+
+  late Future<List<dynamic>> _combinedFuture;
 
   @override
   void initState() {
     super.initState();
     _albumsFuture = AlbumService.fetchAlbums();
+    _songsFuture = SongService.fetchSongs();
+
+    // Kết hợp 2 Future cùng lúc
+    _combinedFuture = Future.wait([_albumsFuture, _songsFuture]);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        toolbarHeight: 0,
-        automaticallyImplyLeading: false,
-      ),
-      body: Stack(
-        children: [
-          // Ocean gradient background + sand overlay
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.oceanDeep,
-                  AppColors.oceanBlue,
-                  AppColors.skyBlue,
-                ],
+      backgroundColor: Colors.black,
+      body: FutureBuilder<List<dynamic>>(
+        future: _combinedFuture,
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            );
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                "Lỗi: ${snapshot.error}",
+                style: const TextStyle(color: Colors.redAccent),
               ),
-            ),
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Container(
-              height: 120,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, AppColors.sand],
-                ),
-              ),
-            ),
-          ),
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-              child: Row(
+            );
+          }
+
+          final albums = snapshot.data![0] as List<Album>;
+          final songs = snapshot.data![1] as List<Songs>;
+
+          final trendingAlbums = albums.take(10).toList();
+          final newReleases = albums
+              .skip(albums.length > 5 ? albums.length - 5 : 0)
+              .toList()
+              .reversed
+              .toList();
+          final trendingSongs = songs.take(10).toList();
+
+          String greeting() {
+            final hour = DateTime.now().hour;
+            if (hour < 12) return 'Good Morning';
+            if (hour < 18) return 'Good Afternoon';
+            return 'Good Evening';
+          }
+
+          return RefreshIndicator(
+            color: AppColors.oceanBlue,
+            backgroundColor: Colors.white,
+            onRefresh: () async {
+              setState(() {
+                _albumsFuture = AlbumService.fetchAlbums();
+                _songsFuture = SongService.fetchSongs();
+                _combinedFuture = Future.wait([_albumsFuture, _songsFuture]);
+              });
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(12, 8 + 48, 12, 96),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Wave Music',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Text(
+                      greeting(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
-                  const Spacer(),
-                   IconButton(
-                     onPressed: () {
-                       Navigator.push(
-                         context,
-                         MaterialPageRoute(builder: (_) => const SearchScreen()),
-                       );
-                     },
-                     icon: const Icon(Icons.search, color: Colors.white),
-                   ),
-                   IconButton(
-                     onPressed: () {
-                       Navigator.push(
-                         context,
-                         MaterialPageRoute(builder: (_) => const LibraryScreen()),
-                       );
-                     },
-                     icon: const Icon(Icons.settings_outlined, color: Colors.white),
-                   ),
+                  const SizedBox(height: 12),
+                  _HorizontalSection(
+                    title: 'Trending album right now',
+                    itemsAlbum: trendingAlbums,
+                    itemsSsongs: const [],
+                  ),
+                  const SizedBox(height: 16),
+                  _HorizontalSection(
+                    title: 'New releases',
+                    itemsAlbum: newReleases,
+                    itemsSsongs: const [],
+                  ),
+                  const SizedBox(height: 16),
+                  _HorizontalSection(
+                    title: 'Trending songs right now',
+                    itemsAlbum: const [],
+                    itemsSsongs: trendingSongs,
+                  ),
+                  const SizedBox(height: 8),
                 ],
               ),
             ),
-          ),
-          FutureBuilder<List<Album>>(
-            future: _albumsFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: CircularProgressIndicator(color: Colors.white),
-                );
-              } else if (snapshot.hasError) {
-                return Center(
-                  child: Text(
-                    "Lỗi: ${snapshot.error}",
-                    style: const TextStyle(color: Colors.redAccent),
-                  ),
-                );
-              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(
-                  child: Text(
-                    "Không có album nào",
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                );
-              }
-
-              final albums = snapshot.data!;
-              final List<Album> trending = albums.take(10).toList();
-              final List<Album> recommended = albums.reversed.take(10).toList();
-              final List<Album> newReleases = albums.skip(albums.length > 5 ? albums.length - 5 : 0).toList().reversed.toList();
-
-              String greeting() {
-                final hour = DateTime.now().hour;
-                if (hour < 12) return 'Good Morning';
-                if (hour < 18) return 'Good Afternoon';
-                return 'Good Evening';
-              }
-
-              return RefreshIndicator(
-                color: AppColors.oceanBlue,
-                backgroundColor: Colors.white,
-                onRefresh: () async {
-                  setState(() {
-                    _albumsFuture = AlbumService.fetchAlbums();
-                  });
-                },
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(12, 8 + 48, 12, 96),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 6),
-                        child: Text(
-                          greeting(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      // Quick actions
-                      SizedBox(
-                        height: 42,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: const [
-                            _QuickChip(label: 'Liked Songs', icon: Icons.favorite),
-                            SizedBox(width: 8),
-                            _QuickChip(label: 'Recently Played', icon: Icons.history),
-                            SizedBox(width: 8),
-                            _QuickChip(label: 'For You', icon: Icons.auto_awesome),
-                            SizedBox(width: 8),
-                            _QuickChip(label: 'Trending', icon: Icons.trending_up),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      _HorizontalSection(
-                        title: 'Trending right now',
-                        items: trending,
-                      ),
-                      const SizedBox(height: 16),
-                      _HorizontalSection(
-                        title: 'Recommended for you',
-                        items: recommended,
-                      ),
-                      const SizedBox(height: 16),
-                      _HorizontalSection(
-                        title: 'New releases',
-                        items: newReleases,
-                      ),
-                      const SizedBox(height: 8),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-          
-        ],
+          );
+        },
       ),
     );
   }
@@ -226,7 +151,8 @@ class _QuickChip extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 label,
-                style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                    color: Colors.black87, fontWeight: FontWeight.w600),
               ),
             ],
           ),
@@ -237,10 +163,14 @@ class _QuickChip extends StatelessWidget {
 }
 
 class _HorizontalSection extends StatelessWidget {
-  const _HorizontalSection({required this.title, required this.items});
+  const _HorizontalSection(
+      {required this.title,
+      required this.itemsAlbum,
+      required this.itemsSsongs});
 
   final String title;
-  final List<Album> items;
+  final List<Album> itemsAlbum;
+  final List<Songs> itemsSsongs;
 
   @override
   Widget build(BuildContext context) {
@@ -260,15 +190,16 @@ class _HorizontalSection extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-               TextButton(
-                 onPressed: () {
-                   Navigator.push(
-                     context,
-                     MaterialPageRoute(
-                       builder: (_) => SectionListScreen(title: title, items: items),
-                     ),
-                   );
-                 },
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          SectionListScreen(title: title, items: itemsAlbum),
+                    ),
+                  );
+                },
                 child: const Text('See all'),
               ),
             ],
@@ -279,10 +210,10 @@ class _HorizontalSection extends StatelessWidget {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 4),
-            itemCount: items.length,
+            itemCount: itemsAlbum.length,
             separatorBuilder: (_, __) => const SizedBox(width: 12),
             itemBuilder: (context, index) {
-              final album = items[index];
+              final album = itemsAlbum[index];
               final heroTag = 'albumArt-${album.url}-h-$index';
               return SizedBox(
                 width: 150,
@@ -355,7 +286,11 @@ class _HorizontalSection extends StatelessWidget {
 }
 
 class _NavIcon extends StatelessWidget {
-  const _NavIcon({required this.icon, required this.label, this.active = false, this.onTap});
+  const _NavIcon(
+      {required this.icon,
+      required this.label,
+      this.active = false,
+      this.onTap});
 
   final IconData icon;
   final String label;
@@ -423,9 +358,10 @@ void _showProfileSheet(BuildContext context) {
                       const SizedBox(width: 12),
                       Text(
                         'Profile',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
                       ),
                       const Spacer(),
                       IconButton(
@@ -442,7 +378,8 @@ void _showProfileSheet(BuildContext context) {
                     )
                   else if (isLoggedIn)
                     ListTile(
-                      leading: const Icon(Icons.logout, color: Colors.redAccent),
+                      leading:
+                          const Icon(Icons.logout, color: Colors.redAccent),
                       title: const Text('Logout'),
                       onTap: () async {
                         final prefs = await SharedPreferences.getInstance();
@@ -452,12 +389,14 @@ void _showProfileSheet(BuildContext context) {
                     )
                   else
                     ListTile(
-                      leading: const Icon(Icons.login, color: Colors.blueAccent),
+                      leading:
+                          const Icon(Icons.login, color: Colors.blueAccent),
                       title: const Text('Login'),
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const LoginScreen()),
+                          MaterialPageRoute(
+                              builder: (_) => const LoginScreen()),
                         );
                       },
                     ),
@@ -471,4 +410,3 @@ void _showProfileSheet(BuildContext context) {
     },
   );
 }
-
