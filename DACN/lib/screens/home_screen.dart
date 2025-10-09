@@ -11,6 +11,9 @@ import '../theme/app_theme.dart';
 import '../models/songs.dart';
 import '../services/api_songs.dart';
 import 'dart:math';
+import 'package:http/http.dart' as http;
+import '../widgets/TrendingAlbums.dart';
+import '../widgets/TrendingSong.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -30,129 +33,331 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _albumsFuture = AlbumService.fetchAlbums();
     _songsFuture = SongService.fetchSongs();
-
     // Kết hợp 2 Future cùng lúc
     _combinedFuture = Future.wait([_albumsFuture, _songsFuture]);
   }
 
   @override
   Widget build(BuildContext context) {
+    // 🌴 AppTheme — gộp trực tiếp
+    const retroPrimary = Color(0xFF70C1B3); // xanh ngọc retro
+    const retroAccent = Color(0xFF247BA0); // xanh biển đậm
+    const retroPeach = Color(0xFFFFB6B9); // hồng pastel
+    const retroSand = Color(0xFFFFE066); // vàng cát
+    const retroWhite = Color(0xFFFFFFFF);
+
+    final retroBoxGradient = LinearGradient(
+      colors: [
+        retroPrimary.withOpacity(0.25),
+        retroAccent.withOpacity(0.15),
+      ],
+    );
+
+    final retroShadow = [
+      BoxShadow(
+        color: retroPrimary.withOpacity(0.25),
+        blurRadius: 12,
+        spreadRadius: 2,
+        offset: const Offset(0, 4),
+      ),
+    ];
+
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: FutureBuilder<List<dynamic>>(
-        future: _combinedFuture,
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const Center(
-              child: CircularProgressIndicator(color: Colors.white),
-            );
-          } else if (snapshot.hasError) {
-            return Center(
-              child: Text(
-                "Lỗi: ${snapshot.error}",
-                style: const TextStyle(color: Colors.redAccent),
-              ),
-            );
-          }
-
-          final albums = snapshot.data![0] as List<Album>;
-          final songs = snapshot.data![1] as List<Songs>;
-
-          final trendingAlbums = albums.take(10).toList();
-          final newReleases = albums
-              .skip(albums.length > 5 ? albums.length - 5 : 0)
-              .toList()
-              .reversed
-              .toList();
-          final trendingSongs = songs.take(10).toList();
-
-          String greeting() {
-            final hour = DateTime.now().hour;
-            if (hour < 12) return 'Good Morning';
-            if (hour < 18) return 'Good Afternoon';
-            return 'Good Evening';
-          }
-
-          return RefreshIndicator(
-            color: AppColors.oceanBlue,
-            backgroundColor: Colors.white,
-            onRefresh: () async {
-              setState(() {
-                _albumsFuture = AlbumService.fetchAlbums();
-                _songsFuture = SongService.fetchSongs();
-                _combinedFuture = Future.wait([_albumsFuture, _songsFuture]);
-              });
-            },
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(12, 8 + 48, 12, 96),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    child: Text(
-                      greeting(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF70C1B3), // xanh ngọc retro
+              Color(0xFFFFFFFF), // trắng pastel
+            ],
+            stops: [0.0, 0.4],
+          ),
+        ),
+        child: FutureBuilder<List<dynamic>>(
+          future: _combinedFuture,
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.05),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: retroPrimary.withOpacity(0.6),
+                            blurRadius: 40,
+                            spreadRadius: 12,
+                          ),
+                        ],
+                      ),
+                      child: const CircularProgressIndicator(
+                        color: retroPrimary,
+                        strokeWidth: 3,
                       ),
                     ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Loading your retro vibes...',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.8),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            } else if (snapshot.hasError) {
+              return Center(
+                child: Container(
+                  margin: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.red.withOpacity(0.2),
+                        Colors.red.withOpacity(0.1),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.red.withOpacity(0.3),
+                      width: 2,
+                    ),
                   ),
-                  const SizedBox(height: 12),
-                  _HorizontalSection(
-                    title: 'Trending album right now',
-                    itemsAlbum: trendingAlbums,
-                    itemsSsongs: const [],
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.error_outline_rounded,
+                        color: Colors.redAccent,
+                        size: 48,
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        "Oops! Something went wrong",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  _HorizontalSection(
-                    title: 'New releases',
-                    itemsAlbum: newReleases,
-                    itemsSsongs: const [],
-                  ),
-                  const SizedBox(height: 16),
-                  _HorizontalSection(
-                    title: 'Trending songs right now',
-                    itemsAlbum: const [],
-                    itemsSsongs: trendingSongs,
-                  ),
-                  const SizedBox(height: 8),
-                ],
+                ),
+              );
+            }
+
+            final albums = snapshot.data![0] as List<Album>;
+            final songs = snapshot.data![1] as List<Songs>;
+
+            albums.shuffle();
+            songs.shuffle();
+
+            final trendingAlbums = albums.take(4).toList();
+            final trendingSongs = songs.take(5).toList();
+            final newReleases = albums
+                .skip(albums.length > 5 ? albums.length - 5 : 0)
+                .toList()
+                .reversed
+                .toList();
+
+            for (var song in songs) {
+              final album = albums.firstWhere(
+                (a) => a.name == song.albuml,
+                orElse: () => albums.first,
+              );
+              song.thumbnail = album.url;
+            }
+
+            String greeting() {
+              final hour = DateTime.now().hour;
+              if (hour < 12) return 'Good Morning';
+              if (hour < 18) return 'Good Afternoon';
+              return 'Good Evening';
+            }
+
+            return RefreshIndicator(
+              color: retroPrimary,
+              backgroundColor: retroWhite,
+              strokeWidth: 3,
+              onRefresh: () async {
+                setState(() {
+                  _albumsFuture = AlbumService.fetchAlbums();
+                  _songsFuture = SongService.fetchSongs();
+                  _combinedFuture = Future.wait([_albumsFuture, _songsFuture]);
+                });
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(16, 60, 16, 96),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 🌸 Greeting Box
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 16),
+                      decoration: BoxDecoration(
+                        gradient: retroBoxGradient,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: retroPrimary.withOpacity(0.4),
+                        ),
+                        boxShadow: retroShadow,
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [
+                                  Color.fromARGB(255, 112, 140, 193),
+                                  retroPeach
+                                ],
+                              ),
+                            ),
+                            child: Icon(
+                              _getGreetingIcon(DateTime.now().hour),
+                              color: Colors.white,
+                              size: 28,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ShaderMask(
+                                shaderCallback: (bounds) =>
+                                    const LinearGradient(
+                                  colors: [
+                                    Colors.white,
+                                    Color.fromARGB(255, 255, 255, 255)
+                                  ],
+                                ).createShader(bounds),
+                                child: Text(
+                                  greeting(),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Ready to discover music?',
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.6),
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // 🌴 Quick Chips retro
+                    SizedBox(
+                      height: 42,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: const [
+                          _QuickChip(
+                              label: 'Liked Songs', icon: Icons.favorite),
+                          SizedBox(width: 8),
+                          _QuickChip(
+                              label: 'Recently Played', icon: Icons.history),
+                          SizedBox(width: 8),
+                          _QuickChip(
+                              label: 'For You', icon: Icons.auto_awesome),
+                          SizedBox(width: 8),
+                          _QuickChip(
+                              label: 'Trending', icon: Icons.trending_up),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 28),
+                    TrendingAlbum(
+                        title: 'Trending Albums', itemsAlbum: trendingAlbums),
+                    const SizedBox(height: 28),
+                    _buildRetroDivider(),
+                    TrendingSong(
+                        title: 'New Releases',
+                        itemsAlbum: newReleases,
+                        itemsSsongs: const []),
+                    const SizedBox(height: 28),
+                    _buildRetroDivider(),
+                    TrendingSong(
+                        title: 'Trending Songs',
+                        itemsAlbum: const [],
+                        itemsSsongs: trendingSongs),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
 }
 
 class _QuickChip extends StatelessWidget {
-  const _QuickChip({required this.label, required this.icon});
+  const _QuickChip({
+    required this.label,
+    required this.icon,
+    super.key,
+  });
 
   final String label;
   final IconData icon;
 
   @override
   Widget build(BuildContext context) {
+    final themeColor = const Color(0xFF70C1B3); // màu retro xanh biển nhạt
+
     return Material(
-      color: Colors.white.withOpacity(0.9),
+      elevation: 3,
+      shadowColor: Colors.black26,
+      color: Colors.white.withOpacity(0.95),
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
         onTap: () {},
         borderRadius: BorderRadius.circular(20),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 18, color: Colors.black87),
+              Icon(
+                icon,
+                size: 18,
+                color: themeColor,
+              ),
               const SizedBox(width: 8),
               Text(
                 label,
                 style: const TextStyle(
-                    color: Colors.black87, fontWeight: FontWeight.w600),
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.3,
+                ),
               ),
             ],
           ),
@@ -162,251 +367,110 @@ class _QuickChip extends StatelessWidget {
   }
 }
 
-class _HorizontalSection extends StatelessWidget {
-  const _HorizontalSection(
-      {required this.title,
-      required this.itemsAlbum,
-      required this.itemsSsongs});
-
-  final String title;
-  final List<Album> itemsAlbum;
-  final List<Songs> itemsSsongs;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-          child: Row(
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16,
-                ),
-              ),
-              const Spacer(),
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          SectionListScreen(title: title, items: itemsAlbum),
-                    ),
-                  );
-                },
-                child: const Text('See all'),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(
-          height: 210,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            itemCount: itemsAlbum.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder: (context, index) {
-              final album = itemsAlbum[index];
-              final heroTag = 'albumArt-${album.url}-h-$index';
-              return SizedBox(
-                width: 150,
-                child: Material(
-                  color: Colors.white.withOpacity(0.9),
-                  borderRadius: BorderRadius.circular(14),
-                  clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => PlayerScreen(
-                            title: album.name,
-                            subtitle: album.artist,
-                            imageUrl: album.url,
-                            heroTag: heroTag,
-                          ),
-                        ),
-                      );
-                    },
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Hero(
-                            tag: heroTag,
-                            child: Ink.image(
-                              image: NetworkImage(album.url),
-                              fit: BoxFit.cover,
-                              child: const SizedBox.expand(),
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(10, 8, 10, 2),
-                          child: Text(
-                            album.name,
-                            style: const TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.w700,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
-                          child: Text(
-                            album.artist,
-                            style: const TextStyle(
-                              color: Colors.black54,
-                              fontSize: 12,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _NavIcon extends StatelessWidget {
-  const _NavIcon(
-      {required this.icon,
-      required this.label,
-      this.active = false,
-      this.onTap});
-
-  final IconData icon;
-  final String label;
-  final bool active;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final Color color = active ? Colors.white : Colors.white70;
-    final Widget content = Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, color: color),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: color,
-                fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-              ),
-        ),
-      ],
-    );
-    if (onTap == null) return content;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: content,
+Widget _buildRetroDivider() {
+  return Container(
+    height: 1.2,
+    margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+    decoration: const BoxDecoration(
+      gradient: LinearGradient(
+        colors: [
+          Colors.transparent,
+          Color(0xFF70C1B3), // xanh pastel đồng bộ
+          Colors.transparent,
+        ],
+        stops: [0.1, 0.5, 0.9],
       ),
-    );
-  }
-}
-
-void _showProfileSheet(BuildContext context) {
-  showModalBottomSheet(
-    context: context,
-    backgroundColor: Colors.white,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
     ),
-    builder: (ctx) {
-      return SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: FutureBuilder<bool>(
-            future: () async {
-              final prefs = await SharedPreferences.getInstance();
-              final token = prefs.getString('auth_token');
-              return token != null && token.isNotEmpty;
-            }(),
-            builder: (context, snapshot) {
-              final bool isLoggedIn = snapshot.data == true;
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const CircleAvatar(
-                        radius: 20,
-                        child: Icon(Icons.person_outline),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Profile',
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                ),
-                      ),
-                      const Spacer(),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.pop(ctx),
-                      )
-                    ],
-                  ),
-                  const Divider(height: 20),
-                  if (!snapshot.hasData)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 12),
-                      child: Center(child: CircularProgressIndicator()),
-                    )
-                  else if (isLoggedIn)
-                    ListTile(
-                      leading:
-                          const Icon(Icons.logout, color: Colors.redAccent),
-                      title: const Text('Logout'),
-                      onTap: () async {
-                        final prefs = await SharedPreferences.getInstance();
-                        await prefs.remove('auth_token');
-                        if (ctx.mounted) Navigator.pop(ctx);
-                      },
-                    )
-                  else
-                    ListTile(
-                      leading:
-                          const Icon(Icons.login, color: Colors.blueAccent),
-                      title: const Text('Login'),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const LoginScreen()),
-                        );
-                      },
-                    ),
-                  const SizedBox(height: 8),
-                ],
-              );
-            },
-          ),
-        ),
-      );
-    },
   );
 }
+
+IconData _getGreetingIcon(int hour) {
+  if (hour < 12) return Icons.wb_sunny_rounded;
+  if (hour < 18) return Icons.wb_twilight_rounded;
+  return Icons.nightlight_round;
+}
+
+// void _showProfileSheet(BuildContext context) {
+//   showModalBottomSheet(
+//     context: context,
+//     backgroundColor: Colors.white,
+//     shape: const RoundedRectangleBorder(
+//       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+//     ),
+//     builder: (ctx) {
+//       return SafeArea(
+//         child: Padding(
+//           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+//           child: FutureBuilder<bool>(
+//             future: () async {
+//               final prefs = await SharedPreferences.getInstance();
+//               final token = prefs.getString('auth_token');
+//               return token != null && token.isNotEmpty;
+//             }(),
+//             builder: (context, snapshot) {
+//               final bool isLoggedIn = snapshot.data == true;
+//               return Column(
+//                 mainAxisSize: MainAxisSize.min,
+//                 crossAxisAlignment: CrossAxisAlignment.start,
+//                 children: [
+//                   Row(
+//                     children: [
+//                       const CircleAvatar(
+//                         radius: 20,
+//                         child: Icon(Icons.person_outline),
+//                       ),
+//                       const SizedBox(width: 12),
+//                       Text(
+//                         'Profile',
+//                         style:
+//                             Theme.of(context).textTheme.titleMedium?.copyWith(
+//                                   fontWeight: FontWeight.w700,
+//                                 ),
+//                       ),
+//                       const Spacer(),
+//                       IconButton(
+//                         icon: const Icon(Icons.close),
+//                         onPressed: () => Navigator.pop(ctx),
+//                       )
+//                     ],
+//                   ),
+//                   const Divider(height: 20),
+//                   if (!snapshot.hasData)
+//                     const Padding(
+//                       padding: EdgeInsets.symmetric(vertical: 12),
+//                       child: Center(child: CircularProgressIndicator()),
+//                     )
+//                   else if (isLoggedIn)
+//                     ListTile(
+//                       leading:
+//                           const Icon(Icons.logout, color: Colors.redAccent),
+//                       title: const Text('Logout'),
+//                       onTap: () async {
+//                         final prefs = await SharedPreferences.getInstance();
+//                         await prefs.remove('auth_token');
+//                         if (ctx.mounted) Navigator.pop(ctx);
+//                       },
+//                     )
+//                   else
+//                     ListTile(
+//                       leading:
+//                           const Icon(Icons.login, color: Colors.blueAccent),
+//                       title: const Text('Login'),
+//                       onTap: () {
+//                         Navigator.push(
+//                           context,
+//                           MaterialPageRoute(
+//                               builder: (_) => const LoginScreen()),
+//                         );
+//                       },
+//                     ),
+//                   const SizedBox(height: 8),
+//                 ],
+//               );
+//             },
+//           ),
+//         ),
+//       );
+//     },
+//   );
+// }

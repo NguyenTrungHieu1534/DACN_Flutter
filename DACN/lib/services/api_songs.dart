@@ -10,7 +10,7 @@ class SongService {
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
       final songs = data.map((e) => Songs.fromJson(e)).toList();
-      print('Fetched ${songs.length} songs');
+      print('Fetched ${songs} bai hat');
       return songs;
     } else {
       throw Exception('Lỗi tải album: ${response.statusCode}');
