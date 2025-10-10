@@ -1,16 +1,22 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../models/songs.dart';
 import '../theme/app_theme.dart';
 
 class PlayerScreen extends StatefulWidget {
-  const PlayerScreen(
-      {super.key,
-      required this.title,
-      required this.subtitle,
-      this.imageUrl,
-      this.heroTag});
+  /// You can either pass a [Songs] object via [song], or provide [title]/[subtitle]/[imageUrl]/[heroTag] manually.
+  const PlayerScreen({
+    super.key,
+    this.song,
+    this.title,
+    this.subtitle,
+    this.imageUrl,
+    this.heroTag,
+  });
 
-  final String title;
-  final String subtitle;
+  final Songs? song;
+  final String? title;
+  final String? subtitle;
   final String? imageUrl;
   final Object? heroTag;
 
@@ -20,45 +26,103 @@ class PlayerScreen extends StatefulWidget {
 
 class _PlayerScreenState extends State<PlayerScreen>
     with TickerProviderStateMixin {
-  late final AnimationController _spinController;
   late final AnimationController _shimmerController;
 
   @override
   void initState() {
     super.initState();
-    _spinController =
-        AnimationController(vsync: this, duration: const Duration(seconds: 12))
-          ..repeat();
+    // no spinning animation needed for cover-layout
     _shimmerController =
         AnimationController(vsync: this, duration: const Duration(seconds: 3))
           ..repeat(reverse: true);
   }
 
   @override
-  void dispose() {
-    _spinController.dispose();
-    _shimmerController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    // Resolve display fields (supports either passing a Songs object or individual fields)
+    final displayImage = widget.song?.thumbnail ?? widget.imageUrl;
+    final displayTitle = widget.song?.title ?? widget.title ?? 'Unknown Title';
+    final displaySubtitle = widget.song?.artist ?? widget.subtitle ?? '';
+    final screenHeight = MediaQuery.of(context).size.height;
+    final topHeight = screenHeight * 0.33; // top 1/3
     return Scaffold(
       body: Stack(
         children: [
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.oceanDeep,
-                  AppColors.oceanBlue,
-                  AppColors.skyBlue,
-                ],
+          // Base blue retro background
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppColors.oceanDeep,
+                    AppColors.oceanBlue,
+                    AppColors.skyBlue,
+                  ],
+                  stops: [0.0, 0.45, 1.0],
+                ),
               ),
             ),
           ),
+
+          // Top cover image occupying 1/3 of the screen
+          if (displayImage != null && displayImage.isNotEmpty)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: topHeight,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.network(
+                    displayImage,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) =>
+                        Container(color: AppColors.oceanBlue),
+                  ),
+                  // Slight blur to soften cover
+                  BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 6.0, sigmaY: 6.0),
+                    child: Container(color: Colors.black.withOpacity(0.08)),
+                  ),
+                  // Gradient fade from cover into blue retro background
+                  Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Color(0x00000000), // transparent top
+                          Color(0x55247BA0), // soft blue tint (retro/hawaii)
+                          Color(
+                              0xCC0077A3), // deeper blue tint at bottom of cover
+                        ],
+                        stops: [0.3, 0.7, 1.0],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          // A subtle additional overlay across whole screen for Hawaii/retro warmth
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [
+                    Color(0x00247BA0),
+                    Color(0x000071A1),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
           SafeArea(
             child: Column(
               children: [
@@ -81,20 +145,32 @@ class _PlayerScreenState extends State<PlayerScreen>
                   ),
                 ),
                 const SizedBox(height: 12),
-                // Spinning disc or album art
-                if (widget.imageUrl != null && widget.imageUrl!.isNotEmpty)
-                  Hero(
-                    tag: widget.heroTag ?? widget.imageUrl!,
-                    child: RotationTransition(
-                      turns: _spinController,
-                      child: _AlbumArt(imageUrl: widget.imageUrl!),
+
+                // Show a centered album cover thumbnail (no spinning disc)
+                if (displayImage != null && displayImage.isNotEmpty)
+                  Center(
+                    child: Hero(
+                      tag: widget.song?.id ?? widget.heroTag ?? displayImage,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          displayImage,
+                          width: 160,
+                          height: 160,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            width: 160,
+                            height: 160,
+                            color: Colors.grey.shade300,
+                            child: const Icon(Icons.album, size: 48),
+                          ),
+                        ),
+                      ),
                     ),
                   )
                 else
-                  RotationTransition(
-                    turns: _spinController,
-                    child: _Disc(),
-                  ),
+                  const SizedBox(height: 160),
+
                 const SizedBox(height: 24),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -102,24 +178,40 @@ class _PlayerScreenState extends State<PlayerScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        widget.title,
+                        displayTitle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          shadows: const [
+                            Shadow(
+                              offset: Offset(0, 4),
+                              blurRadius: 8,
+                              color: Colors.black45,
                             ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        widget.subtitle,
+                        displaySubtitle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.white70,
+                          color: Colors.white.withOpacity(0.95),
+                          fontWeight: FontWeight.w600,
+                          shadows: const [
+                            Shadow(
+                              offset: Offset(0, 3),
+                              blurRadius: 6,
+                              color: Colors.black38,
                             ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 16),
+
                       // Animated chill slider (value fixed at 0)
                       _ChillSlider(controller: _shimmerController),
                       const Row(
@@ -130,6 +222,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                         ],
                       ),
                       const SizedBox(height: 10),
+
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
@@ -141,25 +234,42 @@ class _PlayerScreenState extends State<PlayerScreen>
                           IconButton(
                             icon: const Icon(Icons.skip_previous_rounded),
                             color: Colors.white,
-                            iconSize: 36,
+                            iconSize: 40,
                             onPressed: () {},
                           ),
+
+                          // Bigger play button with glow
                           Container(
-                            decoration: const BoxDecoration(
+                            width: 84,
+                            height: 84,
+                            decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: Colors.white,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.white.withOpacity(0.9),
+                                  blurRadius: 30,
+                                  spreadRadius: 2,
+                                ),
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.25),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
                             ),
                             child: IconButton(
                               icon: const Icon(Icons.play_arrow),
                               color: AppColors.oceanBlue,
-                              iconSize: 36,
+                              iconSize: 44,
                               onPressed: () {},
                             ),
                           ),
+
                           IconButton(
                             icon: const Icon(Icons.skip_next_rounded),
                             color: Colors.white,
-                            iconSize: 36,
+                            iconSize: 40,
                             onPressed: () {},
                           ),
                           IconButton(
@@ -170,49 +280,60 @@ class _PlayerScreenState extends State<PlayerScreen>
                         ],
                       ),
                       const SizedBox(height: 20),
-                      // Lyrics space placeholder
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.9),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
+
+                      // Lyrics box: semi-transparent glassmorphism effect
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 6.0, sigmaY: 6.0),
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.10),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                  color: Colors.white.withOpacity(0.12)),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  'Lyrics',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                      ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Lyrics',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white,
+                                          ),
+                                    ),
+                                    const Spacer(),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                const LyricsScreen(),
+                                          ),
+                                        );
+                                      },
+                                      child: const Text('Open'),
+                                    )
+                                  ],
                                 ),
-                                const Spacer(),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) => const LyricsScreen(),
-                                      ),
-                                    );
-                                  },
-                                  child: const Text('Open'),
-                                )
+                                const SizedBox(height: 6),
+                                const Text(
+                                  'Lyrics will appear here.\nTap Open to view in full screen.',
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(color: Colors.white70),
+                                ),
                               ],
                             ),
-                            const SizedBox(height: 6),
-                            const Text(
-                              'Lyrics will appear here...\nTap Open to view in full screen.',
-                              maxLines: 3,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(color: Colors.black87),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
                     ],
@@ -227,102 +348,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 }
 
-class _Disc extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 320,
-      width: 320,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: const SweepGradient(
-          colors: [
-            Colors.white,
-            Colors.white70,
-            Colors.white,
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 24,
-            offset: const Offset(0, 16),
-          )
-        ],
-      ),
-      child: Container(
-        margin: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.white,
-        ),
-        child: Center(
-          child: Container(
-            height: 64,
-            width: 64,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.black12,
-            ),
-            child:
-                const Icon(Icons.music_note, size: 34, color: Colors.black45),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _AlbumArt extends StatelessWidget {
-  const _AlbumArt({required this.imageUrl});
-
-  final String imageUrl;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 320,
-      width: 320,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 24,
-            offset: const Offset(0, 16),
-          )
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Image.network(
-            imageUrl,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => Container(
-              color: Colors.white,
-              child: const Icon(Icons.album, size: 64, color: Colors.black45),
-            ),
-          ),
-          // Center label hole overlay
-          Align(
-            alignment: Alignment.center,
-            child: Container(
-              height: 64,
-              width: 64,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.black.withOpacity(0.08),
-                border: Border.all(color: Colors.white24, width: 1),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+// removed spinning disco widgets; using cover image as top background + static thumbnail
 
 class _ChillSlider extends StatelessWidget {
   const _ChillSlider({required this.controller});
