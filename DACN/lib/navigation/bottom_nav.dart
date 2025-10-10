@@ -1,72 +1,92 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
-class MacDockNav extends StatelessWidget {
+class buildNaviBot extends StatelessWidget {
   final int currentIndex;
-  final ValueChanged<int> onTap;
+  final Function(int) onItemSelected;
 
-  const MacDockNav({
+  const buildNaviBot({
     super.key,
     required this.currentIndex,
-    required this.onTap,
+    required this.onItemSelected,
   });
 
   @override
   Widget build(BuildContext context) {
-    final icons = [
-      Icons.home_rounded,
-      Icons.search_rounded,
-      Icons.favorite_rounded,
-      Icons.person_rounded,
-    ];
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16, left: 40, right: 40),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.8),
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _dockItem(
+              Icons.home_rounded, "Home", 0, currentIndex, onItemSelected),
+          _dockItem(
+              Icons.search_rounded, "Search", 1, currentIndex, onItemSelected),
+          _dockItem(Icons.favorite_rounded, "Favorites", 2, currentIndex,
+              onItemSelected),
+          _dockItem(
+              Icons.person_rounded, "Profile", 3, currentIndex, onItemSelected),
+        ],
+      ),
+    );
+  }
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Center(
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(40),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.35),
-                borderRadius: BorderRadius.circular(40),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: List.generate(icons.length, (index) {
-                  final isSelected = currentIndex == index;
-                  return GestureDetector(
-                    onTap: () => onTap(index),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 250),
-                      curve: Curves.easeOutBack,
-                      margin: const EdgeInsets.symmetric(horizontal: 10),
-                      child: AnimatedScale(
-                        scale: isSelected ? 1.35 : 1.0,
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.easeOutBack,
-                        child: Icon(
-                          icons[index],
-                          color:
-                              isSelected ? Colors.blueAccent : Colors.grey[700],
-                          size: 28,
-                        ),
-                      ),
-                    ),
-                  );
-                }),
+  Widget _dockItem(IconData icon, String label, int index, int currentIndex,
+      Function(int) onTap) {
+    final isActive = currentIndex == index;
+
+    return GestureDetector(
+      onTap: () => onTap(index),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutBack,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedSlide(
+              offset: isActive ? const Offset(0, -0.15) : Offset.zero,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+              child: AnimatedScale(
+                scale: isActive ? 1.3 : 1.0,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOutBack,
+                child: Icon(
+                  icon,
+                  size: isActive ? 34 : 28,
+                  color: isActive ? Colors.blueAccent : Colors.grey[600],
+                ),
               ),
             ),
-          ),
+            const SizedBox(height: 4),
+            AnimatedOpacity(
+              opacity: isActive ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeInOut,
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: Colors.grey[800],
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  height: 1,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
