@@ -29,45 +29,43 @@ class AudioPlayerProvider extends ChangeNotifier {
   Duration get position => _position;
   Duration get duration => _duration;
 
-Future<void> playSong(Songs song) async {
-  if (song.url == null || song.url!.isEmpty) {
-    debugPrint("Lỗi: Bài hát ${song.title} không có URL để phát!");
-    return;
-  }
+  Future<void> playSong(Songs song) async {
+    if (song.url == null || song.url!.isEmpty) {
+      debugPrint("Lỗi: Bài hát ${song.title} không có URL để phát!");
+      return;
+    }
 
-  currentPlaying = song;
+    currentPlaying = song;
 
-  try {
-  // Thử phát mp3Url trước
-  if (song.mp3Url != null) {
-    await _audioPlayer.setUrl(Uri.encodeFull(song.mp3Url!));
-    _audioPlayer.play();
-    debugPrint("Đang phát MP3: ${song.mp3Url}");
-  } else {
-    // mp3Url null → fallback
-    await _audioPlayer.setUrl(Uri.encodeFull(song.url));
-    _audioPlayer.play();
-    debugPrint("Đang phát FLAC gốc: ${song.url}");
-  }
-  isPlaying = true;
-  notifyListeners();
-} catch (e) {
-  debugPrint("Lỗi khi phát bài ${song.title}: $e");
-
-  // Fallback nếu mp3Url bị lỗi
-  if (song.mp3Url != null) {
     try {
-      await _audioPlayer.setUrl(Uri.encodeFull(song.url));
-      _audioPlayer.play();
-      debugPrint("Fallback sang FLAC gốc: ${song.url}");
-    } catch (e2) {
-      debugPrint("Vẫn lỗi khi phát FLAC: $e2");
+      // Thử phát mp3Url trước
+      if (song.mp3Url != null) {
+        await _audioPlayer.setUrl(Uri.encodeFull(song.mp3Url!));
+        _audioPlayer.play();
+        debugPrint("Đang phát MP3: ${song.mp3Url}");
+      } else {
+        // mp3Url null → fallback
+        await _audioPlayer.setUrl(Uri.encodeFull(song.url));
+        _audioPlayer.play();
+        debugPrint("Đang phát FLAC gốc: ${song.url}");
+      }
+      isPlaying = true;
+      notifyListeners();
+    } catch (e) {
+      debugPrint("Lỗi khi phát bài ${song.title}: $e");
+      if (song.mp3Url != null) {
+        print("Thử fallback sang FLAC gốc...");
+        try {
+          await _audioPlayer.setUrl(Uri.encodeFull(song.url));
+          _audioPlayer.play();
+          debugPrint("Fallback sang FLAC gốc: ${song.url}");
+        } catch (e2) {
+          debugPrint("url ngu: ${song.url}");
+          debugPrint("Vẫn lỗi khi phát FLAC: $e2");
+        }
+      }
     }
   }
-}
-
-}
-
 
   void pauseSong() {
     _audioPlayer.pause();
@@ -78,8 +76,7 @@ Future<void> playSong(Songs song) async {
   void togglePlayPause() {
     if (isPlaying)
       pauseSong();
-    else if (currentPlaying != null)
-      _audioPlayer.play();
+    else if (currentPlaying != null) _audioPlayer.play();
     notifyListeners();
   }
 

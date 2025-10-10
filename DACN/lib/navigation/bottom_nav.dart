@@ -2,6 +2,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart'; // Import Provider
 import '../models/AudioPlayerProvider.dart'; // Import AudioPlayerProvider
+import 'package:marquee/marquee.dart';
+import '../widgets/autoScroollerText.dart';
 
 class BuildNaviBot extends StatefulWidget {
   final int currentIndex;
@@ -72,7 +74,7 @@ class BuildNaviBotState extends State<BuildNaviBot>
         final currentPlaying = audioPlayerProvider.currentPlaying;
 
         if (isPlaying) {
-          _rotationController.forward();
+          _rotationController.repeat();
         } else {
           _rotationController.stop();
         }
@@ -82,9 +84,9 @@ class BuildNaviBotState extends State<BuildNaviBot>
           children: [
             if (currentPlaying != null)
               GestureDetector(
-                onTap: () {}, // No longer toggles expanded state
+                onTap: () {},
                 child: Container(
-                  height: 60, // Always minimized height
+                  height: 60,
                   margin:
                       const EdgeInsets.only(left: 40, right: 40, bottom: 10),
                   padding:
@@ -92,8 +94,7 @@ class BuildNaviBotState extends State<BuildNaviBot>
                   decoration: BoxDecoration(
                     color: const Color.fromARGB(255, 255, 255, 255)
                         .withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(
-                        30), // Always minimized border radius
+                    borderRadius: BorderRadius.circular(30),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.3),
@@ -103,10 +104,9 @@ class BuildNaviBotState extends State<BuildNaviBot>
                     ],
                   ),
                   child: Row(
-                    // Always display minimized player UI
                     children: [
                       RotationTransition(
-                        turns: _rotationController, // Use the controller here
+                        turns: _rotationController,
                         child: CircleAvatar(
                           backgroundImage:
                               NetworkImage(currentPlaying.thumbnail),
@@ -115,11 +115,10 @@ class BuildNaviBotState extends State<BuildNaviBot>
                       ),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: Text(
+                        child: autoTextScroller(
                           currentPlaying.title,
-                          style: const TextStyle(
+                          const TextStyle(
                               fontSize: 16, fontWeight: FontWeight.bold),
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       IconButton(

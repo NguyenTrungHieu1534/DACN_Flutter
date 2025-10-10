@@ -279,7 +279,7 @@ class TrendingSong extends StatelessWidget {
     final audioProvider =
         Provider.of<AudioPlayerProvider>(context, listen: false);
     return SizedBox(
-      height: 220,
+      height: 150,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -461,25 +461,6 @@ class TrendingSong extends StatelessWidget {
                         onPressed: () {
                           audioProvider.playSong(song);
                           debugPrint("Container được bấm!------${song.title}");
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            builder: (_) => AudioPlayerUI(
-                              song: song,
-                              thumbnailUrl: song.thumbnail,
-                              isPlaying: audioProvider.isPlaying,
-                              duration: audioProvider.duration,
-                              onPlayPause: audioProvider.togglePlayPause,
-                              position: audioProvider.position,
-                              onNext: audioProvider.nextSong,
-                              onPrev: audioProvider.previousSong,
-                              onSeek: (value) {
-                                audioProvider.seek(Duration(milliseconds: value.toInt()));
-                              },
-                              // onNext: playNextSong,
-                              // onPrev: playPrevSong,
-                            ),
-                          );
                         },
                         child: Container(
                           width: 54,

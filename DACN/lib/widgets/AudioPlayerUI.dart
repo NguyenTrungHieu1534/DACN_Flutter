@@ -16,12 +16,12 @@ class AudioPlayerUI extends StatelessWidget {
     super.key,
     required this.song,
     required this.isPlaying,
-    required this.position, // Update here
-    required this.duration, // Update here
+    required this.position,
+    required this.duration,
     required this.onPlayPause,
     required this.onNext,
     required this.onPrev,
-    required this.onSeek, // Update here
+    required this.onSeek,
     required this.thumbnailUrl,
   });
   String _formatDuration(Duration d) {
@@ -133,7 +133,8 @@ class AudioPlayerUI extends StatelessWidget {
                     inactiveTrackColor: Colors.orange.shade100,
                     trackHeight: 3,
                     thumbColor: Colors.deepOrange,
-                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                    thumbShape:
+                        const RoundSliderThumbShape(enabledThumbRadius: 6),
                     overlayColor: Colors.deepOrange.withOpacity(0.2),
                   ),
                   child: Slider(
@@ -161,7 +162,9 @@ class AudioPlayerUI extends StatelessWidget {
             children: [
               _controlButton(Icons.skip_previous_rounded, onPrev, size: 28),
               _controlButton(
-                isPlaying ? Icons.pause_circle_rounded : Icons.play_circle_rounded,
+                isPlaying
+                    ? Icons.pause_circle_rounded
+                    : Icons.play_circle_rounded,
                 onPlayPause,
                 size: 50,
                 gradient: const LinearGradient(
