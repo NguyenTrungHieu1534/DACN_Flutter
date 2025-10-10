@@ -18,7 +18,7 @@ import 'models/songs.dart';
 void main() {
   runApp(
     ChangeNotifierProvider(
-      create: (_) => AudioPlayerProvider(), // ✅ phải là ChangeNotifier
+      create: (_) => AudioPlayerProvider(),
       child: WaveMusicApp(),
     ),
   );

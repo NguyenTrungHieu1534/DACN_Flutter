@@ -1,16 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/album.dart';
-import '../services/api_album.dart';
-import '/screens/login_screen.dart';
-import '/screens/player_screen.dart';
-import '/screens/search_screen.dart';
-import '/screens/library_screen.dart';
-import '/screens/section_list_screen.dart';
-import '../theme/app_theme.dart';
 import '../models/songs.dart';
-import '../services/api_songs.dart';
-import 'dart:math';
 import 'package:provider/provider.dart';
 import '../models/AudioPlayerProvider.dart';
 import '../widgets/AudioPlayerUI.dart';
@@ -286,10 +276,8 @@ class TrendingSong extends StatelessWidget {
 
   // Widget hiển thị danh sách Songs
   Widget _buildSongsList(BuildContext context) {
-    AudioPlayerUI? audioUI;
     final audioProvider =
         Provider.of<AudioPlayerProvider>(context, listen: false);
-    final isShowingAlbums = itemsAlbum.isNotEmpty;
     return SizedBox(
       height: 220,
       child: ListView.separated(
@@ -480,8 +468,14 @@ class TrendingSong extends StatelessWidget {
                               song: song,
                               thumbnailUrl: song.thumbnail,
                               isPlaying: audioProvider.isPlaying,
-                              progress: 0,
+                              duration: audioProvider.duration,
                               onPlayPause: audioProvider.togglePlayPause,
+                              position: audioProvider.position,
+                              onNext: audioProvider.nextSong,
+                              onPrev: audioProvider.previousSong,
+                              onSeek: (value) {
+                                audioProvider.seek(Duration(milliseconds: value.toInt()));
+                              },
                               // onNext: playNextSong,
                               // onPrev: playPrevSong,
                             ),
