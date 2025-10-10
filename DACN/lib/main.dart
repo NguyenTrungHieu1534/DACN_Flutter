@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import 'package:music_login/screens/home_screen.dart';
-import 'package:music_login/screens/login_screen.dart';
 import 'package:music_login/screens/forgot_password_screen.dart';
 import 'package:music_login/screens/verify_otp_screen.dart';
 import 'package:music_login/screens/reset_password_screen.dart';
@@ -13,7 +12,6 @@ import 'package:music_login/screens/user_screen.dart';
 import 'models/AudioPlayerProvider.dart';
 import 'theme/app_theme.dart';
 import 'navigation/bottom_nav.dart';
-import 'models/songs.dart';
 
 void main() {
   runApp(
@@ -63,19 +61,19 @@ class _MainNavigationState extends State<MainNavigation>
   int _currentIndex = 0;
 
   final _screens = const [
-    HomeScreen(key: ValueKey('home')),
-    SearchScreen(key: ValueKey('search')),
-    FavScreen(key: ValueKey('fav')),
-    UserScreen(key: ValueKey('user')),
+    HomeScreen(),
+    SearchScreen(),
+    FavScreen(),
+    UserScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        child: _screens[_currentIndex],
+      body: IndexedStack(
+        index: _currentIndex, // Set the current index for IndexedStack
+        children: _screens,
       ),
       bottomNavigationBar: BuildNaviBot(
           currentIndex: _currentIndex,

@@ -5,6 +5,7 @@ class Songs {
   final String albuml;
   final String url;
   String thumbnail;
+  final String mp3Url;
 
   Songs({
     required this.id,
@@ -13,6 +14,7 @@ class Songs {
     required this.albuml,
     required this.url,
     required this.thumbnail,
+    required this.mp3Url,
   });
 
   factory Songs.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class Songs {
       artist: json['artist'] ?? '',
       url: json['url'] ?? '',
       thumbnail: json['thumbnail'] ?? '',
+      mp3Url: json['mp3Url'] ?? '',
     );
   }
   // @override

@@ -38,14 +38,34 @@ Future<void> playSong(Songs song) async {
   currentPlaying = song;
 
   try {
-    await _audioPlayer.setUrl(song.url!); // đã chắc chắn không null
+  // Thử phát mp3Url trước
+  if (song.mp3Url != null) {
+    await _audioPlayer.setUrl(Uri.encodeFull(song.mp3Url!));
     _audioPlayer.play();
-    debugPrint("linkbài ${song.url}");
-    isPlaying = true;
-    notifyListeners();
-  } catch (e) {
-    debugPrint("Lỗi khi phát bài ${song.title}: $e");
+    debugPrint("Đang phát MP3: ${song.mp3Url}");
+  } else {
+    // mp3Url null → fallback
+    await _audioPlayer.setUrl(Uri.encodeFull(song.url));
+    _audioPlayer.play();
+    debugPrint("Đang phát FLAC gốc: ${song.url}");
   }
+  isPlaying = true;
+  notifyListeners();
+} catch (e) {
+  debugPrint("Lỗi khi phát bài ${song.title}: $e");
+
+  // Fallback nếu mp3Url bị lỗi
+  if (song.mp3Url != null) {
+    try {
+      await _audioPlayer.setUrl(Uri.encodeFull(song.url));
+      _audioPlayer.play();
+      debugPrint("Fallback sang FLAC gốc: ${song.url}");
+    } catch (e2) {
+      debugPrint("Vẫn lỗi khi phát FLAC: $e2");
+    }
+  }
+}
+
 }
 
 
