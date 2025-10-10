@@ -13,6 +13,7 @@ import '../services/api_songs.dart';
 import 'dart:math';
 import 'package:provider/provider.dart';
 import '../models/AudioPlayerProvider.dart';
+import '../widgets/AudioPlayerUI.dart';
 
 class TrendingSong extends StatelessWidget {
   TrendingSong(
@@ -285,6 +286,7 @@ class TrendingSong extends StatelessWidget {
 
   // Widget hiển thị danh sách Songs
   Widget _buildSongsList(BuildContext context) {
+    AudioPlayerUI? audioUI;
     final audioProvider =
         Provider.of<AudioPlayerProvider>(context, listen: false);
     final isShowingAlbums = itemsAlbum.isNotEmpty;
@@ -471,6 +473,19 @@ class TrendingSong extends StatelessWidget {
                         onPressed: () {
                           audioProvider.playSong(song);
                           debugPrint("Container được bấm!------${song.title}");
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            builder: (_) => AudioPlayerUI(
+                              song: song,
+                              thumbnailUrl: song.thumbnail,
+                              isPlaying: audioProvider.isPlaying,
+                              progress: 0,
+                              onPlayPause: audioProvider.togglePlayPause,
+                              // onNext: playNextSong,
+                              // onPrev: playPrevSong,
+                            ),
+                          );
                         },
                         child: Container(
                           width: 54,

@@ -6,8 +6,8 @@ class AudioPlayerUI extends StatelessWidget {
   final bool isPlaying;
   final double progress; // giá trị 0-1 cho Slider
   final VoidCallback onPlayPause;
-  final VoidCallback onNext;
-  final VoidCallback onPrev;
+  // final VoidCallback onNext;
+  // final VoidCallback onPrev;
   final String thumbnailUrl;
 
   const AudioPlayerUI({
@@ -16,8 +16,8 @@ class AudioPlayerUI extends StatelessWidget {
     required this.isPlaying,
     required this.progress,
     required this.onPlayPause,
-    required this.onNext,
-    required this.onPrev,
+    // required this.onNext,
+    // required this.onPrev,
     required this.thumbnailUrl,
   });
 
@@ -86,26 +86,26 @@ class AudioPlayerUI extends StatelessWidget {
           const SizedBox(height: 20),
 
           // Controls
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.skip_previous),
-                iconSize: 40,
-                onPressed: onPrev,
-              ),
-              IconButton(
-                icon: Icon(isPlaying ? Icons.pause_circle : Icons.play_circle),
-                iconSize: 70,
-                onPressed: onPlayPause,
-              ),
-              IconButton(
-                icon: const Icon(Icons.skip_next),
-                iconSize: 40,
-                onPressed: onNext,
-              ),
-            ],
-          ),
+          // Row(
+          //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          //   children: [
+          //     IconButton(
+          //       icon: const Icon(Icons.skip_previous),
+          //       iconSize: 40,
+          //       onPressed: onPrev,
+          //     ),
+          //     IconButton(
+          //       icon: Icon(isPlaying ? Icons.pause_circle : Icons.play_circle),
+          //       iconSize: 70,
+          //       onPressed: onPlayPause,
+          //     ),
+          //     IconButton(
+          //       icon: const Icon(Icons.skip_next),
+          //       iconSize: 40,
+          //       onPressed: onNext,
+          //     ),
+          //   ],
+          // ),
         ],
       ),
     );
