@@ -69,7 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF70C1B3), // xanh ngọc retro
+              Color.fromARGB(255, 112, 150, 193), // xanh ngọc retro
               Color(0xFFFFFFFF), // trắng pastel
             ],
             stops: [0.0, 0.4],
@@ -207,23 +207,45 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 16),
                       decoration: BoxDecoration(
-                        gradient: retroBoxGradient,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: retroPrimary.withOpacity(0.4),
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Color(0xFF00C6FB), // Xanh biển sáng
+                            Color(0xFF005BEA), // Xanh biển đậm
+                          ],
                         ),
-                        boxShadow: retroShadow,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF007BFF).withOpacity(0.25),
+                            offset: const Offset(0, 6),
+                            blurRadius: 12,
+                          ),
+                          BoxShadow(
+                            color: Colors.white.withOpacity(0.15),
+                            offset: const Offset(-4, -4),
+                            blurRadius: 8,
+                          ),
+                        ],
+                        border: Border.all(
+                          color: const Color(0xFF8EE7FF).withOpacity(0.4),
+                          width: 1.2,
+                        ),
                       ),
                       child: Row(
                         children: [
+                          // Icon tròn kiểu mặt trời Hawaii
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: const BoxDecoration(
                               shape: BoxShape.circle,
                               gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
                                 colors: [
-                                  Color.fromARGB(255, 112, 140, 193),
-                                  retroPeach
+                                  Color(0xFFFFC371), // Vàng cam mặt trời
+                                  Color(0xFFFF5F6D), // Cam hồng nhiệt đới
                                 ],
                               ),
                             ),
@@ -234,6 +256,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           const SizedBox(width: 16),
+
+                          // Text chào
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -241,8 +265,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 shaderCallback: (bounds) =>
                                     const LinearGradient(
                                   colors: [
-                                    Colors.white,
-                                    Color.fromARGB(255, 255, 255, 255)
+                                    Color(0xFFFFE29F), // Vàng ánh sáng
+                                    Color(0xFFFF719A), // Hồng đào
+                                    Color(0xFF9BFFF9), // Aqua sáng
                                   ],
                                 ).createShader(bounds),
                                 child: Text(
@@ -252,15 +277,24 @@ class _HomeScreenState extends State<HomeScreen> {
                                     fontSize: 28,
                                     fontWeight: FontWeight.w900,
                                     letterSpacing: -0.5,
+                                    shadows: [
+                                      Shadow(
+                                        offset: Offset(0, 2),
+                                        blurRadius: 6,
+                                        color: Color(0xFF004C97),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Ready to discover music?',
+                                'Let’s ride the wave of music 🌊',
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.6),
+                                  color: Colors.white.withOpacity(0.85),
                                   fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  letterSpacing: 0.2,
                                 ),
                               ),
                             ],
@@ -268,7 +302,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                     ),
-
                     const SizedBox(height: 24),
 
                     // 🌴 Quick Chips retro
@@ -330,7 +363,8 @@ class _QuickChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeColor = const Color(0xFF70C1B3); // màu retro xanh biển nhạt
+    final themeColor =
+        const Color.fromARGB(255, 114, 148, 180); // màu retro xanh biển nhạt
 
     return Material(
       elevation: 3,
@@ -375,7 +409,7 @@ Widget _buildRetroDivider() {
       gradient: LinearGradient(
         colors: [
           Colors.transparent,
-          Color(0xFF70C1B3), // xanh pastel đồng bộ
+          Color.fromARGB(255, 112, 150, 193), // xanh pastel đồng bộ
           Colors.transparent,
         ],
         stops: [0.1, 0.5, 0.9],

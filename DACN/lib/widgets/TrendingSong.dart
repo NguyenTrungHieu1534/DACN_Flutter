@@ -24,7 +24,6 @@ class TrendingSong extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Kiểm tra xem hiển thị albums hay songs
     final isShowingSongs = itemsSsongs.isNotEmpty;
 
     return Column(
@@ -59,7 +58,7 @@ class TrendingSong extends StatelessWidget {
               Text(
                 title,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: Color.fromARGB(255, 0, 0, 0),
                   fontWeight: FontWeight.w700,
                   fontSize: 20,
                   letterSpacing: -0.3,
@@ -117,7 +116,10 @@ class TrendingSong extends StatelessWidget {
 
           final gradientColors = [
             [const Color(0xFFFFE7C2), const Color(0xFFFBD2D7)], // peach sunset
-            [const Color(0xFFC9F4F1), const Color(0xFFE8FFE1)], // seafoam
+            [
+              const Color(0xFFC9F4F1),
+              const Color.fromARGB(255, 225, 230, 255)
+            ], // seafoam
             [const Color(0xFFF6D8B5), const Color(0xFFFFE8D7)], // sand gold
             [const Color(0xFFE0E5FF), const Color(0xFFD0F1FF)], // sky blue
           ];
