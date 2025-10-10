@@ -156,7 +156,9 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             }
 
-            final albums = snapshot.data![0] as List<Album>;
+            final albums = (snapshot.data![0] as List<Album>)
+                .where((album) => album.url != null && album.url!.isNotEmpty)
+                .toList();
             final songs = snapshot.data![1] as List<Songs>;
 
             albums.shuffle();
@@ -329,13 +331,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     TrendingAlbum(
                         title: 'Trending Albums', itemsAlbum: trendingAlbums),
                     const SizedBox(height: 28),
-                    _buildRetroDivider(),
+
                     TrendingSong(
                         title: 'New Releases',
                         itemsAlbum: newReleases,
                         itemsSsongs: const []),
                     const SizedBox(height: 28),
-                    _buildRetroDivider(),
                     TrendingSong(
                         title: 'Trending Songs',
                         itemsAlbum: const [],

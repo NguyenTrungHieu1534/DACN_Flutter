@@ -10,7 +10,6 @@ class AlbumService {
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
       final albums = data.map((e) => Album.fromJson(e)).toList();
-      print('Fetched ${albums.length} albums');
       return albums;
     } else {
       throw Exception('Lỗi tải album: ${response.statusCode}');

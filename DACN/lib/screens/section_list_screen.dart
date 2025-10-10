@@ -3,13 +3,20 @@ import '../models/album.dart';
 import 'player_screen.dart';
 
 class SectionListScreen extends StatelessWidget {
-  const SectionListScreen({super.key, required this.title, required this.items});
+  SectionListScreen({Key? key, required this.title, required this.items})
+      : super(key: key) {
+    debugPrint(
+        'SectionListScreen constructed: title="$title", items=${items.length}');
+    debugPrint(StackTrace.current.toString());
+  }
 
   final String title;
   final List<Album> items;
 
   @override
   Widget build(BuildContext context) {
+    // Debug: also log builds
+    debugPrint('SectionListScreen.build: title="$title"');
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: GridView.builder(
@@ -70,7 +77,8 @@ class SectionListScreen extends StatelessWidget {
                       album.artist,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: Colors.black54, fontSize: 12),
+                      style:
+                          const TextStyle(color: Colors.black54, fontSize: 12),
                     ),
                   ),
                 ],
@@ -82,5 +90,3 @@ class SectionListScreen extends StatelessWidget {
     );
   }
 }
-
-

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 import 'package:music_login/screens/home_screen.dart';
 import 'package:music_login/screens/login_screen.dart';
@@ -9,12 +10,18 @@ import 'package:music_login/screens/reset_password_screen.dart';
 import 'package:music_login/screens/search_screen.dart';
 import 'package:music_login/screens/fav_screen.dart';
 import 'package:music_login/screens/user_screen.dart';
-
+import 'models/AudioPlayerProvider.dart';
 import 'theme/app_theme.dart';
 import 'navigation/bottom_nav.dart';
+import 'models/songs.dart';
 
 void main() {
-  runApp(const WaveMusicApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => AudioPlayerProvider(), // ✅ phải là ChangeNotifier
+      child: WaveMusicApp(),
+    ),
+  );
 }
 
 class WaveMusicApp extends StatelessWidget {
@@ -70,7 +77,7 @@ class _MainNavigationState extends State<MainNavigation>
         duration: const Duration(milliseconds: 300),
         child: _screens[_currentIndex],
       ),
-      bottomNavigationBar: buildNaviBot(
+      bottomNavigationBar: BuildNaviBot(
           currentIndex: _currentIndex,
           onItemSelected: (index) {
             setState(() => _currentIndex = index);

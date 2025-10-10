@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
 class PlayerScreen extends StatefulWidget {
-  const PlayerScreen({super.key, required this.title, required this.subtitle, this.imageUrl, this.heroTag});
+  const PlayerScreen(
+      {super.key,
+      required this.title,
+      required this.subtitle,
+      this.imageUrl,
+      this.heroTag});
 
   final String title;
   final String subtitle;
@@ -13,17 +18,20 @@ class PlayerScreen extends StatefulWidget {
   State<PlayerScreen> createState() => _PlayerScreenState();
 }
 
-class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMixin {
+class _PlayerScreenState extends State<PlayerScreen>
+    with TickerProviderStateMixin {
   late final AnimationController _spinController;
   late final AnimationController _shimmerController;
 
   @override
   void initState() {
     super.initState();
-    _spinController = AnimationController(vsync: this, duration: const Duration(seconds: 12))
-      ..repeat();
-    _shimmerController = AnimationController(vsync: this, duration: const Duration(seconds: 3))
-      ..repeat(reverse: true);
+    _spinController =
+        AnimationController(vsync: this, duration: const Duration(seconds: 12))
+          ..repeat();
+    _shimmerController =
+        AnimationController(vsync: this, duration: const Duration(seconds: 3))
+          ..repeat(reverse: true);
   }
 
   @override
@@ -55,11 +63,13 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   child: Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
+                        icon: const Icon(Icons.keyboard_arrow_down,
+                            color: Colors.white),
                         onPressed: () => Navigator.pop(context),
                       ),
                       const Spacer(),
@@ -175,7 +185,10 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
                               children: [
                                 Text(
                                   'Lyrics',
-                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
                                         fontWeight: FontWeight.w700,
                                       ),
                                 ),
@@ -251,7 +264,8 @@ class _Disc extends StatelessWidget {
               shape: BoxShape.circle,
               color: Colors.black12,
             ),
-            child: const Icon(Icons.music_note, size: 34, color: Colors.black45),
+            child:
+                const Icon(Icons.music_note, size: 34, color: Colors.black45),
           ),
         ),
       ),
@@ -317,7 +331,8 @@ class _ChillSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Animation<double> anim = Tween<double>(begin: -1, end: 2).animate(CurvedAnimation(
+    final Animation<double> anim =
+        Tween<double>(begin: -1, end: 2).animate(CurvedAnimation(
       parent: controller,
       curve: Curves.easeInOut,
     ));
@@ -356,7 +371,8 @@ class _ChillSlider extends StatelessWidget {
                         Colors.transparent,
                       ],
                       stops: const [0.0, 0.5, 1.0],
-                      transform: GradientTranslation(anim.value * rect.width, 0),
+                      transform:
+                          GradientTranslation(anim.value * rect.width, 0),
                     ).createShader(rect);
                   },
                   blendMode: BlendMode.srcATop,
@@ -419,7 +435,8 @@ class LyricsScreen extends StatelessWidget {
               SizedBox(height: 16),
               Text(
                 'Lyrics will be displayed here.\n\nThis page is ready for integration with real lyrics later.',
-                style: TextStyle(color: Colors.white, fontSize: 16, height: 1.5),
+                style:
+                    TextStyle(color: Colors.white, fontSize: 16, height: 1.5),
               ),
             ],
           ),
@@ -438,5 +455,3 @@ class GradientTranslation extends GradientTransform {
     return Matrix4.identity()..translate(dx, dy);
   }
 }
-
-

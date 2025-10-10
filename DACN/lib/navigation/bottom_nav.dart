@@ -1,15 +1,55 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../models/songs.dart';
+import '../widgets/AudioPlayerUI.dart';
+import 'package:just_audio/just_audio.dart';
 
-class buildNaviBot extends StatelessWidget {
+class BuildNaviBot extends StatefulWidget {
   final int currentIndex;
   final Function(int) onItemSelected;
 
-  const buildNaviBot({
+  BuildNaviBot({
     super.key,
     required this.currentIndex,
     required this.onItemSelected,
   });
+  @override
+  State<BuildNaviBot> createState() => BuildNaviBotState();
+}
+
+class BuildNaviBotState extends State<BuildNaviBot>
+    with SingleTickerProviderStateMixin {
+  Songs? currentPlaying;
+  late AnimationController _rotationController;
+  late AudioPlayer _audioPlayer;
+  late AudioPlayerUI _audioPlayerUI;
+  bool isPlaying = false;
+  @override
+  void initState() {
+    super.initState();
+
+    _rotationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 10),
+    );
+    _audioPlayer = AudioPlayer();
+    _audioPlayer.playerStateStream.listen((state) {
+      setState(() {
+        isPlaying = state.playing;
+      });
+
+      if (state.processingState == ProcessingState.completed) {
+        _rotationController.stop();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _rotationController.dispose();
+    _audioPlayer.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,11 +57,11 @@ class buildNaviBot extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16, left: 40, right: 40),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
+        color: const Color.fromARGB(255, 255, 255, 255).withOpacity(0.8),
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withOpacity(0.5),
             blurRadius: 12,
             offset: const Offset(0, 3),
           ),
@@ -30,14 +70,14 @@ class buildNaviBot extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _dockItem(
-              Icons.home_rounded, "Home", 0, currentIndex, onItemSelected),
-          _dockItem(
-              Icons.search_rounded, "Search", 1, currentIndex, onItemSelected),
-          _dockItem(Icons.favorite_rounded, "Favorites", 2, currentIndex,
-              onItemSelected),
-          _dockItem(
-              Icons.person_rounded, "Profile", 3, currentIndex, onItemSelected),
+          _dockItem(Icons.home_rounded, "Home", 0, widget.currentIndex,
+              widget.onItemSelected),
+          _dockItem(Icons.search_rounded, "Search", 1, widget.currentIndex,
+              widget.onItemSelected),
+          _dockItem(Icons.favorite_rounded, "Favorites", 2, widget.currentIndex,
+              widget.onItemSelected),
+          _dockItem(Icons.person_rounded, "Profile", 3, widget.currentIndex,
+              widget.onItemSelected),
         ],
       ),
     );

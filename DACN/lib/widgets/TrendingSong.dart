@@ -11,9 +11,11 @@ import '../theme/app_theme.dart';
 import '../models/songs.dart';
 import '../services/api_songs.dart';
 import 'dart:math';
+import 'package:provider/provider.dart';
+import '../models/AudioPlayerProvider.dart';
 
 class TrendingSong extends StatelessWidget {
-  const TrendingSong(
+  TrendingSong(
       {required this.title,
       required this.itemsAlbum,
       required this.itemsSsongs});
@@ -67,14 +69,14 @@ class TrendingSong extends StatelessWidget {
               const Spacer(),
               TextButton.icon(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => SectionListScreen(
-                          title: title,
-                          items: isShowingSongs ? [] : itemsAlbum),
-                    ),
-                  );
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(
+                  //     builder: (_) => SectionListScreen(
+                  //         title: title,
+                  //         items: isShowingSongs ? [] : itemsAlbum),
+                  //   ),
+                  // );
                 },
                 icon: const Icon(
                   Icons.arrow_forward_rounded,
@@ -97,7 +99,7 @@ class TrendingSong extends StatelessWidget {
         const SizedBox(height: 4),
 
         // Hiển thị Songs hoặc Albums
-        if (isShowingSongs) _buildSongsList() else _buildAlbumsList(),
+        if (isShowingSongs) _buildSongsList(context) else _buildAlbumsList(),
       ],
     );
   }
@@ -128,19 +130,19 @@ class TrendingSong extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.only(right: 20, top: 10, bottom: 10),
             child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => PlayerScreen(
-                      title: album.name,
-                      subtitle: album.artist,
-                      imageUrl: album.url,
-                      heroTag: heroTag,
-                    ),
-                  ),
-                );
-              },
+              // onTap: () {
+              //   Navigator.push(
+              //     context,
+              //     MaterialPageRoute(
+              //       builder: (_) => PlayerScreen(
+              //         title: album.name,
+              //         subtitle: album.artist,
+              //         imageUrl: album.url,
+              //         heroTag: heroTag,
+              //       ),
+              //     ),
+              //   );
+              // },
               child: Container(
                 width: 190,
                 decoration: BoxDecoration(
@@ -282,7 +284,10 @@ class TrendingSong extends StatelessWidget {
   }
 
   // Widget hiển thị danh sách Songs
-  Widget _buildSongsList() {
+  Widget _buildSongsList(BuildContext context) {
+    final audioProvider =
+        Provider.of<AudioPlayerProvider>(context, listen: false);
+    final isShowingAlbums = itemsAlbum.isNotEmpty;
     return SizedBox(
       height: 220,
       child: ListView.separated(
@@ -320,25 +325,24 @@ class TrendingSong extends StatelessWidget {
               color: Colors.transparent,
               borderRadius: BorderRadius.circular(24),
               child: InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => PlayerScreen(
-                        title: song.title,
-                        subtitle: song.artist,
-                        imageUrl: song.thumbnail,
-                        heroTag: 'retro-song-${song.id}-$index',
-                      ),
-                    ),
-                  );
-                },
+                // onTap: () {
+                //   Navigator.push(
+                //     context,
+                //     MaterialPageRoute(
+                //       builder: (_) => PlayerScreen(
+                //         title: song.title,
+                //         subtitle: song.artist,
+                //         imageUrl: song.thumbnail,
+                //         heroTag: 'retro-song-${song.id}-$index',
+                //       ),
+                //     ),
+                //   );
+                // },
                 borderRadius: BorderRadius.circular(24),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
-                      // Hình album và vinyl
                       Stack(
                         alignment: Alignment.centerLeft,
                         children: [
@@ -463,28 +467,34 @@ class TrendingSong extends StatelessWidget {
                       ),
 
                       // Nút play retro
-                      Container(
-                        width: 54,
-                        height: 54,
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Colors.orangeAccent, Colors.deepOrange],
-                          ),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.deepOrange.withOpacity(0.4),
-                              blurRadius: 12,
-                              offset: const Offset(0, 5),
+                      TextButton(
+                        onPressed: () {
+                          audioProvider.playSong(song);
+                          debugPrint("Container được bấm!------${song.title}");
+                        },
+                        child: Container(
+                          width: 54,
+                          height: 54,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Colors.orangeAccent, Colors.deepOrange],
                             ),
-                          ],
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.deepOrange.withOpacity(0.4),
+                                blurRadius: 12,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.play_arrow_rounded,
+                            color: Colors.white,
+                            size: 30,
+                          ),
                         ),
-                        child: const Icon(
-                          Icons.play_arrow_rounded,
-                          color: Colors.white,
-                          size: 30,
-                        ),
-                      ),
+                      )
                     ],
                   ),
                 ),
