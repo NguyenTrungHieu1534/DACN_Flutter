@@ -22,7 +22,7 @@ class _UserScreenState extends State<UserScreen> {
 
   Future<void> _checkToken() async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token'); // key lưu token
+    final token = prefs.getString('token');
     setState(() {
       _token = token;
       _loading = false;
