@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../models/album.dart';
 class UserService {
   UserService({http.Client? client}) : _client = client ?? http.Client();
 
@@ -74,8 +75,7 @@ class UserService {
         .post(uri, headers: headers, body: body)
         .timeout(const Duration(seconds: 12));
 
-    final Map<String, dynamic> data =
-    response.body.isNotEmpty
+    final Map<String, dynamic> data = response.body.isNotEmpty
         ? jsonDecode(response.body) as Map<String, dynamic>
         : {};
 
@@ -99,16 +99,19 @@ class UserService {
   }) async {
     final uri = Uri.parse('$baseApiUrl/api/forgot-password');
     try {
-      final response = await _client.post(
-        uri,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'username': username, 'email': email}),
-      ).timeout(const Duration(seconds: 30));
+      final response = await _client
+          .post(
+            uri,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'username': username, 'email': email}),
+          )
+          .timeout(const Duration(seconds: 30));
 
       final body = jsonDecode(response.body);
       return {
         'success': response.statusCode == 200,
-        'message': body['message'] ?? 'Đã gửi OTP hoặc link xác thực đến email của bạn.',
+        'message': body['message'] ??
+            'Đã gửi OTP hoặc link xác thực đến email của bạn.',
       };
     } catch (e) {
       return {'success': false, 'message': 'Lỗi kết nối: $e'};
