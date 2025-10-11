@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/album.dart';
-import '../screens/player_screen.dart';
+import '../screens/album_detail_screen.dart';
 
 class TrendingAlbum extends StatelessWidget {
   final String title;
@@ -107,22 +107,20 @@ class TrendingAlbum extends StatelessWidget {
           ),
         ),
 
-        // BÌA ALBUM
+        // Bìa album
         InkWell(
           borderRadius: BorderRadius.circular(22),
-          // onTap: () {
-          //   Navigator.push(
-          //     context,
-          //     MaterialPageRoute(
-          //       builder: (_) => PlayerScreen(
-          //         title: album.name,
-          //         subtitle: album.artist,
-          //         imageUrl: album.url,
-          //         heroTag: heroTag,
-          //       ),
-          //     ),
-          //   );
-          // },
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => AlbumDetailScreen(
+                  albumName: album.name,
+                  albumImage: album.url, // ✅ Truyền thêm ảnh album
+                ),
+              ),
+            );
+          },
           child: Container(
             width: 240,
             height: 280,
