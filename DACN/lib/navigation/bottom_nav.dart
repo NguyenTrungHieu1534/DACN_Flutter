@@ -1,8 +1,6 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart'; // Import Provider
 import '../models/AudioPlayerProvider.dart'; // Import AudioPlayerProvider
-import 'package:marquee/marquee.dart';
 import '../widgets/autoScroollerText.dart';
 import '../screens/player_screen.dart';
 import '../models/songs.dart';
@@ -11,7 +9,7 @@ class BuildNaviBot extends StatefulWidget {
   final int currentIndex;
   final Function(int) onItemSelected;
 
-  BuildNaviBot({
+  const BuildNaviBot({
     super.key,
     required this.currentIndex,
     required this.onItemSelected,

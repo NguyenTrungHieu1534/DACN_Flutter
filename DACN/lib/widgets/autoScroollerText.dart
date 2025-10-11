@@ -1,9 +1,4 @@
 import 'package:flutter/material.dart';
-import '../models/album.dart';
-import '../models/songs.dart';
-import 'package:provider/provider.dart';
-import '../models/AudioPlayerProvider.dart';
-import '../widgets/AudioPlayerUI.dart';
 import 'package:marquee/marquee.dart';
 
 Widget autoTextScroller(String text, TextStyle style) {

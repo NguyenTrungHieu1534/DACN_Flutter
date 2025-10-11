@@ -1,1 +1,11 @@
-# DACN_Flutter
+To-do list:
+- Làm giao diện cho Profile, Favorite, Album
+- Thêm - xóa - sửa Playlist.
+- Làm Settings cho Profile.
+- Làm Animation cho Player (thanh slide, repeat, hướng đến bài khác, Shuffle play ngẫu nhiên).
+- Làm thông báo trạng thái kết nối.
+- Làm Lyrics.
+- Làm thông báo đẩy trên điện thoại. (trạng thái nhạc)
+- Thiết kế lại Search page.
+- Làm report nhạc, community
+- Chia sẻ và tạo link bài hát.
