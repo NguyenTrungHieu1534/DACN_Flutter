@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import '../models/album.dart';
 import '../screens/album_detail_screen.dart';
+import 'shimmer_widgets.dart';
 
 class TrendingAlbum extends StatelessWidget {
   final String title;
   final List<Album> itemsAlbum;
+  final bool isLoading;
 
   const TrendingAlbum({
     required this.title,
     required this.itemsAlbum,
+    this.isLoading = false,
     super.key,
   });
 
@@ -22,37 +25,48 @@ class TrendingAlbum extends StatelessWidget {
           const SizedBox(height: 32),
           SizedBox(
             height: 320,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  const double cardWidth = 200;
-                  const double spacing = 280;
-
-                  final double totalWidth =
-                      cardWidth + (itemsAlbum.length - 1) * spacing;
-                  final List<Widget> stackedAlbums = [];
-
-                  for (int i = 0; i < itemsAlbum.length; i++) {
-                    stackedAlbums.add(
-                      Positioned(
-                        left: i * spacing,
-                        child: _buildAlbumCard(context, itemsAlbum[i], i + 1),
-                      ),
-                    );
-                  }
-
-                  return SizedBox(
-                    width: totalWidth,
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: stackedAlbums.reversed.toList(),
+            child: isLoading
+                ? SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: List.generate(4, (index) => Padding(
+                        padding: const EdgeInsets.only(right: 280),
+                        child: ShimmerWidgets.trendingAlbumCardShimmer(),
+                      )),
                     ),
-                  );
-                },
-              ),
-            ),
+                  )
+                : SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        const double cardWidth = 200;
+                        const double spacing = 280;
+
+                        final double totalWidth =
+                            cardWidth + (itemsAlbum.length - 1) * spacing;
+                        final List<Widget> stackedAlbums = [];
+
+                        for (int i = 0; i < itemsAlbum.length; i++) {
+                          stackedAlbums.add(
+                            Positioned(
+                              left: i * spacing,
+                              child: _buildAlbumCard(context, itemsAlbum[i], i + 1),
+                            ),
+                          );
+                        }
+
+                        return SizedBox(
+                          width: totalWidth,
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: stackedAlbums.reversed.toList(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
           )
         ],
       ),

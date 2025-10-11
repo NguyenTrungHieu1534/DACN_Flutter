@@ -21,7 +21,7 @@ dependencies:
   provider: ^6.0.5
   marquee: ^2.3.0
   audio_session: ^0.1.6
-  jwt_decoder: ^2.0.1
+  shimmer: ^3.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

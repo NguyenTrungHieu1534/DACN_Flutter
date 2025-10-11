@@ -1,22 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/album.dart';
 import '../services/api_album.dart';
-import 'login_screen.dart';
-import 'player_screen.dart';
-import 'search_screen.dart';
-import 'library_screen.dart';
-import 'section_list_screen.dart';
-import '../theme/app_theme.dart';
 import '../models/songs.dart';
 import '../services/api_songs.dart';
-import 'dart:math';
-import 'package:http/http.dart' as http;
 import '../widgets/TrendingAlbums.dart';
 import '../widgets/TrendingSong.dart';
+import '../widgets/shimmer_widgets.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -79,41 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
           future: _combinedFuture,
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.05),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: retroPrimary.withOpacity(0.6),
-                            blurRadius: 40,
-                            spreadRadius: 12,
-                          ),
-                        ],
-                      ),
-                      child: const CircularProgressIndicator(
-                        color: retroPrimary,
-                        strokeWidth: 3,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Loading your retro vibes...',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.8),
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                  ],
-                ),
-              );
+              return ShimmerWidgets.homeScreenShimmer();
             } else if (snapshot.hasError) {
               return Center(
                 child: Container(
@@ -132,16 +90,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: 2,
                     ),
                   ),
-                  child: Column(
+                  child: const Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.error_outline_rounded,
                         color: Colors.redAccent,
                         size: 48,
                       ),
-                      const SizedBox(height: 16),
-                      const Text(
+                      SizedBox(height: 16),
+                      Text(
                         "Oops! Something went wrong",
                         style: TextStyle(
                           color: Colors.white,
@@ -157,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
             }
 
             final albums = (snapshot.data![0] as List<Album>)
-                .where((album) => album.url != null && album.url!.isNotEmpty)
+                .where((album) => album.url.isNotEmpty)
                 .toList();
             final songs = snapshot.data![1] as List<Songs>;
 
@@ -329,18 +287,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     const SizedBox(height: 28),
                     TrendingAlbum(
-                        title: 'Trending Albums', itemsAlbum: trendingAlbums),
+                        title: 'Trending Albums', 
+                        itemsAlbum: trendingAlbums,
+                        isLoading: false),
                     const SizedBox(height: 28),
 
                     TrendingSong(
                         title: 'New Releases',
                         itemsAlbum: newReleases,
-                        itemsSsongs: const []),
+                        itemsSsongs: const [],
+                        isLoading: false),
                     const SizedBox(height: 28),
                     TrendingSong(
                         title: 'Trending Songs',
                         itemsAlbum: const [],
-                        itemsSsongs: trendingSongs),
+                        itemsSsongs: trendingSongs,
+                        isLoading: false),
                   ],
                 ),
               ),
@@ -356,7 +318,6 @@ class _QuickChip extends StatelessWidget {
   const _QuickChip({
     required this.label,
     required this.icon,
-    super.key,
   });
 
   final String label;
@@ -364,8 +325,8 @@ class _QuickChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeColor =
-        const Color.fromARGB(255, 114, 148, 180); // màu retro xanh biển nhạt
+    const themeColor =
+        Color.fromARGB(255, 114, 148, 180); // màu retro xanh biển nhạt
 
     return Material(
       elevation: 3,

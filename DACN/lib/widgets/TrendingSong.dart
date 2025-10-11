@@ -3,17 +3,19 @@ import '../models/album.dart';
 import '../models/songs.dart';
 import 'package:provider/provider.dart';
 import '../models/AudioPlayerProvider.dart';
-import '../widgets/AudioPlayerUI.dart';
+import 'shimmer_widgets.dart';
 
 class TrendingSong extends StatelessWidget {
-  TrendingSong(
-      {required this.title,
+  const TrendingSong(
+      {super.key, required this.title,
       required this.itemsAlbum,
-      required this.itemsSsongs});
+      required this.itemsSsongs,
+      this.isLoading = false});
 
   final String title;
   final List<Album> itemsAlbum;
   final List<Songs> itemsSsongs;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -89,10 +91,44 @@ class TrendingSong extends StatelessWidget {
         ),
         const SizedBox(height: 4),
 
-        // Hiển thị Songs hoặc Albums
-        if (isShowingSongs) _buildSongsList(context) else _buildAlbumsList(),
+        // Hiển thị Songs hoặc Albums hoặc shimmer loading
+        if (isLoading)
+          _buildShimmerList(isShowingSongs)
+        else if (isShowingSongs)
+          _buildSongsList(context)
+        else
+          _buildAlbumsList(),
       ],
     );
+  }
+
+  // Widget hiển thị shimmer loading
+  Widget _buildShimmerList(bool isShowingSongs) {
+    if (isShowingSongs) {
+      return SizedBox(
+        height: 150,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: 3,
+          separatorBuilder: (_, __) => const SizedBox(width: 20),
+          itemBuilder: (context, index) => ShimmerWidgets.songCardShimmer(),
+        ),
+      );
+    } else {
+      return SizedBox(
+        height: 250,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: 4,
+          itemBuilder: (context, index) => Padding(
+            padding: const EdgeInsets.only(right: 20, top: 10, bottom: 10),
+            child: ShimmerWidgets.albumCardShimmer(),
+          ),
+        ),
+      );
+    }
   }
 
   // Widget hiển thị danh sách Albums

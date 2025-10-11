@@ -17,7 +17,7 @@ void main() {
   runApp(
     ChangeNotifierProvider(
       create: (_) => AudioPlayerProvider(),
-      child: WaveMusicApp(),
+      child: const WaveMusicApp(),
     ),
   );
 }

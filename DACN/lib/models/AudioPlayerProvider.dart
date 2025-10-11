@@ -30,7 +30,7 @@ class AudioPlayerProvider extends ChangeNotifier {
   Duration get duration => _duration;
 
   Future<void> playSong(Songs song) async {
-    if (song.url == null || song.url!.isEmpty) {
+    if (song.url.isEmpty) {
       debugPrint("Lỗi: Bài hát ${song.title} không có URL để phát!");
       return;
     }
@@ -39,32 +39,23 @@ class AudioPlayerProvider extends ChangeNotifier {
 
     try {
       // Thử phát mp3Url trước
-      if (song.mp3Url != null) {
-        await _audioPlayer.setUrl(Uri.encodeFull(song.mp3Url!));
-        _audioPlayer.play();
-        debugPrint("Đang phát MP3: ${song.mp3Url}");
-      } else {
-        // mp3Url null → fallback
-        await _audioPlayer.setUrl(Uri.encodeFull(song.url));
-        _audioPlayer.play();
-        debugPrint("Đang phát FLAC gốc: ${song.url}");
-      }
-      isPlaying = true;
+      await _audioPlayer.setUrl(Uri.encodeFull(song.mp3Url));
+      _audioPlayer.play();
+      debugPrint("Đang phát MP3: ${song.mp3Url}");
+          isPlaying = true;
       notifyListeners();
     } catch (e) {
       debugPrint("Lỗi khi phát bài ${song.title}: $e");
-      if (song.mp3Url != null) {
-        print("Thử fallback sang FLAC gốc...");
-        try {
-          await _audioPlayer.setUrl(Uri.encodeFull(song.url));
-          _audioPlayer.play();
-          debugPrint("Fallback sang FLAC gốc: ${song.url}");
-        } catch (e2) {
-          debugPrint("url ngu: ${song.url}");
-          debugPrint("Vẫn lỗi khi phát FLAC: $e2");
-        }
+      print("Thử fallback sang FLAC gốc...");
+      try {
+        await _audioPlayer.setUrl(Uri.encodeFull(song.url));
+        _audioPlayer.play();
+        debugPrint("Fallback sang FLAC gốc: ${song.url}");
+      } catch (e2) {
+        debugPrint("url ngu: ${song.url}");
+        debugPrint("Vẫn lỗi khi phát FLAC: $e2");
       }
-    }
+        }
   }
 
   void pauseSong() {
@@ -74,9 +65,9 @@ class AudioPlayerProvider extends ChangeNotifier {
   }
 
   void togglePlayPause() {
-    if (isPlaying)
+    if (isPlaying) {
       pauseSong();
-    else if (currentPlaying != null) _audioPlayer.play();
+    } else if (currentPlaying != null) _audioPlayer.play();
     notifyListeners();
   }
 
