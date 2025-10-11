@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/album.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 class UserService {
   UserService({http.Client? client}) : _client = client ?? http.Client();
 
@@ -85,6 +87,8 @@ class UserService {
       if (token == null || token.isEmpty) {
         throw Exception('Thiếu token từ máy chủ');
       }
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('token', token);
       return LoginResponse(token: token, message: message);
     }
 
