@@ -4,6 +4,8 @@ import 'package:provider/provider.dart'; // Import Provider
 import '../models/AudioPlayerProvider.dart'; // Import AudioPlayerProvider
 import 'package:marquee/marquee.dart';
 import '../widgets/autoScroollerText.dart';
+import '../screens/player_screen.dart';
+import '../models/songs.dart';
 
 class BuildNaviBot extends StatefulWidget {
   final int currentIndex;
@@ -20,7 +22,7 @@ class BuildNaviBot extends StatefulWidget {
 
 class BuildNaviBotState extends State<BuildNaviBot>
     with SingleTickerProviderStateMixin {
-  // Songs? currentPlaying; // Managed by AudioPlayerProvider
+  Songs? currentPlaying; // Managed by AudioPlayerProvider
   late AnimationController
       _rotationController; // Reintroduce rotation controller
   // late AudioPlayer _audioPlayer; // Managed by AudioPlayerProvider
@@ -41,7 +43,7 @@ class BuildNaviBotState extends State<BuildNaviBot>
     _rotationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 10),
-    )..repeat(); // Repeat the animation
+    )..repeat();
 
     // _rotationController = AnimationController(
     //   vsync: this,
@@ -84,6 +86,7 @@ class BuildNaviBotState extends State<BuildNaviBot>
           children: [
             if (currentPlaying != null)
               GestureDetector(
+                behavior: HitTestBehavior.opaque,
                 onTap: () {},
                 child: Container(
                   height: 60,
@@ -105,20 +108,37 @@ class BuildNaviBotState extends State<BuildNaviBot>
                   ),
                   child: Row(
                     children: [
-                      RotationTransition(
-                        turns: _rotationController,
-                        child: CircleAvatar(
-                          backgroundImage:
-                              NetworkImage(currentPlaying.thumbnail),
-                          radius: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: autoTextScroller(
-                          currentPlaying.title,
-                          const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  PlayerScreen(song: currentPlaying),
+                            ),
+                          );
+                        },
+                        behavior: HitTestBehavior.opaque,
+                        child: Row(
+                          children: [
+                            RotationTransition(
+                              turns: _rotationController,
+                              child: CircleAvatar(
+                                backgroundImage:
+                                    NetworkImage(currentPlaying.thumbnail),
+                                radius: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.51,
+                              child: autoTextScroller(
+                                currentPlaying.title,
+                                const TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       IconButton(
@@ -140,7 +160,8 @@ class BuildNaviBotState extends State<BuildNaviBot>
                 borderRadius: BorderRadius.circular(30),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.5),
+                    color: const Color.fromARGB(255, 112, 110, 110)
+                        .withOpacity(0.5),
                     blurRadius: 12,
                     offset: const Offset(0, 3),
                   ),
