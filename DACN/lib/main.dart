@@ -14,6 +14,7 @@ import 'theme/app_theme.dart';
 import 'navigation/bottom_nav.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(
     ChangeNotifierProvider(
       create: (_) => AudioPlayerProvider(),

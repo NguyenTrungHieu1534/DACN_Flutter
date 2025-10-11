@@ -2,32 +2,33 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/album.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
 
 class UserService {
   UserService({http.Client? client}) : _client = client ?? http.Client();
 
   final http.Client _client;
   static const String baseApiUrl = 'https://backend-dacn-9l4w.onrender.com';
-  static const String baseHealthUrl =
-      'https://backend-dacn-9l4w.onrender.com/health';
+  // static const String baseHealthUrl =
+  //     'https://backend-dacn-9l4w.onrender.com/health';
 
-  // ------------------------- HEALTH CHECK -------------------------
-  Future<String> checkHealth() async {
-    try {
-      final response = await _client
-          .get(Uri.parse(baseHealthUrl))
-          .timeout(const Duration(seconds: 8));
+  // // ------------------------- HEALTH CHECK -------------------------
+  // Future<String> checkHealth() async {
+  //   try {
+  //     final response = await _client
+  //         .get(Uri.parse(baseHealthUrl))
+  //         .timeout(const Duration(seconds: 8));
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
-        return data['message']?.toString() ?? 'OK';
-      }
+  //     if (response.statusCode == 200) {
+  //       final data = jsonDecode(response.body) as Map<String, dynamic>;
+  //       return data['message']?.toString() ?? 'OK';
+  //     }
 
-      return 'Unhealthy (${response.statusCode})';
-    } catch (e) {
-      return 'Offline';
-    }
-  }
+  //     return 'Unhealthy (${response.statusCode})';
+  //   } catch (e) {
+  //     return 'Offline';
+  //   }
+  // }
 
   // ------------------------- SIGN UP -------------------------
   static Future<Map<String, dynamic>> signUp({
@@ -168,6 +169,32 @@ class UserService {
       };
     } catch (e) {
       return {'success': false, 'message': 'Lỗi kết nối: $e'};
+    }
+  }
+
+  Future<Map<String, dynamic>> uploadAvatar(
+      String userId, File imageFile) async {
+    try {
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$baseApiUrl/api/upload-avatar'),
+      );
+      request.fields['userId'] = userId;
+      request.files.add(await http.MultipartFile.fromPath(
+        'avatar',
+        imageFile.path,
+      ));
+      var response = await request.send();
+      var responseBody = await response.stream.bytesToString();
+
+      if (response.statusCode == 200) {
+        return jsonDecode(responseBody);
+      } else {
+        print('Upload failed: ${response.statusCode}, $responseBody');
+        return {"error": "Upload failed", "details": responseBody};
+      }
+    } catch (e) {
+      return {"error": "Exception", "details": e.toString()};
     }
   }
 }

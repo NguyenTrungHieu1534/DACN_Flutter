@@ -27,13 +27,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _loadHealth();
-  }
-
-  Future<void> _loadHealth() async {
-    final status = await _api.checkHealth();
-    if (!mounted) return;
-    setState(() => _health = status);
   }
 
   @override
@@ -54,10 +47,6 @@ class _LoginScreenState extends State<LoginScreen> {
       final password = _passwordController.text;
       final result =
           await _api.login(identifier: identifier, password: password);
-
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('auth_token', result.token);
-
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
@@ -196,7 +185,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                     onPressed: () {
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()),
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                const ForgotPasswordScreen()),
                                       );
                                     },
                                     child: const Text('Forgot password?'),

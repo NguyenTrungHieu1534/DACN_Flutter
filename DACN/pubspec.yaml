@@ -23,6 +23,7 @@ dependencies:
   audio_session: ^0.1.6
   shimmer: ^3.0.0
   jwt_decoder: ^2.0.1
+  image_picker: ^1.2.0
 
 dev_dependencies:
   flutter_test:
