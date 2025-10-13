@@ -4,6 +4,7 @@ import '../services/api_album.dart';
 import '../models/songs.dart';
 import '../models/AudioPlayerProvider.dart';
 import '../navigation/bottom_nav.dart';
+import '../widgets/shimmer_widgets.dart'; // ✅ thêm dòng này
 
 class AlbumDetailScreen extends StatefulWidget {
   final String albumName;
@@ -113,10 +114,15 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
               future: futureSongs,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(
-                      color: Color(0xFF6BB6E8),
-                    ),
+                  // ✅ Hiển thị shimmer khi đang tải
+                  return ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 30),
+                    itemCount: 5,
+                    itemBuilder: (context, index) =>
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 14),
+                          child: ShimmerWidgets.songCardShimmer(),
+                        ),
                   );
                 } else if (snapshot.hasError) {
                   return Center(
