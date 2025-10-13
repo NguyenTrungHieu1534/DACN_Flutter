@@ -88,8 +88,6 @@ class _UserScreenState extends State<UserScreen> {
   Future<void> _checkToken() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
-    final deco = JwtDecoder.decode(token.toString());
-    print('Decoded token: $deco');
     if (token != null) {
       Map<String, dynamic> decoded = JwtDecoder.decode(token);
       setState(() {

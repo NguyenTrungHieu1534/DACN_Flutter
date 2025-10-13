@@ -6,6 +6,7 @@ import '../services/api_songs.dart';
 import '../widgets/TrendingAlbums.dart';
 import '../widgets/TrendingSong.dart';
 import '../widgets/shimmer_widgets.dart';
+import '../widgets/hawaii_greeting_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -162,105 +163,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 🌸 Greeting Box
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 16),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Color(0xFF00C6FB), // Xanh biển sáng
-                            Color(0xFF005BEA), // Xanh biển đậm
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF007BFF).withOpacity(0.25),
-                            offset: const Offset(0, 6),
-                            blurRadius: 12,
-                          ),
-                          BoxShadow(
-                            color: Colors.white.withOpacity(0.15),
-                            offset: const Offset(-4, -4),
-                            blurRadius: 8,
-                          ),
-                        ],
-                        border: Border.all(
-                          color: const Color(0xFF8EE7FF).withOpacity(0.4),
-                          width: 1.2,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          // Icon tròn kiểu mặt trời Hawaii
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  Color(0xFFFFC371), // Vàng cam mặt trời
-                                  Color(0xFFFF5F6D), // Cam hồng nhiệt đới
-                                ],
-                              ),
-                            ),
-                            child: Icon(
-                              _getGreetingIcon(DateTime.now().hour),
-                              color: Colors.white,
-                              size: 28,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-
-                          // Text chào
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ShaderMask(
-                                shaderCallback: (bounds) =>
-                                    const LinearGradient(
-                                  colors: [
-                                    Color(0xFFFFE29F), // Vàng ánh sáng
-                                    Color(0xFFFF719A), // Hồng đào
-                                    Color(0xFF9BFFF9), // Aqua sáng
-                                  ],
-                                ).createShader(bounds),
-                                child: Text(
-                                  greeting(),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: -0.5,
-                                    shadows: [
-                                      Shadow(
-                                        offset: Offset(0, 2),
-                                        blurRadius: 6,
-                                        color: Color(0xFF004C97),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Let’s ride the wave of music 🌊',
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.85),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  letterSpacing: 0.2,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                    HawaiiGreetingCard(
+                      greeting: () =>
+                          greeting(), // truyền hàm greeting() của bạn
+                      getGreetingIcon: (hour) =>
+                          _getGreetingIcon(hour), // truyền hàm icon của bạn
                     ),
                     const SizedBox(height: 24),
 
@@ -287,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     const SizedBox(height: 28),
                     TrendingAlbum(
-                        title: 'Trending Albums', 
+                        title: 'Trending Albums',
                         itemsAlbum: trendingAlbums,
                         isLoading: false),
                     const SizedBox(height: 28),
