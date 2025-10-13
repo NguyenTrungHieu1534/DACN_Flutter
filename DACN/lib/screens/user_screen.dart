@@ -87,22 +87,40 @@ class _UserScreenState extends State<UserScreen> {
 
   Future<void> _checkToken() async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-    final deco = JwtDecoder.decode(token.toString());
-    print('Decoded token: $deco');
-    if (token != null) {
-      Map<String, dynamic> decoded = JwtDecoder.decode(token);
+    final stored = prefs.getString('token');
+
+    // Guard: no token saved
+    if (stored == null || stored.trim().isEmpty) {
+      setState(() => _loading = false);
+      return;
+    }
+
+    // Strip optional Bearer prefix and validate basic JWT structure
+    final rawToken = stored.startsWith('Bearer ')
+        ? stored.substring(7).trim()
+        : stored.trim();
+    final looksLikeJwt = rawToken.split('.').length == 3;
+
+    if (!looksLikeJwt) {
+      // Invalid format -> treat as logged out
+      setState(() => _loading = false);
+      return;
+    }
+
+    try {
+      final Map<String, dynamic> decoded = JwtDecoder.decode(rawToken);
       setState(() {
-        _token = token;
+        _token = rawToken;
         _userId = decoded["_id"];
         _username = decoded["username"];
         _email = decoded["email"];
         _role = decoded["role"];
-        _loading = false;
         _avatar = decoded["ava"];
+        _loading = false;
       });
       print('avatarUrl: $_avatar');
-    } else {
+    } catch (e) {
+      // Decoding failed -> consider token invalid
       setState(() => _loading = false);
     }
   }

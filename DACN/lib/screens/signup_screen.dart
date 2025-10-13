@@ -60,29 +60,59 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Ocean gradient background to match LoginScreen
+          // Background gradient aligned with Home tone (blue -> white)
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  AppColors.oceanDeep,
-                  AppColors.oceanBlue,
-                  AppColors.skyBlue,
+                  Color.fromARGB(255, 112, 150, 193),
+                  Colors.white,
                 ],
+                stops: [0.0, 0.4],
               ),
             ),
           ),
-          Align(
-            alignment: Alignment.bottomCenter,
+          // Soft decorative blobs (yellow/pink) matching Home accents
+          Positioned(
+            top: -20,
+            right: -30,
             child: Container(
-              height: 120,
+              width: 140,
+              height: 140,
               decoration: const BoxDecoration(
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(100),
+                ),
                 gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, AppColors.sand],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFFFFE29F),
+                    Color(0xFFFFC371),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -30,
+            left: -40,
+            child: Container(
+              width: 160,
+              height: 160,
+              decoration: const BoxDecoration(
+                borderRadius: BorderRadius.only(
+                  topRight: Radius.circular(120),
+                ),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFFFFB6B9),
+                    Color(0xFFFF719A),
+                  ],
                 ),
               ),
             ),

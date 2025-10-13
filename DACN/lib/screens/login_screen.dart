@@ -64,30 +64,59 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Ocean gradient background
+          // Background gradient aligned with Home tone (blue -> white)
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  AppColors.oceanDeep,
-                  AppColors.oceanBlue,
-                  AppColors.skyBlue,
+                  Color.fromARGB(255, 112, 150, 193), // same top as Home
+                  Colors.white, // fade to white like Home
                 ],
+                stops: [0.0, 0.4],
               ),
             ),
           ),
-          // Subtle sand overlay at the bottom
-          Align(
-            alignment: Alignment.bottomCenter,
+          // Soft decorative blobs (yellow/pink) matching Home accents
+          Positioned(
+            top: -20,
+            right: -30,
             child: Container(
-              height: 120,
+              width: 140,
+              height: 140,
               decoration: const BoxDecoration(
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(100),
+                ),
                 gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, AppColors.sand],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFFFFE29F), // soft yellow
+                    Color(0xFFFFC371), // warm yellow-orange
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -30,
+            left: -40,
+            child: Container(
+              width: 160,
+              height: 160,
+              decoration: const BoxDecoration(
+                borderRadius: BorderRadius.only(
+                  topRight: Radius.circular(120),
+                ),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFFFFB6B9), // pastel pink
+                    Color(0xFFFF719A), // soft pink
+                  ],
                 ),
               ),
             ),
@@ -100,21 +129,39 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Brand / Title
-                    Text(
-                      'Wave Music',
-                      style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
+                    // Title
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Login',
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineMedium
+                                ?.copyWith(
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.w800,
+                                ),
                           ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Please sign in to continue.',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: Colors.black54,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 8),
-
                     const SizedBox(height: 24),
                     // Form Card
                     Card(
                       color: Colors.white,
-                      elevation: 0,
+                      elevation: 6,
+                      shadowColor: const Color.fromARGB(255, 112, 150, 193).withOpacity(0.25),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20)),
                       child: Padding(
