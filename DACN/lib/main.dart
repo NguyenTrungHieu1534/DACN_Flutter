@@ -12,7 +12,8 @@ import 'package:music_login/screens/user_screen.dart';
 import 'models/AudioPlayerProvider.dart';
 import 'theme/app_theme.dart';
 import 'navigation/bottom_nav.dart';
-
+import '../screens/library_screen.dart';
+import '../screens/album_detail_screen.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
@@ -60,12 +61,12 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation>
     with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
-
   final _screens = const [
     HomeScreen(),
     SearchScreen(),
-    FavScreen(),
+    LibraryScreen(),
     UserScreen(),
+    FavScreen(),
   ];
 
   @override

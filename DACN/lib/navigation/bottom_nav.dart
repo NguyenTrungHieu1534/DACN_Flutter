@@ -172,7 +172,7 @@ class BuildNaviBotState extends State<BuildNaviBot>
                       widget.onItemSelected),
                   _dockItem(Icons.search_rounded, "Search", 1,
                       widget.currentIndex, widget.onItemSelected),
-                  _dockItem(Icons.favorite_rounded, "Favorites", 2,
+                  _dockItem(Icons.category_sharp, "Library", 2,
                       widget.currentIndex, widget.onItemSelected),
                   _dockItem(Icons.person_rounded, "Profile", 3,
                       widget.currentIndex, widget.onItemSelected),

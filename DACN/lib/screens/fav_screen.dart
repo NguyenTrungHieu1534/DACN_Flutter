@@ -35,7 +35,13 @@ class _FavScreenState extends State<FavScreen> {
   @override
   Widget build(BuildContext context) {
   return Scaffold(
-    backgroundColor: Colors.transparent, // Để gradient phủ toàn bộ
+    appBar: AppBar(
+      title: Text("Yêu Thích"),
+      centerTitle: true,
+      backgroundColor: Color.fromARGB(255, 112, 150, 193),
+      elevation: 0,
+    ),
+    backgroundColor: Colors.transparent,
      
     body: Container(
       decoration: BoxDecoration(
