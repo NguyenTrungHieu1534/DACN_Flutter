@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-class Favorite {
-  final String? id; // từ MongoDB: _id có thể ở dạng ObjectId hoặc String
+class FavoriteSong {
+  final String? id;
   final String username;
   final String title;
   final String songId;
@@ -9,33 +9,25 @@ class Favorite {
   final String filename;
   final String album;
 
-  const Favorite({
+  FavoriteSong({
     this.id,
     required this.username,
     required this.title,
-    required this.artist,
     required this.songId,
+    required this.artist,
     required this.filename,
     required this.album,
   });
 
-  Favorite copyWith({
-    String? id,
-    String? username,
-    String? title,
-    String? artist,
-    String? filename,
-    String? album,
-    String? songId,
-  }) {
-    return Favorite(
-      id: id ?? this.id,
-      username: username ?? this.username,
-      title: title ?? this.title,
-      artist: artist ?? this.artist,
-      filename: filename ?? this.filename,
-      album: album ?? this.album,
-      songId: songId ?? this.songId,
+  factory FavoriteSong.fromJson(Map<String, dynamic> json) {
+    return FavoriteSong(
+      id: json['_id'] ?? '',
+      username: json['username']?? '',
+      title: json['title']?? '',
+      songId: json['songId']?? '',
+      artist: json['artist']?? '',
+      filename: json['filename']?? '',
+      album: json['album']?? '',
     );
   }
 }
