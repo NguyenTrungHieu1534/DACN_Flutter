@@ -3,31 +3,38 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/favSongs.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+
 class FavoriteService {
   final String baseUrl = "http://backend-dacn-9l4w.onrender.com";
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('token');
-  }  
-  Future<List<FavoriteSong>> getFavorites() async {
-  final token = await _getToken();
-  Map<String, dynamic> decoded = JwtDecoder.decode(token.toString());
-  String username = decoded["username"];
-  final response = await http.get(
-    Uri.parse("$baseUrl/api/favorites/$username"),
-    headers: {
-      "Authorization": "Bearer $token",
-    },
-  );
-
-  if (response.statusCode == 200) {
-    final body = jsonDecode(response.body);
-    List data = body["data"];
-    return data.map((e) => FavoriteSong.fromJson(e)).toList();
-  } else {
-    throw Exception("Không thể lấy dữ liệu yêu thích");
   }
-}
+
+  Future<List<FavoriteSong>> getFavorites() async {
+    final token = await _getToken();
+    if (token == null || token.isEmpty) {
+      return [];
+    }
+
+    Map<String, dynamic> decoded = JwtDecoder.decode(token.toString());
+    String username = decoded["username"];
+
+    final response = await http.get(
+      Uri.parse("$baseUrl/api/favorites/$username"),
+      headers: {
+        "Authorization": "Bearer $token",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final body = jsonDecode(response.body);
+      List data = body["data"];
+      return data.map((e) => FavoriteSong.fromJson(e)).toList();
+    } else {
+      throw Exception("Không thể lấy dữ liệu yêu thích");
+    }
+  }
 
   Future<String> addFavorite(FavoriteSong song) async {
     final token = await _getToken();
@@ -62,6 +69,7 @@ class FavoriteService {
 
     return jsonDecode(response.body)['message'];
   }
+
   Future<String> deleteFavoriteBySongId(String songId) async {
     final token = await _getToken();
     final response = await http.delete(
