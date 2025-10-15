@@ -25,3 +25,4 @@
 ### 🌐 Cộng đồng & Chia sẻ
 - [ ] Tạo **report nhạc**, **community**
 - [ ] Thêm **chức năng chia sẻ** và **tạo link bài hát**
+### CẦN THIẾT KẾ LẠI UI CHO TOÀN BỘ
