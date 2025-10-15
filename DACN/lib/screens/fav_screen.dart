@@ -1,30 +1,85 @@
 import 'package:flutter/material.dart';
+import '../models/favSongs.dart';
+import '../services/api_favsongs.dart';
+import '../widgets/FavoriteSongList.dart';
 
-class FavScreen extends StatelessWidget {
-  const FavScreen({super.key});
+class FavScreen extends StatefulWidget {
+  const FavScreen({Key? key}) : super(key: key);
+
+  @override
+  _FavScreenState createState() => _FavScreenState();
+}
+
+class _FavScreenState extends State<FavScreen> {
+  late FavoriteService _favService;
+  late Future<List<FavoriteSong>> _favoritesFuture = Future.value([]);
+
+  @override
+  void initState() {
+    super.initState();
+    _favService = FavoriteService();
+    _loadFavorites();
+  }
+
+  void _loadFavorites() {
+    _favService.getFavorites().then((favorites) {
+      setState(() {
+        _favoritesFuture = Future.value(favorites);
+      });
+      print("fav data: $favorites");
+    }).catchError((err) {
+      print("Error loading favorites: $err");
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FB),
-      appBar: AppBar(
-        title: const Text(
-          'Trang chủ',
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 20,
-          ),
+  return Scaffold(
+    appBar: AppBar(
+      title: Text("Yêu Thích"),
+      centerTitle: true,
+      backgroundColor: Color.fromARGB(255, 112, 150, 193),
+      elevation: 0,
+    ),
+    backgroundColor: Colors.transparent,
+     
+    body: Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color.fromARGB(255, 112, 150, 193), // xanh ngọc retro
+            Color(0xFFFFFFFF), // trắng pastel
+          ],
+          stops: [0.0, 0.4],
         ),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Colors.white,
       ),
-      body: const Center(
-        child: Text(
-          '🎵 Chào mừng đến Wave Music!',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
-        ),
+      child: FutureBuilder<List<FavoriteSong>>(
+        future: _favoritesFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(child: Text("Lỗi tải dữ liệu 😢"));
+          }
+
+          final favorites = snapshot.data ?? [];
+
+          return FavoriteSongList(
+            songs: favorites,
+            onDelete: (song) async {
+              await _favService.deleteFavoriteBySongId(song.songId);
+              _loadFavorites();
+            },
+            onTap: (song) {},
+          );
+        },
       ),
-    );
-  }
+    ),
+  );
+}
+
 }

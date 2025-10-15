@@ -14,14 +14,15 @@
 - [ ] Hiển thị **Lyrics (Lời bài hát)**
 
 ### 📂 Playlist
-- [ ] Thêm Playlist  
-- [ ] Xóa Playlist  
-- [ ] Sửa Playlist  
+- [+] Thêm Playlist  
+- [+] Xóa Playlist  
+- [+] Sửa Playlist  
 
 ### 🔔 Thông báo & Kết nối
-- [ ] Hiển thị **trạng thái kết nối**
+- [+] Hiển thị **trạng thái kết nối**
 - [ ] Thêm **thông báo đẩy (push notification)** khi thay đổi trạng thái nhạc
 
 ### 🌐 Cộng đồng & Chia sẻ
 - [ ] Tạo **report nhạc**, **community**
 - [ ] Thêm **chức năng chia sẻ** và **tạo link bài hát**
+### CẦN THIẾT KẾ LẠI UI CHO TOÀN BỘ

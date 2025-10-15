@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/api_album.dart';
 import '../models/songs.dart';
 import '../models/AudioPlayerProvider.dart';
-import '../navigation/bottom_nav.dart';
+// import '../navigation/bottom_nav.dart';
 import '../widgets/shimmer_widgets.dart'; // ✅ thêm dòng này
 
 class AlbumDetailScreen extends StatefulWidget {
@@ -273,10 +273,6 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
             ),
           ),
         ],
-      ),
-      bottomNavigationBar: BuildNaviBot(
-        currentIndex: _currentIndex,
-        onItemSelected: _onItemSelected,
       ),
     );
   }
