@@ -38,6 +38,7 @@ class FavoriteService {
 
   Future<String> addFavorite(FavoriteSong song) async {
     final token = await _getToken();
+    print("${token}");
     final response = await http.post(
       Uri.parse("$baseUrl/api/add/favorite"),
       headers: {
@@ -51,7 +52,7 @@ class FavoriteService {
         "songId": song.songId,
       }),
     );
-
+    print("Response body: ${response.body}");
     return jsonDecode(response.body)['message'];
   }
 

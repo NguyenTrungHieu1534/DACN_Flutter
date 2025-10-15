@@ -14,9 +14,9 @@
 - [ ] Hiển thị **Lyrics (Lời bài hát)**
 
 ### 📂 Playlist
-- [ ] Thêm Playlist  
-- [ ] Xóa Playlist  
-- [ ] Sửa Playlist  
+- [+] Thêm Playlist  
+- [+] Xóa Playlist  
+- [+] Sửa Playlist  
 
 ### 🔔 Thông báo & Kết nối
 - [ ] Hiển thị **trạng thái kết nối**
@@ -25,3 +25,4 @@
 ### 🌐 Cộng đồng & Chia sẻ
 - [ ] Tạo **report nhạc**, **community**
 - [ ] Thêm **chức năng chia sẻ** và **tạo link bài hát**
+### CẦN THIẾT KẾ LẠI UI CHO TOÀN BỘ
