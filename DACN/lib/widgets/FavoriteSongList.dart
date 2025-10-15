@@ -5,12 +5,14 @@ class FavoriteSongList extends StatelessWidget {
   final List<FavoriteSong> songs;
   final Function(FavoriteSong song)? onDelete;
   final Function(FavoriteSong song)? onTap;
+  final Map<String, String>? albumCoverByName; // album name -> cover url
 
   const FavoriteSongList({
     Key? key,
     required this.songs,
     this.onDelete,
     this.onTap,
+    this.albumCoverByName,
   }) : super(key: key);
 
   @override
@@ -41,7 +43,8 @@ class FavoriteSongList extends StatelessWidget {
     itemCount: songs.length,
     itemBuilder: (context, index) {
       final song = songs[index];
-      final color = retroColors[index % retroColors.length]; // Đổi màu tuần hoàn
+      final color = retroColors[index % retroColors.length];
+      final coverUrl = albumCoverByName?[song.album] ?? '';
 
       return Container(
         margin: EdgeInsets.only(bottom: 12),
@@ -57,13 +60,21 @@ class FavoriteSongList extends StatelessWidget {
           ],
         ),
         child: ListTile(
-          leading: Container(
-            padding: EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.7),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.music_note, color: Colors.brown.shade700),
+          leading: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: coverUrl.isNotEmpty
+                ? Image.network(
+                    coverUrl,
+                    width: 48,
+                    height: 48,
+                    fit: BoxFit.cover,
+                  )
+                : Container(
+                    width: 48,
+                    height: 48,
+                    color: Colors.white.withOpacity(0.7),
+                    child: Icon(Icons.music_note, color: Colors.brown.shade700),
+                  ),
           ),
           title: Text(
             song.title,

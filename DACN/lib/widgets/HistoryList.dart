@@ -4,8 +4,9 @@ import '../models/history.dart';
 class HistoryList extends StatelessWidget {
   final List<HistorySong> songs;
   final Function(HistorySong)? onTap;
+  final Map<String, String>? titleToCoverUrl; // optional map for covers
 
-  const HistoryList({super.key, required this.songs, this.onTap});
+  const HistoryList({super.key, required this.songs, this.onTap, this.titleToCoverUrl});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +23,6 @@ class HistoryList extends StatelessWidget {
       );
     }
 
-    // Màu ngẫu nhiên cho từng card
     final List<Color> cardColors = [
       Color(0xFFFFF4D9), // vàng pastel
       Color(0xFFD0F4DE), // xanh lá pastel
@@ -36,6 +36,7 @@ class HistoryList extends StatelessWidget {
       itemBuilder: (context, index) {
         final song = songs[index];
         final cardColor = cardColors[index % cardColors.length];
+        final coverUrl = titleToCoverUrl?[song.title] ?? '';
 
         return Container(
           margin: EdgeInsets.only(bottom: 12),
@@ -51,13 +52,21 @@ class HistoryList extends StatelessWidget {
             ],
           ),
           child: ListTile(
-            leading: Container(
-              padding: EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.blueAccent,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.history, color: Colors.white),
+            leading: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: coverUrl.isNotEmpty
+                  ? Image.network(
+                      coverUrl,
+                      width: 48,
+                      height: 48,
+                      fit: BoxFit.cover,
+                    )
+                  : Container(
+                      width: 48,
+                      height: 48,
+                      color: Colors.blueAccent,
+                      child: Icon(Icons.history, color: Colors.white),
+                    ),
             ),
             title: Text(
               song.title,

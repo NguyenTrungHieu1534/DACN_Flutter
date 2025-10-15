@@ -3,6 +3,7 @@ import '../models/favSongs.dart';
 import '../services/api_favsongs.dart';
 import '../widgets/FavoriteSongList.dart';
 import '../theme/app_theme.dart';
+import '../services/api_album.dart';
 
 class FavScreen extends StatefulWidget {
   const FavScreen({Key? key}) : super(key: key);
@@ -14,6 +15,7 @@ class FavScreen extends StatefulWidget {
 class _FavScreenState extends State<FavScreen> {
   late FavoriteService _favService;
   late Future<List<FavoriteSong>> _favoritesFuture = Future.value([]);
+  Map<String, String> _albumCoverByName = {};
 
   @override
   void initState() {
@@ -62,13 +64,20 @@ class _FavScreenState extends State<FavScreen> {
 
               final favorites = snapshot.data ?? [];
 
-              return FavoriteSongList(
-                songs: favorites,
-                onDelete: (song) async {
-                  await _favService.deleteFavoriteBySongId(song.songId);
-                  _loadFavorites();
+              return FutureBuilder<Map<String, String>>(
+                future: _fetchAlbumCovers(),
+                builder: (context, coverSnap) {
+                  final map = coverSnap.data ?? _albumCoverByName;
+                  return FavoriteSongList(
+                    songs: favorites,
+                    albumCoverByName: map,
+                    onDelete: (song) async {
+                      await _favService.deleteFavoriteBySongId(song.songId);
+                      _loadFavorites();
+                    },
+                    onTap: (song) {},
+                  );
                 },
-                onTap: (song) {},
               );
             },
           ),
@@ -77,5 +86,20 @@ class _FavScreenState extends State<FavScreen> {
     ),
   );
 }
+
+  Future<Map<String, String>> _fetchAlbumCovers() async {
+    if (_albumCoverByName.isNotEmpty) return _albumCoverByName;
+    try {
+      final albums = await AlbumService.fetchAlbums();
+      final map = <String, String>{};
+      for (final a in albums) {
+        if (a.url.isNotEmpty) map[a.name] = a.url;
+      }
+      _albumCoverByName = map;
+      return map;
+    } catch (_) {
+      return _albumCoverByName;
+    }
+  }
 
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:music_login/screens/fav_screen.dart';
 import '../theme/app_theme.dart';
 import '../screens/playlist_screen.dart';
@@ -11,20 +12,59 @@ class LibraryScreen extends StatelessWidget {
       backgroundColor: AppColors.retroWhite,
       body: CustomScrollView(
         slivers: [
-          SliverAppBar.large(
-            backgroundColor: AppColors.retroPrimary,
-            foregroundColor: AppColors.retroWhite,
-            title: const Text('Your Library 🌺'),
+          SliverAppBar(
             pinned: true,
+            expandedHeight: 130,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            flexibleSpace: FlexibleSpaceBar(
+              background: ClipRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    color: Colors.white.withOpacity(0.75),
+                    child: SafeArea(
+                      bottom: false,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              'Library',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 30,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                            SizedBox(height: 6),
+                            Text(
+                              'Favorites, playlists, and history',
+                              style: TextStyle(
+                                color: Colors.black54,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
           SliverPadding(
             padding: const EdgeInsets.all(16),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 _retroCard(
-                  icon: Icons.favorite,
+                  icon: Icons.favorite_rounded,
                   text: "Liked Songs",
-                  color: AppColors.retroPeach.withOpacity(0.7),
+                  color: AppColors.retroPeach.withOpacity(0.85),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -33,9 +73,9 @@ class LibraryScreen extends StatelessWidget {
                   },
                 ),
                 _retroCard(
-                  icon: Icons.history,
+                  icon: Icons.history_rounded,
                   text: "Recently Played",
-                  color: AppColors.retroSand.withOpacity(0.7),
+                  color: AppColors.retroSand.withOpacity(0.85),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -44,9 +84,9 @@ class LibraryScreen extends StatelessWidget {
                   },
                 ),
                 _retroCard(
-                  icon: Icons.playlist_play,
+                  icon: Icons.playlist_play_rounded,
                   text: "Playlists",
-                  color: AppColors.retroPrimary.withOpacity(0.7),
+                  color: AppColors.retroPrimary.withOpacity(0.85),
                   onTap: () {
                     Navigator.push(
                       context,
