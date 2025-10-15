@@ -14,9 +14,9 @@
 - [ ] Hiển thị **Lyrics (Lời bài hát)**
 
 ### 📂 Playlist
-- [ ] Thêm Playlist  
-- [ ] Xóa Playlist  
-- [ ] Sửa Playlist  
+- [+] Thêm Playlist  
+- [+] Xóa Playlist  
+- [+] Sửa Playlist  
 
 ### 🔔 Thông báo & Kết nối
 - [+] Hiển thị **trạng thái kết nối**
