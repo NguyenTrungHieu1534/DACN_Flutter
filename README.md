@@ -19,7 +19,7 @@
 - [ ] Sửa Playlist  
 
 ### 🔔 Thông báo & Kết nối
-- [ ] Hiển thị **trạng thái kết nối**
+- [+] Hiển thị **trạng thái kết nối**
 - [ ] Thêm **thông báo đẩy (push notification)** khi thay đổi trạng thái nhạc
 
 ### 🌐 Cộng đồng & Chia sẻ
