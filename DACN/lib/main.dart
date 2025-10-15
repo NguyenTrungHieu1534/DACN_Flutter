@@ -14,6 +14,10 @@ import 'theme/app_theme.dart';
 import 'navigation/bottom_nav.dart';
 import '../screens/library_screen.dart';
 import '../screens/album_detail_screen.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'services/network_check.dart';
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
@@ -68,20 +72,56 @@ class _MainNavigationState extends State<MainNavigation>
     UserScreen(),
     FavScreen(),
   ];
+  Stream<bool> get connectionStream async* {
+    yield* Connectivity().onConnectivityChanged.asyncMap((status) async {
+      if (status == ConnectivityResult.none) return false;
+      return await InternetConnectionChecker().hasConnection;
+    });
+  }
 
   @override
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBody: true,
-      body: IndexedStack(
-        index: _currentIndex, // Set the current index for IndexedStack
-        children: _screens,
-      ),
-      bottomNavigationBar: BuildNaviBot(
-          currentIndex: _currentIndex,
-          onItemSelected: (index) {
-            setState(() => _currentIndex = index);
-          }),
+    return StreamBuilder<bool>(
+      stream: connectionStream,
+      builder: (context, snapshot) {
+        final hasInternet = snapshot.data ?? true;
+
+        return Stack(
+          children: [
+            Scaffold(
+              extendBody: true,
+              body: IndexedStack(
+                index: _currentIndex,
+                children: _screens,
+              ),
+              bottomNavigationBar: BuildNaviBot(
+                currentIndex: _currentIndex,
+                hasInternet: hasInternet,
+                onRetry: () async {
+                  final ok = await InternetConnectionChecker().hasConnection;
+                  if (!mounted) return;
+                  final messenger = ScaffoldMessenger.of(context);
+                  // Remove any existing snackbars to avoid stacking
+                  messenger.clearSnackBars();
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text(ok ? 'Đã kết nối' : 'Vẫn mất kết nối'),
+                      duration: const Duration(seconds: 2),
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor:
+                          ok ? Colors.greenAccent.shade700 : Colors.redAccent,
+                    ),
+                  );
+                },
+                onItemSelected: (index) {
+                  setState(() => _currentIndex = index);
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

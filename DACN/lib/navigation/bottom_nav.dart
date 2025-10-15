@@ -8,11 +8,15 @@ import '../models/songs.dart';
 class BuildNaviBot extends StatefulWidget {
   final int currentIndex;
   final Function(int) onItemSelected;
+  final bool hasInternet;
+  final VoidCallback? onRetry;
 
   const BuildNaviBot({
     super.key,
     required this.currentIndex,
     required this.onItemSelected,
+    this.hasInternet = true,
+    this.onRetry,
   });
   @override
   State<BuildNaviBot> createState() => BuildNaviBotState();
@@ -82,6 +86,49 @@ class BuildNaviBotState extends State<BuildNaviBot>
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Non-blocking small offline banner shown above the bottom dock
+            if (!widget.hasInternet)
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
+                child: Material(
+                  elevation: 6,
+                  borderRadius: BorderRadius.circular(18),
+                  color: Colors.transparent,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.orangeAccent.withOpacity(0.95),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.wifi_off,
+                            color: Colors.white, size: 18),
+                        const SizedBox(width: 8),
+                        const Text('Không có kết nối',
+                            style: TextStyle(color: Colors.white)),
+                        const SizedBox(width: 12),
+                        if (widget.onRetry != null)
+                          GestureDetector(
+                            onTap: widget.onRetry,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.12),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.refresh,
+                                  color: Colors.white, size: 16),
+                            ),
+                          )
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             if (currentPlaying != null)
               GestureDetector(
                 behavior: HitTestBehavior.opaque,

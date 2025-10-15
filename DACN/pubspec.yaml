@@ -24,6 +24,8 @@ dependencies:
   shimmer: ^3.0.0
   jwt_decoder: ^2.0.1
   image_picker: ^1.2.0
+  connectivity_plus: ^6.0.3
+  internet_connection_checker: ^1.0.0+1
 
 dev_dependencies:
   flutter_test:
