@@ -56,9 +56,9 @@ class _PlayerScreenState extends State<PlayerScreen>
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    AppColors.oceanDeep,
-                    AppColors.oceanBlue,
-                    AppColors.skyBlue,
+                    AppColors.retroPrimary,
+                    Color.fromARGB(255, 112, 150, 193),
+                    AppColors.retroWhite,
                   ],
                   stops: [0.0, 0.45, 1.0],
                 ),
@@ -80,7 +80,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                     displayImage,
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) =>
-                        Container(color: AppColors.oceanBlue),
+                        Container(color: AppColors.retroPrimary),
                   ),
                   // Slight blur to soften cover
                   BackdropFilter(
@@ -89,17 +89,16 @@ class _PlayerScreenState extends State<PlayerScreen>
                   ),
                   // Gradient fade from cover into blue retro background
                   Container(
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
                           Color(0x00000000), // transparent top
-                          Color(0x55247BA0), // soft blue tint (retro/hawaii)
-                          Color(
-                              0xCC0077A3), // deeper blue tint at bottom of cover
+                          AppColors.retroAccent.withOpacity(0.3),
+                          AppColors.retroAccent.withOpacity(0.8),
                         ],
-                        stops: [0.3, 0.7, 1.0],
+                        stops: const [0.3, 0.7, 1.0],
                       ),
                     ),
                   ),
@@ -110,13 +109,13 @@ class _PlayerScreenState extends State<PlayerScreen>
           // A subtle additional overlay across whole screen for Hawaii/retro warmth
           Positioned.fill(
             child: Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                   colors: [
-                    Color(0x00247BA0),
-                    Color(0x000071A1),
+                    Colors.transparent,
+                    Colors.transparent,
                   ],
                 ),
               ),
@@ -133,12 +132,12 @@ class _PlayerScreenState extends State<PlayerScreen>
                     children: [
                       IconButton(
                         icon: const Icon(Icons.keyboard_arrow_down,
-                            color: Colors.white),
+                            color: AppColors.retroWhite),
                         onPressed: () => Navigator.pop(context),
                       ),
                       const Spacer(),
                       IconButton(
-                        icon: const Icon(Icons.more_horiz, color: Colors.white),
+                        icon: const Icon(Icons.more_horiz, color: AppColors.retroWhite),
                         onPressed: () {},
                       ),
                     ],
@@ -161,7 +160,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                           errorBuilder: (_, __, ___) => Container(
                             width: 160,
                             height: 160,
-                            color: Colors.grey.shade300,
+                            color: AppColors.retroWhite.withOpacity(0.7),
                             child: const Icon(Icons.album, size: 48),
                           ),
                         ),
@@ -182,7 +181,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Colors.white,
+                          color: AppColors.retroWhite,
                           fontWeight: FontWeight.w800,
                           shadows: const [
                             Shadow(
@@ -199,7 +198,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.white.withOpacity(0.95),
+                          color: AppColors.retroWhite.withOpacity(0.95),
                           fontWeight: FontWeight.w600,
                           shadows: const [
                             Shadow(
@@ -214,11 +213,11 @@ class _PlayerScreenState extends State<PlayerScreen>
 
                       // Animated chill slider (value fixed at 0)
                       _ChillSlider(controller: _shimmerController),
-                      const Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('0:00', style: TextStyle(color: Colors.white70)),
-                          Text('0:00', style: TextStyle(color: Colors.white70)),
+                        children: <Widget>[
+                          Text('0:00', style: TextStyle(color: AppColors.retroWhite.withOpacity(0.7))),
+                          Text('0:00', style: TextStyle(color: AppColors.retroWhite.withOpacity(0.7))),
                         ],
                       ),
                       const SizedBox(height: 10),
@@ -228,12 +227,12 @@ class _PlayerScreenState extends State<PlayerScreen>
                         children: [
                           IconButton(
                             icon: const Icon(Icons.shuffle),
-                            color: Colors.white70,
+                            color: AppColors.retroWhite.withOpacity(0.7),
                             onPressed: () {},
                           ),
                           IconButton(
                             icon: const Icon(Icons.skip_previous_rounded),
-                            color: Colors.white,
+                            color: AppColors.retroWhite,
                             iconSize: 40,
                             onPressed: () {},
                           ),
@@ -244,15 +243,15 @@ class _PlayerScreenState extends State<PlayerScreen>
                             height: 84,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.white,
+                              color: AppColors.retroWhite,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.white.withOpacity(0.9),
+                                  color: AppColors.retroWhite.withOpacity(0.9),
                                   blurRadius: 30,
                                   spreadRadius: 2,
                                 ),
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.25),
+                                  color: AppColors.retroAccent.withOpacity(0.25),
                                   blurRadius: 12,
                                   offset: const Offset(0, 6),
                                 ),
@@ -260,7 +259,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                             ),
                             child: IconButton(
                               icon: const Icon(Icons.play_arrow),
-                              color: AppColors.oceanBlue,
+                              color: AppColors.retroAccent,
                               iconSize: 44,
                               onPressed: () {},
                             ),
@@ -268,13 +267,13 @@ class _PlayerScreenState extends State<PlayerScreen>
 
                           IconButton(
                             icon: const Icon(Icons.skip_next_rounded),
-                            color: Colors.white,
+                            color: AppColors.retroWhite,
                             iconSize: 40,
                             onPressed: () {},
                           ),
                           IconButton(
                             icon: const Icon(Icons.repeat),
-                            color: Colors.white70,
+                            color: AppColors.retroWhite.withOpacity(0.7),
                             onPressed: () {},
                           ),
                         ],
@@ -290,10 +289,10 @@ class _PlayerScreenState extends State<PlayerScreen>
                             width: double.infinity,
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.10),
+                              color: AppColors.retroWhite.withOpacity(0.10),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                  color: Colors.white.withOpacity(0.12)),
+                                  color: AppColors.retroWhite.withOpacity(0.12)),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -307,7 +306,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                                           .titleMedium
                                           ?.copyWith(
                                             fontWeight: FontWeight.w700,
-                                            color: Colors.white,
+                                            color: AppColors.retroWhite,
                                           ),
                                     ),
                                     const Spacer(),
@@ -320,16 +319,16 @@ class _PlayerScreenState extends State<PlayerScreen>
                                           ),
                                         );
                                       },
-                                      child: const Text('Open'),
+                                      child: Text('Open', style: TextStyle(color: AppColors.retroAccent),),
                                     )
                                   ],
                                 ),
                                 const SizedBox(height: 6),
-                                const Text(
+                                Text(
                                   'Lyrics will appear here.\nTap Open to view in full screen.',
                                   maxLines: 3,
                                   overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(color: Colors.white70),
+                                  style: TextStyle(color: AppColors.retroWhite.withOpacity(0.7)),
                                 ),
                               ],
                             ),
@@ -378,7 +377,7 @@ class _ChillSlider extends StatelessWidget {
               Container(
                 height: 6,
                 decoration: BoxDecoration(
-                  color: Colors.white24,
+                  color: AppColors.retroWhite.withOpacity(0.24),
                   borderRadius: BorderRadius.circular(6),
                 ),
               ),
@@ -393,7 +392,7 @@ class _ChillSlider extends StatelessWidget {
                       end: Alignment.centerRight,
                       colors: [
                         Colors.transparent,
-                        Colors.white.withOpacity(0.6),
+                        AppColors.retroWhite.withOpacity(0.6),
                         Colors.transparent,
                       ],
                       stops: const [0.0, 0.5, 1.0],
@@ -405,7 +404,7 @@ class _ChillSlider extends StatelessWidget {
                   child: Container(
                     height: 6,
                     decoration: BoxDecoration(
-                      color: Colors.white30,
+                      color: AppColors.retroWhite.withOpacity(0.3),
                       borderRadius: BorderRadius.circular(6),
                     ),
                   ),
@@ -419,7 +418,7 @@ class _ChillSlider extends StatelessWidget {
                   width: 12,
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white,
+                    color: AppColors.retroWhite,
                   ),
                 ),
               ),
@@ -439,7 +438,7 @@ class LyricsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lyrics'),
-        backgroundColor: AppColors.oceanBlue,
+        backgroundColor: AppColors.retroPrimary,
       ),
       body: Container(
         width: double.infinity,
@@ -448,9 +447,9 @@ class LyricsScreen extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppColors.oceanDeep,
-              AppColors.oceanBlue,
-              AppColors.skyBlue,
+              AppColors.retroPrimary,
+              Color.fromARGB(255, 112, 150, 193),
+              AppColors.retroWhite,
             ],
           ),
         ),
@@ -462,7 +461,7 @@ class LyricsScreen extends StatelessWidget {
               Text(
                 'Lyrics will be displayed here.\n\nThis page is ready for integration with real lyrics later.',
                 style:
-                    TextStyle(color: Colors.white, fontSize: 16, height: 1.5),
+                    TextStyle(color: AppColors.retroWhite, fontSize: 16, height: 1.5),
               ),
             ],
           ),

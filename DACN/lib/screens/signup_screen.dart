@@ -67,9 +67,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  AppColors.oceanDeep,
-                  AppColors.oceanBlue,
-                  AppColors.skyBlue,
+                  AppColors.retroPrimary,
+                  Color.fromARGB(255, 112, 150, 193),
+                  AppColors.retroWhite,
                 ],
               ),
             ),
@@ -82,7 +82,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, AppColors.sand],
+                  colors: [Colors.transparent, AppColors.retroSand],
                 ),
               ),
             ),
@@ -94,7 +94,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             child: Container(
               width: 140,
               height: 140,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(100),
                 ),
@@ -102,8 +102,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Color(0xFFFFE29F),
-                    Color(0xFFFFC371),
+                    AppColors.retroSand.withOpacity(0.8),
+                    AppColors.retroSand,
                   ],
                 ),
               ),
@@ -115,7 +115,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             child: Container(
               width: 160,
               height: 160,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 borderRadius: BorderRadius.only(
                   topRight: Radius.circular(120),
                 ),
@@ -123,8 +123,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Color(0xFFFFB6B9),
-                    Color(0xFFFF719A),
+                    AppColors.retroPeach.withOpacity(0.8),
+                    AppColors.retroPeach,
                   ],
                 ),
               ),
@@ -140,13 +140,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     Text(
                       'Wave Music',
                       style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                            color: Colors.white,
+                            color: AppColors.retroWhite,
                             fontWeight: FontWeight.w700,
                           ),
                     ),
                     const SizedBox(height: 24),
                     Card(
-                      color: Colors.white,
+                      color: AppColors.retroWhite,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
@@ -161,7 +161,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 controller: _usernameController,
                                 decoration: const InputDecoration(
                                   labelText: 'Tên người dùng',
-                                  prefixIcon: Icon(Icons.person_outline),
+                                  prefixIcon: Icon(Icons.person_outline, color: AppColors.retroAccent),
                                 ),
                                 validator: (value) {
                                   if (value == null || value.trim().isEmpty) {
@@ -176,7 +176,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 keyboardType: TextInputType.emailAddress,
                                 decoration: const InputDecoration(
                                   labelText: 'Email',
-                                  prefixIcon: Icon(Icons.email_outlined),
+                                  prefixIcon: Icon(Icons.email_outlined, color: AppColors.retroAccent),
                                 ),
                                 validator: (value) {
                                   if (value == null || value.trim().isEmpty) {
@@ -193,10 +193,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 obscureText: _obscure,
                                 decoration: InputDecoration(
                                   labelText: 'Mật khẩu',
-                                  prefixIcon: const Icon(Icons.lock_outline),
+                                  prefixIcon: const Icon(Icons.lock_outline, color: AppColors.retroAccent),
                                   suffixIcon: IconButton(
                                     onPressed: () => setState(() => _obscure = !_obscure),
-                                    icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off),
+                                    icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off, color: AppColors.retroAccent),
                                   ),
                                 ),
                                 validator: (value) {
@@ -225,7 +225,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                           width: 20,
                                           child: CircularProgressIndicator(
                                             strokeWidth: 2,
-                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.retroWhite),
                                           ),
                                         )
                                       : const Text('Tạo tài khoản'),
@@ -243,7 +243,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         MaterialPageRoute(builder: (context) => const LoginScreen()),
                                       );
                                     },
-                                    child: const Text('Đăng nhập'),
+                                    child: const Text('Đăng nhập', style: TextStyle(color: AppColors.retroAccent),),
                                   ),
                                 ],
                               ),

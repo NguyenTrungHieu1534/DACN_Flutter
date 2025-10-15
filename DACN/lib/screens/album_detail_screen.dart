@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 import '../services/api_album.dart';
 import '../models/songs.dart';
 import '../models/AudioPlayerProvider.dart';
-// import '../navigation/bottom_nav.dart';
 import '../widgets/shimmer_widgets.dart'; // ✅ thêm dòng này
+import '../theme/app_theme.dart';
 
 class AlbumDetailScreen extends StatefulWidget {
   final String albumName;
@@ -22,7 +22,6 @@ class AlbumDetailScreen extends StatefulWidget {
 
 class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
   late Future<List<Songs>> futureSongs;
-  int _currentIndex = 0;
 
   @override
   void initState() {
@@ -30,16 +29,10 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
     futureSongs = AlbumService.fetchSongsByAlbum(widget.albumName);
   }
 
-  void _onItemSelected(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEAF8FF),
+      backgroundColor: AppColors.retroWhite,
       body: Column(
         children: [
           // 🔹 Banner Album
@@ -48,20 +41,22 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
               Container(
                 height: 230,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
+                  gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Color(0xFFA7E6FF),
-                      Color(0xFFEAF8FF),
+                      AppColors.retroPrimary,
+                      Color.fromARGB(255, 112, 150, 193),
+                      AppColors.retroWhite,
                     ],
+                    stops: [0.0, 0.4, 1.0],
                   ),
                   borderRadius: const BorderRadius.vertical(
                     bottom: Radius.circular(40),
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.blueAccent.withOpacity(0.15),
+                      color: AppColors.retroAccent.withOpacity(0.15),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -73,7 +68,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                 left: 16,
                 child: IconButton(
                   icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                      color: Colors.white, size: 22),
+                      color: AppColors.retroWhite, size: 22),
                   onPressed: () => Navigator.pop(context),
                 ),
               ),
@@ -96,7 +91,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                       Text(
                         widget.albumName,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: AppColors.retroWhite,
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                         ),
@@ -128,15 +123,14 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                   return Center(
                     child: Text(
                       'Lỗi: ${snapshot.error}',
-                      style: const TextStyle(color: Colors.redAccent),
+                      style: const TextStyle(color: AppColors.retroAccent),
                     ),
                   );
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return const Center(
                     child: Text(
                       'Không có bài hát trong album này 😢',
-                      style: TextStyle(
-                        color: Colors.grey,
+                      style: TextStyle(color: AppColors.retroAccent,
                         fontSize: 16,
                       ),
                     ),
@@ -155,11 +149,11 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                       duration: const Duration(milliseconds: 300),
                       margin: const EdgeInsets.only(bottom: 14),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.8),
+                        color: AppColors.retroWhite.withOpacity(0.8),
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.blueAccent.withOpacity(0.08),
+                            color: AppColors.retroAccent.withOpacity(0.08),
                             blurRadius: 8,
                             offset: const Offset(0, 3),
                           ),
@@ -216,7 +210,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                                         style: const TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
-                                          color: Color(0xFF2D3748),
+                                          color: AppColors.retroAccent,
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
@@ -224,9 +218,9 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                                       const SizedBox(height: 6),
                                       Text(
                                         song.artist,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 13,
-                                          color: Color(0xFF6BB6E8),
+                                          color: AppColors.retroAccent.withOpacity(0.7),
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -240,16 +234,15 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                                   height: 46,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    gradient: const LinearGradient(
+                                    gradient: LinearGradient(
                                       colors: [
-                                        Color(0xFF6BB6E8),
-                                        Color(0xFFA7E6FF),
+                                        AppColors.retroPrimary,
+                                        AppColors.retroAccent,
                                       ],
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color:
-                                            Colors.blueAccent.withOpacity(0.3),
+                                        color: AppColors.retroAccent.withOpacity(0.3),
                                         blurRadius: 6,
                                         offset: const Offset(0, 3),
                                       ),
@@ -257,7 +250,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                                   ),
                                   child: const Icon(
                                     Icons.play_arrow_rounded,
-                                    color: Colors.white,
+                                    color: AppColors.retroWhite,
                                     size: 26,
                                   ),
                                 ),

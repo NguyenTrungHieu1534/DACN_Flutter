@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'login_screen.dart';
 import '../services/api_user.dart';
+import '../theme/app_theme.dart';
 
 class UserScreen extends StatefulWidget {
   const UserScreen({super.key});
@@ -19,8 +20,6 @@ class _UserScreenState extends State<UserScreen> {
 
   String? _userId;
   String? _username;
-  String? _email;
-  String? _role;
   String? _avatar;
   final UserService userService = UserService();
   bool isUploading = false;
@@ -38,7 +37,7 @@ class _UserScreenState extends State<UserScreen> {
         child: Wrap(
           children: [
             ListTile(
-              leading: const Icon(Icons.photo_library),
+              leading: const Icon(Icons.photo_library, color: AppColors.retroAccent),
               title: const Text('Chọn từ thư viện'),
               onTap: () async {
                 Navigator.pop(context);
@@ -46,7 +45,7 @@ class _UserScreenState extends State<UserScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt),
+              leading: const Icon(Icons.camera_alt, color: AppColors.retroAccent),
               title: const Text('Chụp ảnh'),
               onTap: () async {
                 Navigator.pop(context);
@@ -94,8 +93,6 @@ class _UserScreenState extends State<UserScreen> {
         _token = token;
         _userId = decoded["_id"];
         _username = decoded["username"];
-        _email = decoded["email"];
-        _role = decoded["role"];
         _loading = false;
         _avatar = decoded["ava"];
       });
@@ -118,94 +115,95 @@ class _UserScreenState extends State<UserScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        body: Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.retroAccent))),
       );
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFDFF6FF),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFA5E8FF),
-        elevation: 0,
-        title: const Text(
-          '🌤️ Wave Music',
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 22,
-            color: Color(0xFF1B4965),
+      backgroundColor: AppColors.retroWhite,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar.large(
+            backgroundColor: AppColors.retroPrimary,
+            foregroundColor: AppColors.retroWhite,
+            title: const Text('🌤️ Wave Music'),
+            centerTitle: true,
+            pinned: true,
+            actions: _token != null
+                ? [
+                    IconButton(
+                      icon: const Icon(Icons.logout, color: AppColors.retroWhite),
+                      onPressed: _logout,
+                    ),
+                  ]
+                : null,
           ),
-        ),
-        centerTitle: true,
-        actions: _token != null
-            ? [
-                IconButton(
-                  icon: const Icon(Icons.logout, color: Color(0xFF1B4965)),
-                  onPressed: _logout,
-                ),
-              ]
-            : null,
-      ),
-      body: _token == null
-          ? Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  );
-                },
-                child: const Text('Đăng nhập'),
-              ),
-            )
-          : Column(
-              children: [
-                Expanded(
-                  flex: 1,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+          SliverFillRemaining(
+            hasScrollBody: true,
+            child: _token == null
+                ? Center(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const LoginScreen()),
+                        );
+                      },
+                      child: const Text('Đăng nhập', style: TextStyle(color: AppColors.retroWhite),),
+                    ),
+                  )
+                : Column(
                     children: [
-                      GestureDetector(
-                        onTap: () => _showImagePicker(context),
-                        child: CircleAvatar(
-                          radius: 40,
-                          backgroundColor: Colors.white.withOpacity(0.6),
-                          backgroundImage:
-                              _avatar != null ? NetworkImage(_avatar!) : null,
-                          child: _avatar == null
-                              ? const Icon(Icons.person,
-                                  size: 40, color: Color(0xFF1B4965))
-                              : null,
+                      Expanded(
+                        flex: 1,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            GestureDetector(
+                              onTap: () => _showImagePicker(context),
+                              child: CircleAvatar(
+                                radius: 40,
+                                backgroundColor: AppColors.retroWhite.withOpacity(0.6),
+                                backgroundImage:
+                                    _avatar != null ? NetworkImage(_avatar!) : null,
+                                child: _avatar == null
+                                    ? const Icon(Icons.person,
+                                        size: 40, color: AppColors.retroAccent)
+                                    : null,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              _username?.toUpperCase() ?? 'USER',
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.retroAccent,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      Text(
-                        _username?.toUpperCase() ?? 'USER',
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF1B4965),
+
+                      // ---------- 2/3 DƯỚI: LIST NHẠC ----------
+                      Expanded(
+                        flex: 2,
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppColors.retroWhite,
+                            borderRadius:
+                                BorderRadius.vertical(top: Radius.circular(24)),
+                          ),
+                          child: _buildMusicList(),
                         ),
                       ),
                     ],
                   ),
-                ),
-
-                // ---------- 2/3 DƯỚI: LIST NHẠC ----------
-                Expanded(
-                  flex: 2,
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius:
-                          BorderRadius.vertical(top: Radius.circular(24)),
-                    ),
-                    child: _buildMusicList(),
-                  ),
-                ),
-              ],
-            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -216,10 +214,10 @@ class _UserScreenState extends State<UserScreen> {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Icon(Icons.music_note, size: 40, color: Colors.grey),
-            SizedBox(height: 8),
-            Text('Chưa có bài nhạc nào', style: TextStyle(color: Colors.grey)),
+          children: <Widget>[
+            Icon(Icons.music_note, size: 40, color: AppColors.retroAccent.withOpacity(0.7)),
+            const SizedBox(height: 8),
+            Text('Chưa có bài nhạc nào', style: TextStyle(color: AppColors.retroAccent.withOpacity(0.7))),
           ],
         ),
       );
@@ -229,24 +227,10 @@ class _UserScreenState extends State<UserScreen> {
       itemCount: songs.length,
       itemBuilder: (context, index) {
         return ListTile(
-          leading: const Icon(Icons.play_circle_fill),
-          title: Text(songs[index]),
+          leading: const Icon(Icons.play_circle_fill, color: AppColors.retroAccent),
+          title: Text(songs[index], style: const TextStyle(color: AppColors.retroAccent)),
         );
       },
-    );
-  }
-
-  Widget _infoText(String label, String? value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Text(
-        '$label: $value',
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          color: Color(0xFF1B4965),
-        ),
-      ),
     );
   }
 }

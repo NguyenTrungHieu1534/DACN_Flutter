@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/favSongs.dart';
 import '../services/api_favsongs.dart';
 import '../widgets/FavoriteSongList.dart';
+import '../theme/app_theme.dart';
 
 class FavScreen extends StatefulWidget {
   const FavScreen({Key? key}) : super(key: key);
@@ -35,49 +36,44 @@ class _FavScreenState extends State<FavScreen> {
   @override
   Widget build(BuildContext context) {
   return Scaffold(
-    appBar: AppBar(
-      title: Text("Yêu Thích"),
-      centerTitle: true,
-      backgroundColor: Color.fromARGB(255, 112, 150, 193),
-      elevation: 0,
-    ),
-    backgroundColor: Colors.transparent,
-     
-    body: Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color.fromARGB(255, 112, 150, 193), // xanh ngọc retro
-            Color(0xFFFFFFFF), // trắng pastel
-          ],
-          stops: [0.0, 0.4],
+    backgroundColor: AppColors.retroWhite,
+    body: CustomScrollView(
+      slivers: [
+        SliverAppBar.large(
+          backgroundColor: AppColors.retroPrimary,
+          foregroundColor: AppColors.retroWhite,
+          title: const Text('Yêu Thích'),
+          pinned: true,
         ),
-      ),
-      child: FutureBuilder<List<FavoriteSong>>(
-        future: _favoritesFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
+        SliverFillRemaining(
+          hasScrollBody: true,
+          child: FutureBuilder<List<FavoriteSong>>(
+            future: _favoritesFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.retroAccent),
+                ));
+              }
 
-          if (snapshot.hasError) {
-            return Center(child: Text("Lỗi tải dữ liệu 😢"));
-          }
+              if (snapshot.hasError) {
+                return Center(child: Text("Lỗi tải dữ liệu 😢", style: TextStyle(color: AppColors.retroAccent),));
+              }
 
-          final favorites = snapshot.data ?? [];
+              final favorites = snapshot.data ?? [];
 
-          return FavoriteSongList(
-            songs: favorites,
-            onDelete: (song) async {
-              await _favService.deleteFavoriteBySongId(song.songId);
-              _loadFavorites();
+              return FavoriteSongList(
+                songs: favorites,
+                onDelete: (song) async {
+                  await _favService.deleteFavoriteBySongId(song.songId);
+                  _loadFavorites();
+                },
+                onTap: (song) {},
+              );
             },
-            onTap: (song) {},
-          );
-        },
-      ),
+          ),
+        ),
+      ],
     ),
   );
 }

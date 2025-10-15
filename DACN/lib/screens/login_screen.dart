@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../services/api_user.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
 import '../screens/signup_screen.dart';
 import 'forgot_password_screen.dart';
@@ -20,7 +19,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final UserService _api = UserService();
 
   bool _obscure = true;
-  String _health = 'Checking…';
   bool _isSubmitting = false;
   String? _errorMessage;
 
@@ -45,8 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final identifier = _emailController.text.trim();
       final password = _passwordController.text;
-      final result =
-          await _api.login(identifier: identifier, password: password);
+      await _api.login(identifier: identifier, password: password);
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
@@ -71,10 +68,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  AppColors.oceanDeep,
-                  AppColors.oceanBlue,
-                  AppColors.skyBlue,
+                  AppColors.retroPrimary,
+                  Color.fromARGB(255, 112, 150, 193),
+                  AppColors.retroWhite,
                 ],
+                stops: [0.0, 0.4, 1.0],
               ),
             ),
           ),
@@ -87,7 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, AppColors.sand],
+                  colors: [Colors.transparent, AppColors.retroSand],
                 ),
               ),
             ),
@@ -99,16 +97,16 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Container(
               width: 140,
               height: 140,
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.only(
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(100),
                 ),
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Color(0xFFFFE29F),
-                    Color(0xFFFFC371),
+                    AppColors.retroSand.withOpacity(0.8),
+                    AppColors.retroSand,
                   ],
                 ),
               ),
@@ -120,16 +118,16 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Container(
               width: 160,
               height: 160,
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.only(
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.only(
                   topRight: Radius.circular(120),
                 ),
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Color(0xFFFFB6B9),
-                    Color(0xFFFF719A),
+                    AppColors.retroPeach.withOpacity(0.8),
+                    AppColors.retroPeach,
                   ],
                 ),
               ),
@@ -147,16 +145,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     Text(
                       'Wave Music',
                       style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                            color: Colors.white,
+                            color: AppColors.retroWhite,
                             fontWeight: FontWeight.w700,
                           ),
                     ),
-                    const SizedBox(height: 8),
-
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
                     // Form Card
                     Card(
-                      color: Colors.white,
+                      color: AppColors.retroWhite,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20)),
@@ -171,7 +167,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 keyboardType: TextInputType.emailAddress,
                                 decoration: const InputDecoration(
                                   labelText: 'Email',
-                                  prefixIcon: Icon(Icons.email_outlined),
+                                  prefixIcon: Icon(Icons.email_outlined, color: AppColors.retroAccent),
                                 ),
                                 validator: (value) {
                                   if (value == null || value.trim().isEmpty) {
@@ -191,13 +187,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                 obscureText: _obscure,
                                 decoration: InputDecoration(
                                   labelText: 'Password',
-                                  prefixIcon: const Icon(Icons.lock_outline),
+                                  prefixIcon: const Icon(Icons.lock_outline, color: AppColors.retroAccent),
                                   suffixIcon: IconButton(
                                     onPressed: () =>
                                         setState(() => _obscure = !_obscure),
                                     icon: Icon(_obscure
                                         ? Icons.visibility
-                                        : Icons.visibility_off),
+                                        : Icons.visibility_off,
+                                        color: AppColors.retroAccent,),
                                   ),
                                 ),
                                 validator: (value) {
@@ -233,7 +230,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 const ForgotPasswordScreen()),
                                       );
                                     },
-                                    child: const Text('Forgot password?'),
+                                    child: const Text(
+                                      'Forgot password?',
+                                      style: TextStyle(
+                                        color: AppColors.retroAccent,
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -249,8 +251,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           child: CircularProgressIndicator(
                                             strokeWidth: 2,
                                             valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                                    Colors.white),
+                                                AlwaysStoppedAnimation<Color>(AppColors.retroWhite),
                                           ),
                                         )
                                       : const Text('Sign in'),
@@ -270,7 +271,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 const SignUpScreen()),
                                       );
                                     },
-                                    child: const Text('Create account'),
+                                    child: const Text(
+                                      'Create account',
+                                      style: TextStyle(
+                                        color: AppColors.retroAccent,
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),

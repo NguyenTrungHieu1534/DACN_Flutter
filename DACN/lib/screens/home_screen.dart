@@ -7,6 +7,7 @@ import '../widgets/TrendingAlbums.dart';
 import '../widgets/TrendingSong.dart';
 import '../widgets/shimmer_widgets.dart';
 import '../widgets/hawaii_greeting_card.dart';
+import '../theme/app_theme.dart'; // Import the new theme file
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -33,28 +34,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     // 🌴 AppTheme — gộp trực tiếp
-    const retroPrimary = Color(0xFF70C1B3); // xanh ngọc retro
-    const retroAccent = Color(0xFF247BA0); // xanh biển đậm
-    const retroPeach = Color(0xFFFFB6B9); // hồng pastel
-    const retroSand = Color(0xFFFFE066); // vàng cát
-    const retroWhite = Color(0xFFFFFFFF);
-
-    final retroBoxGradient = LinearGradient(
-      colors: [
-        retroPrimary.withOpacity(0.25),
-        retroAccent.withOpacity(0.15),
-      ],
-    );
-
-    final retroShadow = [
-      BoxShadow(
-        color: retroPrimary.withOpacity(0.25),
-        blurRadius: 12,
-        spreadRadius: 2,
-        offset: const Offset(0, 4),
-      ),
-    ];
-
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -62,8 +41,8 @@ class _HomeScreenState extends State<HomeScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color.fromARGB(255, 112, 150, 193), // xanh ngọc retro
-              Color(0xFFFFFFFF), // trắng pastel
+              AppColors.retroPrimary, // xanh ngọc retro
+              AppColors.retroWhite, // trắng pastel
             ],
             stops: [0.0, 0.4],
           ),
@@ -147,8 +126,8 @@ class _HomeScreenState extends State<HomeScreen> {
             }
 
             return RefreshIndicator(
-              color: retroPrimary,
-              backgroundColor: retroWhite,
+              color: AppColors.retroPrimary,
+              backgroundColor: AppColors.retroWhite,
               strokeWidth: 3,
               onRefresh: () async {
                 setState(() {
@@ -157,60 +136,64 @@ class _HomeScreenState extends State<HomeScreen> {
                   _combinedFuture = Future.wait([_albumsFuture, _songsFuture]);
                 });
               },
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(16, 60, 16, 96),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    HawaiiGreetingCard(
-                      greeting: () =>
-                          greeting(), // truyền hàm greeting() của bạn
-                      getGreetingIcon: (hour) =>
-                          _getGreetingIcon(hour), // truyền hàm icon của bạn
-                    ),
-                    const SizedBox(height: 24),
-
-                    // 🌴 Quick Chips retro
-                    SizedBox(
-                      height: 42,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        children: const [
-                          _QuickChip(
-                              label: 'Liked Songs', icon: Icons.favorite),
-                          SizedBox(width: 8),
-                          _QuickChip(
-                              label: 'Recently Played', icon: Icons.history),
-                          SizedBox(width: 8),
-                          _QuickChip(
-                              label: 'For You', icon: Icons.auto_awesome),
-                          SizedBox(width: 8),
-                          _QuickChip(
-                              label: 'Trending', icon: Icons.trending_up),
-                        ],
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (child, anim) => FadeTransition(opacity: anim, child: child),
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(16, 60, 16, 96),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      HawaiiGreetingCard(
+                        greeting: () =>
+                            greeting(), // truyền hàm greeting() của bạn
+                        getGreetingIcon: (hour) =>
+                            _getGreetingIcon(hour), // truyền hàm icon của bạn
                       ),
-                    ),
+                      const SizedBox(height: 24),
 
-                    const SizedBox(height: 28),
-                    TrendingAlbum(
-                        title: 'Trending Albums',
-                        itemsAlbum: trendingAlbums,
-                        isLoading: false),
-                    const SizedBox(height: 28),
+                      // 🌴 Quick Chips retro
+                      SizedBox(
+                        height: 42,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          children: const [
+                            _QuickChip(
+                                label: 'Liked Songs', icon: Icons.favorite),
+                            SizedBox(width: 8),
+                            _QuickChip(
+                                label: 'Recently Played', icon: Icons.history),
+                            SizedBox(width: 8),
+                            _QuickChip(
+                                label: 'For You', icon: Icons.auto_awesome),
+                            SizedBox(width: 8),
+                            _QuickChip(
+                                label: 'Trending', icon: Icons.trending_up),
+                          ],
+                        ),
+                      ),
 
-                    TrendingSong(
-                        title: 'New Releases',
-                        itemsAlbum: newReleases,
-                        itemsSsongs: const [],
-                        isLoading: false),
-                    const SizedBox(height: 28),
-                    TrendingSong(
-                        title: 'Trending Songs',
-                        itemsAlbum: const [],
-                        itemsSsongs: trendingSongs,
-                        isLoading: false),
-                  ],
+                      const SizedBox(height: 28),
+                      TrendingAlbum(
+                          title: 'Trending Albums',
+                          itemsAlbum: trendingAlbums,
+                          isLoading: false),
+                      const SizedBox(height: 28),
+
+                      TrendingSong(
+                          title: 'New Releases',
+                          itemsAlbum: newReleases,
+                          itemsSsongs: const [],
+                          isLoading: false),
+                      const SizedBox(height: 28),
+                      TrendingSong(
+                          title: 'Trending Songs',
+                          itemsAlbum: const [],
+                          itemsSsongs: trendingSongs,
+                          isLoading: false),
+                    ],
+                  ),
                 ),
               ),
             );
@@ -232,8 +215,7 @@ class _QuickChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const themeColor =
-        Color.fromARGB(255, 114, 148, 180); // màu retro xanh biển nhạt
+    const themeColor = AppColors.retroAccent; // màu retro xanh biển nhạt
 
     return Material(
       elevation: 3,
@@ -268,23 +250,6 @@ class _QuickChip extends StatelessWidget {
       ),
     );
   }
-}
-
-Widget _buildRetroDivider() {
-  return Container(
-    height: 1.2,
-    margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-    decoration: const BoxDecoration(
-      gradient: LinearGradient(
-        colors: [
-          Colors.transparent,
-          Color.fromARGB(255, 112, 150, 193), // xanh pastel đồng bộ
-          Colors.transparent,
-        ],
-        stops: [0.1, 0.5, 0.9],
-      ),
-    ),
-  );
 }
 
 IconData _getGreetingIcon(int hour) {

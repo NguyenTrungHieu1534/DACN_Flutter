@@ -28,15 +28,19 @@ class _SearchPageState extends State<SearchScreen> {
 
     final data = await songService.searchSongs(query);  
     
-    if (data != null) {
+    try {
       setState(() {
         results = data.map((e) => Songs.fromJson(e)).toList();
         isLoading = false;
       });
-    } else {
+    } catch (e) {
       setState(() {
         results = [];
         isLoading = false;
+        // Optionally display an error message to the user
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(content: Text('Error: ${e.toString()}')),
+        // );
       });
     }
   }
@@ -44,57 +48,68 @@ class _SearchPageState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 0, 0, 0),
-      appBar: AppBar(
-        title: const Text('Search'),
-        backgroundColor: const Color.fromARGB(255, 163, 159, 170),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: TextField(
-                controller: searchController,
-                onSubmitted: handleSearch,
-                decoration: const InputDecoration(
-                  hintText: 'Search songs, artists, albums...',
-                  prefixIcon: Icon(Icons.search),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 10),
-            Row(
-              children: ["All", "Songs", "Artists", "Albums"].map((type) {
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(type),
-                    selected: selectedFilter == type,
-                    onSelected: (_) => setState(() => selectedFilter = type),
+      backgroundColor: AppColors.retroWhite,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar.large(
+            backgroundColor: AppColors.retroPrimary,
+            foregroundColor: AppColors.retroWhite,
+            title: const Text('Search'),
+            pinned: true,
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.retroWhite,
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: TextField(
+                      controller: searchController,
+                      onSubmitted: handleSearch,
+                      decoration: const InputDecoration(
+                        hintText: 'Search songs, artists, albums...',
+                        prefixIcon: Icon(Icons.search, color: AppColors.retroAccent),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      ),
+                    ),
                   ),
-                );
-              }).toList(),
-            ),
 
-            const SizedBox(height: 16),
-            
-            Expanded(
-              child: isLoading
-                  ? _buildShimmerLoading()
-                  : results.isNotEmpty
-                      ? _buildResultList()
-                      : _buildHistoryList(),
-            )
-          ],
-        ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: ["All", "Songs", "Artists", "Albums"].map((type) {
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ChoiceChip(
+                          label: Text(type),
+                          selected: selectedFilter == type,
+                          onSelected: (_) => setState(() => selectedFilter = type), 
+                          selectedColor: AppColors.retroAccent, 
+                          labelStyle: TextStyle(color: selectedFilter == type ? AppColors.retroWhite : AppColors.retroAccent), 
+                          backgroundColor: AppColors.retroWhite, 
+                        ),
+                      );
+                    }).toList(),
+                  ),
+
+                  const SizedBox(height: 16),
+               ],
+             ),
+           ),
+         ),
+         SliverFillRemaining(
+           hasScrollBody: true,
+           child: isLoading
+               ? _buildShimmerLoading()
+               : results.isNotEmpty
+                   ? _buildResultList()
+                   : _buildHistoryList(),
+         )
+       ],
       ),
     );
   }
@@ -104,9 +119,9 @@ class _SearchPageState extends State<SearchScreen> {
       itemBuilder: (context, index) {
         final song = results[index];
         return ListTile(
-          leading: const Icon(Icons.music_note, color: Colors.white),
-          title: Text(song.title!, style: const TextStyle(color: Colors.white)),
-          subtitle: Text(song.artist!, style: const TextStyle(color: Colors.white70)),
+          leading: const Icon(Icons.music_note, color: AppColors.retroAccent),
+          title: Text(song.title, style: const TextStyle(color: AppColors.retroAccent)),
+          subtitle: Text(song.artist, style: TextStyle(color: AppColors.retroAccent.withOpacity(0.7))), 
         );
       },
     );
@@ -115,8 +130,8 @@ class _SearchPageState extends State<SearchScreen> {
     return ListView(
       children: history.map((item) {
         return ListTile(
-          leading: const Icon(Icons.history, color: Colors.white70),
-          title: Text(item, style: const TextStyle(color: Colors.white)),
+          leading: Icon(Icons.history, color: AppColors.retroAccent.withOpacity(0.7)),
+          title: Text(item, style: const TextStyle(color: AppColors.retroAccent)),
           onTap: () {
             searchController.text = item;
             handleSearch(item);
@@ -131,7 +146,7 @@ class _SearchPageState extends State<SearchScreen> {
       itemBuilder: (_, __) => Container(
         margin: const EdgeInsets.only(bottom: 12),
         height: 60,
-        color: Colors.grey.shade800,
+        color: AppColors.retroPrimary.withOpacity(0.3),
       ),
     );
   }

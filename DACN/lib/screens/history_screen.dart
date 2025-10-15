@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/api_history.dart';
 import '../models/history.dart';
 import '../widgets/HistoryList.dart';
+import '../theme/app_theme.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -29,41 +30,37 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Lịch sử nghe 🌺"),
-        centerTitle: true,
-        backgroundColor: Color(0xFF70A0C1), // xanh skyblue retro
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF70A0C1),
-              Color(0xFFFFFFFF),
-            ],
-            stops: [0.0, 0.4],
+      backgroundColor: AppColors.retroWhite,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar.large(
+            backgroundColor: AppColors.retroPrimary,
+            foregroundColor: AppColors.retroWhite,
+            title: const Text("Lịch sử nghe 🌺"),
+            pinned: true,
           ),
-        ),
-        child: FutureBuilder<List<HistorySong>>(
-          future: _historyFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError) {
-              return Center(child: Text("Lỗi tải dữ liệu 😢"));
-            }
-            final history = snapshot.data ?? [];
-            return HistoryList(
-              songs: history,
-              onTap: (song) {
-                // TODO: mở player hoặc detail
+          SliverFillRemaining(
+            hasScrollBody: true,
+            child: FutureBuilder<List<HistorySong>>(
+              future: _historyFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.retroAccent)));
+                }
+                if (snapshot.hasError) {
+                  return Center(child: Text("Lỗi tải dữ liệu 😢", style: TextStyle(color: AppColors.retroAccent),));
+                }
+                final history = snapshot.data ?? [];
+                return HistoryList(
+                  songs: history,
+                  onTap: (song) {
+                    // TODO: mở player hoặc detail
+                  },
+                );
               },
-            );
-          },
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }
