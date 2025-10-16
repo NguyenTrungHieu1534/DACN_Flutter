@@ -3,7 +3,7 @@
 Ocean-inspired sign-in screen using your palette and a live health check against your backend.
 
 Backend health endpoint used: `https://backend-dacn-9l4w.onrender.com/health` ([link](https://backend-dacn-9l4w.onrender.com/health)).
-// May not F up
+
 ## Run
 
 1. Install Flutter (3.22+), set up an emulator or device.
