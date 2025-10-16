@@ -45,7 +45,7 @@ class AudioPlayerProvider extends ChangeNotifier {
       await _audioPlayer.setUrl(Uri.encodeFull(song.mp3Url));
       // Lưu vào lịch sử trước khi phát (không block nếu lỗi)
       try {
-        await _historyService.addHistory(song.title, song.artist, song.id);
+        await _historyService.addHistory(song.title, song.artist, song.albuml,song.id);
         debugPrint("Đã lưu lịch sử: ${song.title}");
       } catch (historyError) {
         debugPrint("Không thể lưu lịch sử: $historyError");
@@ -59,9 +59,8 @@ class AudioPlayerProvider extends ChangeNotifier {
       print("Thử fallback sang FLAC gốc...");
       try {
         await _audioPlayer.setUrl(Uri.encodeFull(song.url));
-        // Lưu vào lịch sử trước khi phát (không block nếu lỗi)
         try {
-          await _historyService.addHistory(song.title, song.artist, song.id);
+          await _historyService.addHistory(song.title, song.artist, song.id, song.albuml);
           debugPrint("Đã lưu lịch sử (fallback): ${song.title}");
         } catch (historyError) {
           debugPrint("Không thể lưu lịch sử (fallback): $historyError");
@@ -87,7 +86,7 @@ class AudioPlayerProvider extends ChangeNotifier {
     } else if (currentPlaying != null) {
       // Lưu lịch sử trước khi phát (không chặn)
       _historyService
-          .addHistory(currentPlaying!.title, currentPlaying!.artist, currentPlaying!.id)
+          .addHistory(currentPlaying!.title, currentPlaying!.artist, currentPlaying!.id, currentPlaying!.albuml)
           .catchError((e) {
         debugPrint("Không thể lưu lịch sử khi toggle: $e");
       });
