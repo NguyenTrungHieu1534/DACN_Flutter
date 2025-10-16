@@ -52,8 +52,8 @@ class TrendingSong extends StatelessWidget {
               const SizedBox(width: 10),
               Text(
                 title,
-                style: const TextStyle(
-                  color: Color.fromARGB(255, 0, 0, 0),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontWeight: FontWeight.w700,
                   fontSize: 20,
                   letterSpacing: -0.3,
@@ -253,8 +253,8 @@ class TrendingSong extends StatelessWidget {
                         children: [
                           Text(
                             album.name,
-                            style: const TextStyle(
-                              color: Colors.black87,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontWeight: FontWeight.w800,
                               fontSize: 15,
                               height: 1.2,
@@ -265,8 +265,8 @@ class TrendingSong extends StatelessWidget {
                           const SizedBox(height: 3),
                           Text(
                             album.artist,
-                            style: const TextStyle(
-                              color: Colors.black54,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                               fontSize: 12,
                             ),
                             maxLines: 1,
@@ -448,8 +448,8 @@ class TrendingSong extends StatelessWidget {
                           children: [
                             Text(
                               song.title,
-                              style: const TextStyle(
-                                color: Colors.black87,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
                                 fontSize: 18,
                                 fontWeight: FontWeight.w800,
                                 fontFamily: 'Poppins',
@@ -461,8 +461,8 @@ class TrendingSong extends StatelessWidget {
                             const SizedBox(height: 6),
                             Text(
                               song.artist,
-                              style: const TextStyle(
-                                color: Colors.black54,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
                                 fontFamily: 'Poppins',
@@ -473,16 +473,16 @@ class TrendingSong extends StatelessWidget {
                             const SizedBox(height: 10),
                             Row(
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.play_circle_outline_rounded,
-                                  color: Colors.black45,
+                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.45),
                                   size: 18,
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
                                   "Now trending",
                                   style: TextStyle(
-                                    color: Colors.black.withOpacity(0.5),
+                                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -514,9 +514,9 @@ class TrendingSong extends StatelessWidget {
                               ),
                             ],
                           ),
-                          child: const Icon(
+                        child: Icon(
                             Icons.play_arrow_rounded,
-                            color: Colors.white,
+                          color: Theme.of(context).colorScheme.onPrimary,
                             size: 30,
                           ),
                         ),

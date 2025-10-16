@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../services/api_user.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../theme/app_theme.dart';
 import '../screens/signup_screen.dart';
 import 'forgot_password_screen.dart';
 
@@ -20,7 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final UserService _api = UserService();
 
   bool _obscure = true;
-  String _health = 'Checking…';
+  // Removed unused _health
   bool _isSubmitting = false;
   String? _errorMessage;
 
@@ -45,8 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final identifier = _emailController.text.trim();
       final password = _passwordController.text;
-      final result =
-          await _api.login(identifier: identifier, password: password);
+      await _api.login(identifier: identifier, password: password);
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
@@ -66,16 +63,22 @@ class _LoginScreenState extends State<LoginScreen> {
         children: [
           // Background gradient aligned with Home tone (blue -> white)
           Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color.fromARGB(255, 112, 150, 193), // same top as Home
-                  Colors.white, // fade to white like Home
-                ],
-                stops: [0.0, 0.4],
-              ),
+            decoration: BoxDecoration(
+              gradient: Theme.of(context).brightness == Brightness.dark
+                  ? const LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0xFF0D1117), Color(0xFF161B22)],
+                    )
+                  : const LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Color.fromARGB(255, 112, 150, 193),
+                        Color(0xFFF8F9FB),
+                      ],
+                      stops: [0.0, 0.4],
+                    ),
             ),
           ),
           // Soft decorative blobs (yellow/pink) matching Home accents
@@ -184,7 +187,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 .textTheme
                                 .headlineMedium
                                 ?.copyWith(
-                                  color: Colors.black87,
+                                  color: Theme.of(context).colorScheme.onSurface,
                                   fontWeight: FontWeight.w800,
                                 ),
                           ),
@@ -192,7 +195,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           Text(
                             'Please sign in to continue.',
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: Colors.black54,
+                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                                   fontWeight: FontWeight.w500,
                                 ),
                           ),
@@ -202,7 +205,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 24),
                     // Form Card
                     Card(
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.surface,
                       elevation: 6,
                       shadowColor: const Color.fromARGB(255, 112, 150, 193).withOpacity(0.25),
                       shape: RoundedRectangleBorder(

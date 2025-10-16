@@ -13,10 +13,8 @@ import 'models/AudioPlayerProvider.dart';
 import 'theme/app_theme.dart';
 import 'navigation/bottom_nav.dart';
 import '../screens/library_screen.dart';
-import '../screens/album_detail_screen.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
-import 'services/network_check.dart';
 import '../models/ThemeProvider.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,16 +35,17 @@ class WaveMusicApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final base = ThemeData(
-      useMaterial3: true,
-      textTheme: GoogleFonts.poppinsTextTheme(),
-      scaffoldBackgroundColor: const Color(0xFFF8F9FB),
-    );
      final themeProvider = Provider.of<ThemeProvider>(context);
     return MaterialApp(
        debugShowCheckedModeBanner: false,
-      theme: ThemeData.light(),  // Light mode
-      darkTheme: ThemeData.dark(), // Dark mode
+      theme: AppTheme.buildTheme(
+        ThemeData(
+          useMaterial3: true,
+          textTheme: GoogleFonts.poppinsTextTheme(),
+          scaffoldBackgroundColor: const Color(0xFFF8F9FB),
+        ),
+      ),
+      darkTheme: AppTheme.darkTheme,
       themeMode: themeProvider.isDark ? ThemeMode.dark : ThemeMode.light,
       title: 'Wave Music',
       home: const MainNavigation(),
