@@ -17,16 +17,20 @@ import '../screens/album_detail_screen.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'services/network_check.dart';
-
+import '../models/ThemeProvider.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => AudioPlayerProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AudioPlayerProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+      ],
       child: const WaveMusicApp(),
     ),
   );
 }
+
 
 class WaveMusicApp extends StatelessWidget {
   const WaveMusicApp({super.key});
@@ -38,11 +42,13 @@ class WaveMusicApp extends StatelessWidget {
       textTheme: GoogleFonts.poppinsTextTheme(),
       scaffoldBackgroundColor: const Color(0xFFF8F9FB),
     );
-
+     final themeProvider = Provider.of<ThemeProvider>(context);
     return MaterialApp(
+       debugShowCheckedModeBanner: false,
+      theme: ThemeData.light(),  // Light mode
+      darkTheme: ThemeData.dark(), // Dark mode
+      themeMode: themeProvider.isDark ? ThemeMode.dark : ThemeMode.light,
       title: 'Wave Music',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.buildTheme(base),
       home: const MainNavigation(),
       routes: {
         '/home': (context) => const MainNavigation(),

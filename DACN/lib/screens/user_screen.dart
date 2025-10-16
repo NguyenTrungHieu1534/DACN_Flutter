@@ -5,7 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'login_screen.dart';
 import '../services/api_user.dart';
-
+import '../screens/setting_screen.dart';
 class UserScreen extends StatefulWidget {
   const UserScreen({super.key});
 
@@ -158,13 +158,22 @@ class _UserScreenState extends State<UserScreen> {
         ),
         centerTitle: true,
         actions: _token != null
-            ? [
-                IconButton(
-                  icon: const Icon(Icons.logout, color: Color(0xFF1B4965)),
-                  onPressed: _logout,
-                ),
-              ]
-            : null,
+    ? [
+        IconButton(
+          icon: const Icon(Icons.settings, color: Color(0xFF1B4965)),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+            );
+          },
+        ),
+        IconButton(
+          icon: const Icon(Icons.logout, color: Color(0xFF1B4965)),
+          onPressed: _logout,
+        ),
+      ]
+    : null,
       ),
       body: _token == null
           ? Center(
@@ -221,52 +230,10 @@ class _UserScreenState extends State<UserScreen> {
                       borderRadius:
                           BorderRadius.vertical(top: Radius.circular(24)),
                     ),
-                    child: _buildMusicList(),
                   ),
                 ),
               ],
             ),
-    );
-  }
-
-  Widget _buildMusicList() {
-    List<String> songs = [];
-
-    if (songs.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Icon(Icons.music_note, size: 40, color: Colors.grey),
-            SizedBox(height: 8),
-            Text('Chưa có bài nhạc nào', style: TextStyle(color: Colors.grey)),
-          ],
-        ),
-      );
-    }
-
-    return ListView.builder(
-      itemCount: songs.length,
-      itemBuilder: (context, index) {
-        return ListTile(
-          leading: const Icon(Icons.play_circle_fill),
-          title: Text(songs[index]),
-        );
-      },
-    );
-  }
-
-  Widget _infoText(String label, String? value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Text(
-        '$label: $value',
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          color: Color(0xFF1B4965),
-        ),
-      ),
     );
   }
 }
