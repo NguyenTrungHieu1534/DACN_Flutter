@@ -79,7 +79,6 @@ class AudioPlayerProvider extends ChangeNotifier {
     isPlaying = false;
     notifyListeners();
   }
-
   void togglePlayPause() {
     if (isPlaying) {
       pauseSong();
@@ -95,7 +94,6 @@ class AudioPlayerProvider extends ChangeNotifier {
     }
     notifyListeners();
   }
-
   void seek(Duration position) {
     _audioPlayer.seek(position);
   }
