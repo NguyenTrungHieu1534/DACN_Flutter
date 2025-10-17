@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/playlist.dart';
 import '../services/api_playlist.dart';
+import 'playlist_detail_screen.dart';
 
 class PlaylistScreen extends StatefulWidget {
   const PlaylistScreen({super.key});
@@ -121,7 +122,14 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
                     onTap: () {
-                      // TODO: Mở chi tiết playlist
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => PlaylistDetailScreen(
+                            playlistName: playlist.name,
+                          ),
+                        ),
+                      );
                     },
                   ),
                 );
