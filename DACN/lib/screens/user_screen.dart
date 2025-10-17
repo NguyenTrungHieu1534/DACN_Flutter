@@ -6,6 +6,7 @@ import 'dart:io';
 import 'login_screen.dart';
 import '../services/api_user.dart';
 import '../screens/setting_screen.dart';
+
 class UserScreen extends StatefulWidget {
   const UserScreen({super.key});
 
@@ -148,32 +149,36 @@ class _UserScreenState extends State<UserScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFFA5E8FF),
         elevation: 0,
-        title: const Text(
-          '🌤️ Wave Music',
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 22,
-            color: Color(0xFF1B4965),
-          ),
+        title: Row(
+          children: [
+            const Text(
+              '🌤️ Wave Music',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 22,
+                color: Color(0xFF1B4965),
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.settings, color: Color(0xFF1B4965)),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                );
+              },
+            ),
+          ],
         ),
         centerTitle: true,
         actions: _token != null
-    ? [
-        IconButton(
-          icon: const Icon(Icons.settings, color: Color(0xFF1B4965)),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const SettingsScreen()),
-            );
-          },
-        ),
-        IconButton(
-          icon: const Icon(Icons.logout, color: Color(0xFF1B4965)),
-          onPressed: _logout,
-        ),
-      ]
-    : null,
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.logout, color: Color(0xFF1B4965)),
+                  onPressed: _logout,
+                ),
+              ]
+            : null,
       ),
       body: _token == null
           ? Center(

@@ -6,7 +6,8 @@ import '../services/api_playlist.dart';
 
 class PlaylistDetailScreen extends StatefulWidget {
   final String playlistName;
-  const PlaylistDetailScreen({Key? key, required this.playlistName}) : super(key: key);
+  const PlaylistDetailScreen({Key? key, required this.playlistName})
+      : super(key: key);
 
   @override
   _PlaylistDetailScreenState createState() => _PlaylistDetailScreenState();
@@ -37,7 +38,8 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
       final username = decoded['username'] as String? ?? '';
 
       setState(() {
-        _songsFuture = _api.fetchPlaylist(username, widget.playlistName, token);
+        _songsFuture =
+            _api.fetchPlaylistSong(username, widget.playlistName, token);
       });
     } catch (e) {
       setState(() {
@@ -89,10 +91,13 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                     backgroundImage: song.thumbnail.isNotEmpty
                         ? NetworkImage(song.thumbnail)
                         : null,
-                    child: song.thumbnail.isEmpty ? Icon(Icons.music_note) : null,
+                    child:
+                        song.thumbnail.isEmpty ? Icon(Icons.music_note) : null,
                   ),
-                  title: Text(song.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-                  subtitle: Text(song.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  title: Text(song.title,
+                      maxLines: 1, overflow: TextOverflow.ellipsis),
+                  subtitle: Text(song.artist,
+                      maxLines: 1, overflow: TextOverflow.ellipsis),
                   onTap: () {
                     // You can navigate to the player screen if available
                   },
@@ -105,5 +110,3 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     );
   }
 }
-
-

@@ -75,7 +75,7 @@ class ApiPlaylist {
   static Future<bool> addSongToPlaylist(
       String token, String playlistId, Songs song) async {
     final response = await http.put(
-      Uri.parse("$baseUrl/api/playlist/$playlistId"),
+      Uri.parse("$baseUrl/api/addplaylistSong/$playlistId"),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -105,14 +105,14 @@ class ApiPlaylist {
     return response.statusCode == 200;
   }
 
-  Future<List<Songs>> fetchPlaylist(
+  Future<List<Songs>> fetchPlaylistSong(
       String username, String playlistName, String token) async {
-    final url = Uri.parse('$baseUrl/api/playlist/$username/$playlistName');
+    final url = Uri.parse(
+        'https://backend-dacn-9l4w.onrender.com/api/playlistSong/$username/$playlistName');
 
     final response = await http.get(
       url,
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
     );
