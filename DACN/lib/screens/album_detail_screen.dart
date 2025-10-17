@@ -8,7 +8,8 @@ import '../models/AudioPlayerProvider.dart';
 import '../widgets/shimmer_widgets.dart';
 import '../screens/player_screen.dart';
 import '../widgets/autoScroollerText.dart';
-
+import '../services/api_favsongs.dart';
+import '../services/api_playlist.dart';
 class AlbumDetailScreen extends StatefulWidget {
   final String albumName;
   final String albumImage;
@@ -27,7 +28,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
     with SingleTickerProviderStateMixin {
   late Future<List<Songs>> futureSongs;
   late AnimationController _rotationController;
-
+  final FavoriteService favoriteService = FavoriteService();
   @override
   void initState() {
   super.initState();
@@ -55,7 +56,6 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
       backgroundColor: AppColors.mist,
       body: Stack(
         children: [
-          /// 🩵 Nội dung chính (banner + danh sách bài hát)
           NestedScrollView(
             headerSliverBuilder: (context, innerBoxIsScrolled) => [
               SliverAppBar(
@@ -332,6 +332,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                   ),
                                   onSelected: (value) {
                                     if (value == 'favorite') {
+                                      favoriteService.addFavorite(song);
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
                                         const SnackBar(
@@ -340,6 +341,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                           duration: Duration(seconds: 1),
                                         ),
                                       );
+
                                     } else if (value == 'playlist') {
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(

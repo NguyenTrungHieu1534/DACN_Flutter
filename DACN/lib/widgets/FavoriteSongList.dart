@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import '../models/favSongs.dart';
-
+import '../services/api_favsongs.dart';
 class FavoriteSongList extends StatelessWidget {
   final List<FavoriteSong> songs;
   final Function(FavoriteSong song)? onDelete;
   final Function(FavoriteSong song)? onTap;
-
-  const FavoriteSongList({
+  final FavoriteService favoriteService = FavoriteService();
+  FavoriteSongList({
     Key? key,
     required this.songs,
     this.onDelete,
@@ -41,7 +41,7 @@ class FavoriteSongList extends StatelessWidget {
     itemCount: songs.length,
     itemBuilder: (context, index) {
       final song = songs[index];
-      final color = retroColors[index % retroColors.length]; // Đổi màu tuần hoàn
+      final color = retroColors[index % retroColors.length];
 
       return Container(
         margin: EdgeInsets.only(bottom: 12),
@@ -80,7 +80,9 @@ class FavoriteSongList extends StatelessWidget {
           ),
           trailing: onDelete != null
               ? GestureDetector(
-                  onTap: () => onDelete!(song),
+                  onTap: (){
+                    onDelete?.call(song);
+                  },
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
