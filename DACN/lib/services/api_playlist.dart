@@ -3,18 +3,21 @@ import 'package:http/http.dart' as http;
 import '../models/playlist.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/songs.dart';
+
 class ApiPlaylist {
-  
   static const String baseUrl = "https://backend-dacn-9l4w.onrender.com";
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('token');
-  }  
-   Future<List<Playlist>> getPlaylistsByUser() async {
+  }
+
+  Future<List<Playlist>> getPlaylistsByUser() async {
     final token = await _getToken();
     Map<String, dynamic> decoded = JwtDecoder.decode(token.toString());
     String username = decoded["username"];
-    final response = await http.get(Uri.parse("$baseUrl/api/playlists/$username"));
+    final response =
+        await http.get(Uri.parse("$baseUrl/api/playlists/$username"));
 
     if (response.statusCode == 200) {
       final List data = json.decode(response.body)['data'] ?? [];
@@ -23,7 +26,9 @@ class ApiPlaylist {
       throw Exception("Failed to load playlists");
     }
   }
-  static Future<bool> createPlaylist(String token, String name, String description) async {
+
+  static Future<bool> createPlaylist(
+      String token, String name, String description) async {
     final response = await http.post(
       Uri.parse("$baseUrl/api/playlist"),
       headers: {
@@ -38,7 +43,9 @@ class ApiPlaylist {
 
     return response.statusCode == 201;
   }
-  static Future<bool> renamePlaylist(String token, String playlistId, String newName, String newDescription) async {
+
+  static Future<bool> renamePlaylist(String token, String playlistId,
+      String newName, String newDescription) async {
     final response = await http.put(
       Uri.parse("$baseUrl/api/playlist/$playlistId/rename"),
       headers: {
@@ -53,6 +60,7 @@ class ApiPlaylist {
 
     return response.statusCode == 200;
   }
+
   static Future<bool> deletePlaylist(String token, String playlistId) async {
     final response = await http.delete(
       Uri.parse("$baseUrl/api/playlist/$playlistId"),
@@ -63,7 +71,9 @@ class ApiPlaylist {
 
     return response.statusCode == 200;
   }
-  static Future<bool> addSongToPlaylist(String token, String playlistId, SongInPlaylist song) async {
+
+  static Future<bool> addSongToPlaylist(
+      String token, String playlistId, Songs song) async {
     final response = await http.put(
       Uri.parse("$baseUrl/api/playlist/$playlistId"),
       headers: {
@@ -73,15 +83,18 @@ class ApiPlaylist {
       body: json.encode({
         'songTitle': song.title,
         'artist': song.artist,
-        'songId': song.songId,
-        'album': song.album,
-        'filename': song.filename,
+        'songId': song.id,
+        'album': song.albuml,
+        'url': song.url,
+        'mp3url': song.mp3Url,
       }),
     );
 
     return response.statusCode == 200;
   }
-  static Future<bool> removeSongFromPlaylist(String token, String playlistId, String songId) async {
+
+  static Future<bool> removeSongFromPlaylist(
+      String token, String playlistId, String songId) async {
     final response = await http.delete(
       Uri.parse("$baseUrl/api/playlist/$playlistId/$songId"),
       headers: {
@@ -90,5 +103,30 @@ class ApiPlaylist {
     );
 
     return response.statusCode == 200;
+  }
+
+  Future<List<Songs>> fetchPlaylist(
+      String username, String playlistName, String token) async {
+    final url = Uri.parse('$baseUrl/api/playlist/$username/$playlistName');
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      List<Songs> songs = (data['songs'] as List)
+          .map((songJson) => Songs.fromJson(songJson))
+          .toList();
+
+      return songs;
+    } else {
+      throw Exception('Không thể lấy playlist (${response.statusCode})');
+    }
   }
 }
