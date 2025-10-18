@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-
 import 'package:music_login/screens/home_screen.dart';
 import 'package:music_login/screens/forgot_password_screen.dart';
 import 'package:music_login/screens/verify_otp_screen.dart';
@@ -16,8 +15,17 @@ import '../screens/library_screen.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import '../models/ThemeProvider.dart';
-void main() {
+import 'package:just_audio_background/just_audio_background.dart';
+import 'package:audio_session/audio_session.dart';
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await JustAudioBackground.init(
+    androidNotificationChannelId: 'com.example.dacn.channel.audio',
+    androidNotificationChannelName: 'Wave Music Playback',
+    androidNotificationOngoing: true,
+  );
+   final session = await AudioSession.instance;
+  await session.configure(const AudioSessionConfiguration.music());
   runApp(
     MultiProvider(
       providers: [
@@ -83,8 +91,6 @@ class _MainNavigationState extends State<MainNavigation>
       return await InternetConnectionChecker().hasConnection;
     });
   }
-
-  @override
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<bool>(
