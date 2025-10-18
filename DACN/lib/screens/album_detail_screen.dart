@@ -1,10 +1,12 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/api_album.dart';
 import '../models/songs.dart';
 import '../models/AudioPlayerProvider.dart';
-// import '../navigation/bottom_nav.dart';
-import '../widgets/shimmer_widgets.dart'; // ✅ thêm dòng này
+import '../widgets/shimmer_widgets.dart';
+import '../screens/player_screen.dart';
+import '../widgets/autoScroollerText.dart';
 
 class AlbumDetailScreen extends StatefulWidget {
   final String albumName;
@@ -20,109 +22,195 @@ class AlbumDetailScreen extends StatefulWidget {
   State<AlbumDetailScreen> createState() => _AlbumDetailScreenState();
 }
 
-class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
+class _AlbumDetailScreenState extends State<AlbumDetailScreen>
+    with SingleTickerProviderStateMixin {
   late Future<List<Songs>> futureSongs;
-  int _currentIndex = 0;
+  late AnimationController _rotationController;
 
   @override
   void initState() {
-    super.initState();
-    futureSongs = AlbumService.fetchSongsByAlbum(widget.albumName);
-  }
+  super.initState();
+  futureSongs = AlbumService.fetchSongsByAlbum(widget.albumName);
 
-  void _onItemSelected(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (mounted) {
+      _rotationController = AnimationController(
+        vsync: this,
+        duration: const Duration(seconds: 10),
+      )..repeat();
+    }
+  });
+}
+
+  @override
+  void dispose() {
+    _rotationController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFEAF8FF),
-      body: Column(
+      body: Stack(
         children: [
-          // 🔹 Banner Album
-          Stack(
-            children: [
-              Container(
-                height: 230,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0xFFA7E6FF),
-                      Color(0xFFEAF8FF),
-                    ],
-                  ),
-                  borderRadius: const BorderRadius.vertical(
-                    bottom: Radius.circular(40),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.blueAccent.withOpacity(0.15),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-              ),
-              Positioned(
-                top: 60,
-                left: 16,
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                      color: Colors.white, size: 22),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ),
-              Positioned.fill(
-                child: Align(
-                  alignment: Alignment.center,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Image.network(
-                          widget.albumImage,
-                          width: 120,
-                          height: 120,
-                          fit: BoxFit.cover,
+          /// 🩵 Nội dung chính (banner + danh sách bài hát)
+          NestedScrollView(
+            headerSliverBuilder: (context, innerBoxIsScrolled) => [
+              SliverAppBar(
+                automaticallyImplyLeading: false,
+                expandedHeight: 300,
+                pinned: true,
+                backgroundColor: const Color(0xFFEAF8FF),
+                elevation: 0,
+                flexibleSpace: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final percent = (constraints.maxHeight - kToolbarHeight) /
+                        (260 - kToolbarHeight);
+                    return FlexibleSpaceBar(
+                      centerTitle: true,
+                      title: AnimatedOpacity(
+                        opacity: percent < 0.3 ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 200),
+                        child: Text(
+                          widget.albumName,
+                          style: const TextStyle(
+                            color: Colors.black87,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        widget.albumName,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      background: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Image.network(
+                            widget.albumImage,
+                            fit: BoxFit.cover,
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.black.withOpacity(0.2),
+                                  Colors.black.withOpacity(0.5),
+                                ],
+                              ),
+                            ),
+                          ),
+                          BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                            child: Container(
+                              color: Colors.black.withOpacity(0.15),
+                            ),
+                          ),
+                          Align(
+                            alignment: Alignment.center,
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeOut,
+                              width: 200 * percent.clamp(0.6, 1.0),
+                              height: 200 * percent.clamp(0.6, 1.0),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(22),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.35),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(22),
+                                child: Stack(
+                                  children: [
+                                    Image.network(
+                                      widget.albumImage,
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                    ),
+                                    Align(
+                                      alignment: Alignment.bottomCenter,
+                                      child: Container(
+                                        height: 100,
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: [
+                                              Colors.transparent,
+                                              Colors.black.withOpacity(0.55),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 40,
+                            left: 0,
+                            right: 0,
+                            child: Center(
+                              child: AnimatedOpacity(
+                                opacity: percent > 0.3 ? 1.0 : 0.0,
+                                duration: const Duration(milliseconds: 250),
+                                child: Text(
+                                  widget.albumName,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.8,
+                                    shadows: [
+                                      Shadow(
+                                        color: Colors.black54,
+                                        blurRadius: 10,
+                                        offset: Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: MediaQuery.of(context).padding.top + 6,
+                            left: 8,
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.arrow_back_ios_new_rounded,
+                                color: Colors.white,
+                              ),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
               ),
             ],
-          ),
-
-          // 🔹 Danh sách bài hát
-          Expanded(
-            child: FutureBuilder<List<Songs>>(
+            body: FutureBuilder<List<Songs>>(
               future: futureSongs,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  // ✅ Hiển thị shimmer khi đang tải
                   return ListView.builder(
                     padding: const EdgeInsets.fromLTRB(16, 20, 16, 30),
                     itemCount: 5,
-                    itemBuilder: (context, index) =>
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 14),
-                          child: ShimmerWidgets.songCardShimmer(),
-                        ),
+                    itemBuilder: (context, index) => Padding(
+                      padding: const EdgeInsets.only(bottom: 14),
+                      child: ShimmerWidgets.songCardShimmer(),
+                    ),
                   );
                 } else if (snapshot.hasError) {
                   return Center(
@@ -146,7 +234,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                 final songs = snapshot.data!;
 
                 return ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 30),
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
                   itemCount: songs.length,
                   itemBuilder: (context, index) {
                     final song = songs[index];
@@ -170,9 +258,10 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                         child: InkWell(
                           borderRadius: BorderRadius.circular(24),
                           onTap: () {
-                            final audioProvider = Provider.of<AudioPlayerProvider>(
-                                context,
-                                listen: false);
+                            final audioProvider =
+                                Provider.of<AudioPlayerProvider>(
+                                    context,
+                                    listen: false);
 
                             final updatedSong = Songs(
                               id: song.id,
@@ -191,21 +280,19 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                                 horizontal: 14, vertical: 10),
                             child: Row(
                               children: [
-                                // 🎵 Ảnh bài hát
                                 Container(
                                   width: 60,
                                   height: 60,
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(16),
                                     image: DecorationImage(
-                                      image: NetworkImage(widget.albumImage),
+                                      image:
+                                          NetworkImage(widget.albumImage),
                                       fit: BoxFit.cover,
                                     ),
                                   ),
                                 ),
                                 const SizedBox(width: 14),
-
-                                // 🔹 Thông tin bài hát
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
@@ -233,33 +320,60 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                                     ],
                                   ),
                                 ),
-
-                                // 🔹 Nút phát
-                                Container(
-                                  width: 46,
-                                  height: 46,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: const LinearGradient(
-                                      colors: [
-                                        Color(0xFF6BB6E8),
-                                        Color(0xFFA7E6FF),
-                                      ],
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color:
-                                            Colors.blueAccent.withOpacity(0.3),
-                                        blurRadius: 6,
-                                        offset: const Offset(0, 3),
+                                PopupMenuButton<String>(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  color: Colors.white,
+                                  icon: const Icon(
+                                    Icons.more_vert_rounded,
+                                    color: Color(0xFF6BB6E8),
+                                  ),
+                                  onSelected: (value) {
+                                    if (value == 'favorite') {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                              'Đã thêm vào yêu thích 💙'),
+                                          duration: Duration(seconds: 1),
+                                        ),
+                                      );
+                                    } else if (value == 'playlist') {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                              'Đã thêm vào playlist khác 🎵'),
+                                          duration: Duration(seconds: 1),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  itemBuilder: (context) => [
+                                    const PopupMenuItem(
+                                      value: 'favorite',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.favorite_border,
+                                              color: Colors.redAccent),
+                                          SizedBox(width: 10),
+                                          Text('Thêm vào yêu thích'),
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                                  child: const Icon(
-                                    Icons.play_arrow_rounded,
-                                    color: Colors.white,
-                                    size: 26,
-                                  ),
+                                    ),
+                                    const PopupMenuItem(
+                                      value: 'playlist',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.playlist_add,
+                                              color: Colors.blueAccent),
+                                          SizedBox(width: 10),
+                                          Text('Thêm vào playlist khác'),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -268,6 +382,97 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                       ),
                     );
                   },
+                );
+              },
+            ),
+          ),
+
+          /// 🎵 Mini Player ở cuối trang (giống nav)
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Consumer<AudioPlayerProvider>(
+              builder: (context, audioPlayerProvider, child) {
+                final currentPlaying = audioPlayerProvider.currentPlaying;
+                final isPlaying = audioPlayerProvider.isPlaying;
+
+                if (currentPlaying == null) return const SizedBox.shrink();
+
+                return Padding(
+                  padding:
+                      const EdgeInsets.only(left: 40, right: 40, bottom: 16),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(30),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.35),
+                          borderRadius: BorderRadius.circular(30),
+                          border:
+                              Border.all(color: Colors.white.withOpacity(0.3)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.25),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        PlayerScreen(song: currentPlaying),
+                                  ),
+                                );
+                              },
+                              child: Row(
+                                children: [
+                                  RotationTransition(
+  turns: (_rotationController.isAnimating)
+      ? _rotationController
+      : AlwaysStoppedAnimation(0),
+  child: CircleAvatar(
+    backgroundImage: NetworkImage(currentPlaying.thumbnail),
+    radius: 20,
+  ),
+),
+                                  const SizedBox(width: 10),
+                                  SizedBox(
+                                    width: MediaQuery.of(context).size.width *
+                                        0.5,
+                                    child: autoTextScroller(
+                                      currentPlaying.title,
+                                      const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                isPlaying
+                                    ? Icons.pause_rounded
+                                    : Icons.play_arrow_rounded,
+                                color: Colors.black87,
+                              ),
+                              onPressed: () {
+                                audioPlayerProvider.togglePlayPause();
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 );
               },
             ),
