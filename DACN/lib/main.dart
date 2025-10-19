@@ -17,19 +17,28 @@ import 'package:internet_connection_checker/internet_connection_checker.dart';
 import '../models/ThemeProvider.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:audio_session/audio_session.dart';
+import 'package:audio_service/audio_service.dart';
+import '../models/audio_handler.dart';
+
 Future<void> main() async {
+  late final AudioHandler audioHandler;
   WidgetsFlutterBinding.ensureInitialized();
-  await JustAudioBackground.init(
-    androidNotificationChannelId: 'com.example.dacn.channel.audio',
-    androidNotificationChannelName: 'Wave Music Playback',
-    androidNotificationOngoing: true,
+  audioHandler = await AudioService.init(
+    builder: () => MyAudioHandler(),
+    config: const AudioServiceConfig(
+      androidNotificationChannelId: 'com.example.app.channel.audio',
+      androidNotificationChannelName: 'Music Playback',
+      androidShowNotificationBadge: true,
+    ),
   );
-   final session = await AudioSession.instance;
+  final session = await AudioSession.instance;
   await session.configure(const AudioSessionConfiguration.music());
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AudioPlayerProvider()),
+        ChangeNotifierProvider(
+          create: (_) => AudioPlayerProvider(audioHandler : audioHandler),
+        ),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
       child: const WaveMusicApp(),
@@ -37,15 +46,14 @@ Future<void> main() async {
   );
 }
 
-
 class WaveMusicApp extends StatelessWidget {
   const WaveMusicApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-     final themeProvider = Provider.of<ThemeProvider>(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return MaterialApp(
-       debugShowCheckedModeBanner: false,
+      debugShowCheckedModeBanner: false,
       theme: AppTheme.buildTheme(
         ThemeData(
           useMaterial3: true,
@@ -91,6 +99,7 @@ class _MainNavigationState extends State<MainNavigation>
       return await InternetConnectionChecker().hasConnection;
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<bool>(
