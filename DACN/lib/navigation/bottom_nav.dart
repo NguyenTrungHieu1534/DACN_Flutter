@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart'; // Import Provider
+import '../theme/app_theme.dart';
 import '../models/AudioPlayerProvider.dart'; // Import AudioPlayerProvider
 import '../widgets/autoScroollerText.dart';
 import '../screens/player_screen.dart';
@@ -253,7 +254,7 @@ class BuildNaviBotState extends State<BuildNaviBot>
             child: Icon(
               icon,
               size: 24,
-              color: isActive ? Colors.blueAccent : Colors.grey[600],
+              color: isActive ? AppColors.oceanBlue : Colors.grey[600],
             ),
           ),
           AnimatedSize(

@@ -39,7 +39,7 @@ class HistoryService {
     }
   }
 
-  Future<void> addHistory(String title, String artist, String songId) async {
+  Future<void> addHistory(String title, String artist,String album,  String songId, ) async {
     final token = await _getToken();
     final response = await http.post(
       Uri.parse("$baseUrl/api/history"),
@@ -50,12 +50,13 @@ class HistoryService {
       body: jsonEncode({
         'title': title,
         'artist': artist,
-        'url': songId, // dùng songId hoặc filename tùy backend
+        'songId': songId,
+        'album': album,
       }),
     );
 
     if (response.statusCode != 201) {
-      throw Exception("Không thể lưu bài hát vào lịch sử");
+      throw Exception("Api không thể lưu bài hát vào lịch sử");
     }
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/playlist.dart';
 import '../services/api_playlist.dart';
+import 'playlist_detail_screen.dart';
 
 class PlaylistScreen extends StatefulWidget {
   const PlaylistScreen({super.key});
@@ -28,29 +29,32 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Playlists 🌴',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 22,
-            color: Colors.white,
+            color: Theme.of(context).appBarTheme.foregroundColor,
           ),
         ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Color(0xFF64B5F6), // SkyBlue Retro
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
       ),
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF64B5F6),
-              Color(0xFFFFFFFF),
-            ],
-            stops: [0.0, 0.4],
-          ),
+          gradient: Theme.of(context).brightness == Brightness.dark
+              ? const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF0D1117), Color(0xFF161B22)],
+                )
+              : const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF64B5F6), Color(0xFFF8F9FB)],
+                  stops: [0.0, 0.4],
+                ),
         ),
         child: FutureBuilder<List<Playlist>>(
           future: _playlistsFuture,
@@ -65,10 +69,14 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
             final playlists = snapshot.data ?? [];
 
             if (playlists.isEmpty) {
-              return const Center(
+              return Center(
                 child: Text(
                   "💔 Chưa có playlist nào",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
               );
             }
@@ -97,12 +105,31 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     title: Text(
                       playlist.name,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                     ),
-                    subtitle: Text("${playlist.songs.length} bài hát"),
-                    trailing: const Icon(Icons.chevron_right),
+                    subtitle: Text(
+                      "${playlist.songs.length} bài hát",
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    ),
+                    trailing: Icon(
+                      Icons.chevron_right,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                     onTap: () {
-                      // TODO: Mở chi tiết playlist
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => PlaylistDetailScreen(
+                            playlistName: playlist.name,
+                          ),
+                        ),
+                      );
                     },
                   ),
                 );

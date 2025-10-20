@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // Ocean-inspired palette from the provided swatches
-  static const Color oceanDeep = Color(0xFF083D77); // deep navy
-  static const Color oceanBlue = Color(0xFF1B6CA8); // primary blue
-  static const Color skyBlue = Color(0xFF4DB6E5); // accent sky
+  // Refined ocean-inspired palette
+  static const Color oceanDeep = Color(0xFF072B52); // deeper navy
+  static const Color oceanBlue = Color(0xFF145A96); // richer primary blue
+  static const Color skyBlue = Color(0xFF3AA2D6); // slightly darker accent sky
   static const Color mist = Color(0xFFE8EDF1); // very light gray
   static const Color sand = Color(0xFFC9B8A6); // warm sand
 }
@@ -54,6 +54,32 @@ class AppTheme {
       ),
     );
   }
+
+  static final ThemeData darkTheme = ThemeData(
+    brightness: Brightness.dark,
+    scaffoldBackgroundColor: const Color(0xFF0D1117),
+    primaryColor: const Color(0xFF1DB954),
+    colorScheme: const ColorScheme.dark(
+      primary: Color(0xFF1DB954),
+      surface: Color(0xFF161B22),
+      background: Color(0xFF0D1117),
+      onPrimary: Colors.white,
+      onSurface: Colors.white70,
+      onBackground: Colors.white70,
+      secondary: AppColors.oceanBlue,
+      onSecondary: Colors.white,
+      error: Colors.redAccent,
+      onError: Colors.white,
+    ),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Color(0xFF161B22),
+      foregroundColor: Colors.white,
+    ),
+    textTheme: const TextTheme(
+      bodyMedium: TextStyle(color: Colors.white70),
+    ),
+    cardColor: const Color(0xFF161B22),
+  );
 }
 
 

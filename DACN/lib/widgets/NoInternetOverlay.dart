@@ -49,16 +49,22 @@ class NoInternetOverlay extends StatelessWidget {
                           size: 70, color: Colors.white),
                     ),
                     const SizedBox(height: 20),
-                    const Text(
+                    Text(
                       "Mất kết nối Internet",
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       "Vui lòng bật WiFi hoặc dữ liệu di động để tiếp tục.",
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 14, color: Colors.black54),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                      ),
                     ),
                     if (onRetry != null) ...[
                       const SizedBox(height: 20),

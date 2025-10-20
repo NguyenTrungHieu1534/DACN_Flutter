@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import '../models/history.dart';
 
 class HistoryList extends StatelessWidget {
@@ -54,7 +55,7 @@ class HistoryList extends StatelessWidget {
             leading: Container(
               padding: EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.blueAccent,
+                color: AppColors.oceanBlue,
                 shape: BoxShape.circle,
               ),
               child: Icon(Icons.history, color: Colors.white),

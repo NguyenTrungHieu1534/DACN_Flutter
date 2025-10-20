@@ -34,39 +34,32 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     // 🌴 AppTheme — gộp trực tiếp
     const retroPrimary = Color(0xFF70C1B3); // xanh ngọc retro
-    const retroAccent = Color(0xFF247BA0); // xanh biển đậm
-    const retroPeach = Color(0xFFFFB6B9); // hồng pastel
-    const retroSand = Color(0xFFFFE066); // vàng cát
-    const retroWhite = Color(0xFFFFFFFF);
+    // Removed unused retroAccent
+    // Removed unused retroPeach, retroSand, retroWhite, retroBoxGradient, retroShadow
 
-    final retroBoxGradient = LinearGradient(
-      colors: [
-        retroPrimary.withOpacity(0.25),
-        retroAccent.withOpacity(0.15),
-      ],
-    );
-
-    final retroShadow = [
-      BoxShadow(
-        color: retroPrimary.withOpacity(0.25),
-        blurRadius: 12,
-        spreadRadius: 2,
-        offset: const Offset(0, 4),
-      ),
-    ];
-
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color.fromARGB(255, 112, 150, 193), // xanh ngọc retro
-              Color(0xFFFFFFFF), // trắng pastel
-            ],
-            stops: [0.0, 0.4],
-          ),
+        decoration: BoxDecoration(
+          gradient: isDark
+              ? const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xFF0D1117),
+                    Color(0xFF161B22),
+                  ],
+                  stops: [0.0, 1.0],
+                )
+              : const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color.fromARGB(255, 112, 150, 193),
+                    Color(0xFFF8F9FB),
+                  ],
+                  stops: [0.0, 0.4],
+                ),
         ),
         child: FutureBuilder<List<dynamic>>(
           future: _combinedFuture,
@@ -91,19 +84,19 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: 2,
                     ),
                   ),
-                  child: const Column(
+                  child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         Icons.error_outline_rounded,
-                        color: Colors.redAccent,
+                        color: Theme.of(context).colorScheme.error,
                         size: 48,
                       ),
                       SizedBox(height: 16),
                       Text(
                         "Oops! Something went wrong",
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
                         ),
@@ -148,7 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             return RefreshIndicator(
               color: retroPrimary,
-              backgroundColor: retroWhite,
+              backgroundColor: Theme.of(context).colorScheme.surface,
               strokeWidth: 3,
               onRefresh: () async {
                 setState(() {
@@ -176,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       height: 42,
                       child: ListView(
                         scrollDirection: Axis.horizontal,
-                        children: const [
+                      children: const [
                           _QuickChip(
                               label: 'Liked Songs', icon: Icons.favorite),
                           SizedBox(width: 8),
@@ -232,13 +225,12 @@ class _QuickChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const themeColor =
-        Color.fromARGB(255, 114, 148, 180); // màu retro xanh biển nhạt
+    final themeColor = Theme.of(context).colorScheme.secondary;
 
     return Material(
       elevation: 3,
       shadowColor: Colors.black26,
-      color: Colors.white.withOpacity(0.95),
+      color: Theme.of(context).colorScheme.surface.withOpacity(0.95),
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
         onTap: () {},
@@ -256,11 +248,11 @@ class _QuickChip extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 label,
-                style: const TextStyle(
-                  color: Colors.black87,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.3,
-                ),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.3,
+                    ),
               ),
             ],
           ),
@@ -270,22 +262,7 @@ class _QuickChip extends StatelessWidget {
   }
 }
 
-Widget _buildRetroDivider() {
-  return Container(
-    height: 1.2,
-    margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-    decoration: const BoxDecoration(
-      gradient: LinearGradient(
-        colors: [
-          Colors.transparent,
-          Color.fromARGB(255, 112, 150, 193), // xanh pastel đồng bộ
-          Colors.transparent,
-        ],
-        stops: [0.1, 0.5, 0.9],
-      ),
-    ),
-  );
-}
+// Removed unused _buildRetroDivider
 
 IconData _getGreetingIcon(int hour) {
   if (hour < 12) return Icons.wb_sunny_rounded;

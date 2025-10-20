@@ -13,36 +13,41 @@ import 'models/AudioPlayerProvider.dart';
 import 'theme/app_theme.dart';
 import 'navigation/bottom_nav.dart';
 import '../screens/library_screen.dart';
-import '../screens/album_detail_screen.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
-import 'services/network_check.dart';
-
+import '../models/ThemeProvider.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => AudioPlayerProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AudioPlayerProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+      ],
       child: const WaveMusicApp(),
     ),
   );
 }
+
 
 class WaveMusicApp extends StatelessWidget {
   const WaveMusicApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final base = ThemeData(
-      useMaterial3: true,
-      textTheme: GoogleFonts.poppinsTextTheme(),
-      scaffoldBackgroundColor: const Color(0xFFF8F9FB),
-    );
-
+     final themeProvider = Provider.of<ThemeProvider>(context);
     return MaterialApp(
+       debugShowCheckedModeBanner: false,
+      theme: AppTheme.buildTheme(
+        ThemeData(
+          useMaterial3: true,
+          textTheme: GoogleFonts.poppinsTextTheme(),
+          scaffoldBackgroundColor: const Color(0xFFF8F9FB),
+        ),
+      ),
+      darkTheme: AppTheme.darkTheme,
+      themeMode: themeProvider.isDark ? ThemeMode.dark : ThemeMode.light,
       title: 'Wave Music',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.buildTheme(base),
       home: const MainNavigation(),
       routes: {
         '/home': (context) => const MainNavigation(),

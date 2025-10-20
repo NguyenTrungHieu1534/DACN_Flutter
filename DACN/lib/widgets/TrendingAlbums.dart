@@ -190,11 +190,11 @@ class TrendingAlbum extends StatelessWidget {
                   const SizedBox(height: 3),
                   Text(
                     album.name.toUpperCase(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'PressStart2P',
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: Theme.of(context).colorScheme.onSurface,
                       height: 1.4,
                     ),
                     textAlign: TextAlign.center,
@@ -204,10 +204,10 @@ class TrendingAlbum extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     album.artist,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'PressStart2P',
                       fontSize: 10,
-                      color: Colors.black54,
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                       height: 1.6,
                     ),
                     textAlign: TextAlign.center,

@@ -1,13 +1,15 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../theme/app_theme.dart';
 import '../services/api_album.dart';
 import '../models/songs.dart';
 import '../models/AudioPlayerProvider.dart';
 import '../widgets/shimmer_widgets.dart';
 import '../screens/player_screen.dart';
 import '../widgets/autoScroollerText.dart';
-
+import '../services/api_favsongs.dart';
+import '../services/api_playlist.dart';
 class AlbumDetailScreen extends StatefulWidget {
   final String albumName;
   final String albumImage;
@@ -26,7 +28,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
     with SingleTickerProviderStateMixin {
   late Future<List<Songs>> futureSongs;
   late AnimationController _rotationController;
-
+  final FavoriteService favoriteService = FavoriteService();
   @override
   void initState() {
   super.initState();
@@ -51,17 +53,16 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEAF8FF),
+      backgroundColor: AppColors.mist,
       body: Stack(
         children: [
-          /// 🩵 Nội dung chính (banner + danh sách bài hát)
           NestedScrollView(
             headerSliverBuilder: (context, innerBoxIsScrolled) => [
               SliverAppBar(
                 automaticallyImplyLeading: false,
                 expandedHeight: 300,
                 pinned: true,
-                backgroundColor: const Color(0xFFEAF8FF),
+                backgroundColor: AppColors.mist,
                 elevation: 0,
                 flexibleSpace: LayoutBuilder(
                   builder: (context, constraints) {
@@ -247,7 +248,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.blueAccent.withOpacity(0.08),
+                            color: AppColors.oceanBlue.withOpacity(0.08),
                             blurRadius: 8,
                             offset: const Offset(0, 3),
                           ),
@@ -303,7 +304,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                         style: const TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
-                                          color: Color(0xFF2D3748),
+                                          color: AppColors.oceanDeep,
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
@@ -313,7 +314,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                         song.artist,
                                         style: const TextStyle(
                                           fontSize: 13,
-                                          color: Color(0xFF6BB6E8),
+                                          color: AppColors.skyBlue,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -327,10 +328,11 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                   color: Colors.white,
                                   icon: const Icon(
                                     Icons.more_vert_rounded,
-                                    color: Color(0xFF6BB6E8),
+                                    color: AppColors.skyBlue,
                                   ),
                                   onSelected: (value) {
                                     if (value == 'favorite') {
+                                      favoriteService.addFavorite(song);
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
                                         const SnackBar(
@@ -339,6 +341,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                           duration: Duration(seconds: 1),
                                         ),
                                       );
+
                                     } else if (value == 'playlist') {
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
@@ -367,7 +370,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                       child: Row(
                                         children: [
                                           Icon(Icons.playlist_add,
-                                              color: Colors.blueAccent),
+                                              color: AppColors.oceanBlue),
                                           SizedBox(width: 10),
                                           Text('Thêm vào playlist khác'),
                                         ],

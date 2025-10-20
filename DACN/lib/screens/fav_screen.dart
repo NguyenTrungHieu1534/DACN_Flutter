@@ -71,7 +71,7 @@ class _FavScreenState extends State<FavScreen> {
           return FavoriteSongList(
             songs: favorites,
             onDelete: (song) async {
-              await _favService.deleteFavoriteBySongId(song.songId);
+              await _favService.deleteFavoriteById(song.id.toString());
               _loadFavorites();
             },
             onTap: (song) {},
