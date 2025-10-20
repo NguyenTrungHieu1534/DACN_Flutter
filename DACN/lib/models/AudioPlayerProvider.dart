@@ -1,110 +1,114 @@
 import 'package:flutter/material.dart';
-
-import 'package:just_audio/just_audio.dart';
+import 'package:audio_service/audio_service.dart';
 import '../models/songs.dart';
 import '../services/api_history.dart';
+import '../models/audio_handler.dart';
 
 class AudioPlayerProvider extends ChangeNotifier {
-  final AudioPlayer _audioPlayer = AudioPlayer();
+  final AudioHandler audioHandler;
   bool isPlaying = false;
   Songs? currentPlaying;
+
+  final HistoryService _historyService = HistoryService();
 
   Duration _position = Duration.zero;
   Duration _duration = Duration.zero;
 
-  AudioPlayerProvider() {
-    _audioPlayer.positionStream.listen((p) {
-      _position = p;
+  AudioPlayerProvider({required this.audioHandler}) {
+    // Nghe trạng thái phát nhạc từ AudioHandler
+    audioHandler.playbackState.listen((state) {
+      isPlaying = state.playing;
       notifyListeners();
     });
-    _audioPlayer.durationStream.listen((d) {
-      _duration = d ?? Duration.zero;
+
+    // Nghe MediaItem để cập nhật duration
+    audioHandler.mediaItem.listen((item) {
+      _duration = item?.duration ?? Duration.zero;
       notifyListeners();
     });
-    _audioPlayer.playerStateStream.listen((playerState) {
-      isPlaying = playerState.playing;
+
+    // Nghe progress từ AudioHandler
+    audioHandler.playbackState.listen((state) {
+      _position = state.position;
       notifyListeners();
     });
   }
-
-  final HistoryService _historyService = HistoryService();
 
   Duration get position => _position;
   Duration get duration => _duration;
 
   Future<void> playSong(Songs song) async {
-    if (song.url.isEmpty) {
-      debugPrint("Lỗi: Bài hát ${song.title} không có URL để phát!");
-      return;
-    }
+    if (song.url.isEmpty) return;
 
     currentPlaying = song;
 
+    final mediaItem = MediaItem(
+      id: song.id.toString(),
+      title: song.title,
+      artist: song.artist,
+      album: song.albuml,
+      artUri: Uri.parse(song.thumbnail),
+      // duration: song.duration ?? Duration.zero,
+    );
+    audioHandler.addQueueItem(mediaItem);
+    // await audioHandler.setMediaItem(mediaItem);
     try {
-      // Thử phát mp3Url trước
-      await _audioPlayer.setUrl(Uri.encodeFull(song.mp3Url));
-      // Lưu vào lịch sử trước khi phát (không block nếu lỗi)
-      try {
-        await _historyService.addHistory(song.title, song.artist, song.albuml,song.id);
-        debugPrint("Đã lưu lịch sử: ${song.title}");
-      } catch (historyError) {
-        debugPrint("Không thể lưu lịch sử: $historyError");
+      if (audioHandler.playbackState.value.playing) {
+        await audioHandler.stop();
       }
-      _audioPlayer.play();
-      debugPrint("Đang phát MP3: ${song.mp3Url}");
-      isPlaying = true;
-      notifyListeners();
+      Uri? uriToPlay;
+      String logMessage = '';
+      if (uriToPlay == null && song.mp3Url.isNotEmpty) {
+        try {
+          uriToPlay = Uri.parse(song.mp3Url);
+          logMessage = 'dang play mp3 url';
+        } catch (_) {
+          // Nếu MP3 URL cũng không hợp lệ
+        }
+      }
+
+      // 2. XỬ LÝ KHI KHÔNG CÓ URI HỢP LỆ
+      if (uriToPlay == null) {
+        throw Exception("Tất cả các URL đều không hợp lệ");
+      }
+      await (audioHandler as MyAudioHandler)
+          .setAudioSource(mediaItem, uriToPlay);
+      try {
+        await _historyService.addHistory(
+            song.title, song.artist, song.albuml, song.id);
+      } catch (_) {}
+      await audioHandler.play();
     } catch (e) {
       debugPrint("Lỗi khi phát bài ${song.title}: $e");
-      print("Thử fallback sang FLAC gốc...");
-      try {
-        await _audioPlayer.setUrl(Uri.encodeFull(song.url));
-        try {
-          await _historyService.addHistory(song.title, song.artist, song.id, song.albuml);
-          debugPrint("Đã lưu lịch sử (fallback): ${song.title}");
-        } catch (historyError) {
-          debugPrint("Không thể lưu lịch sử (fallback): $historyError");
-        }
-        _audioPlayer.play();
-        debugPrint("Fallback sang FLAC gốc: ${song.url}");
-      } catch (e2) {
-        debugPrint("url ngu: ${song.url}");
-        debugPrint("Vẫn lỗi khi phát FLAC: $e2");
-      }
     }
   }
 
-  void pauseSong() {
-    _audioPlayer.pause();
-    isPlaying = false;
-    notifyListeners();
+  Future<void> pauseSong() async {
+    await audioHandler.pause();
   }
-  void togglePlayPause() {
+
+  Future<void> togglePlayPause() async {
     if (isPlaying) {
-      pauseSong();
+      await pauseSong();
     } else if (currentPlaying != null) {
-      // Lưu lịch sử trước khi phát (không chặn)
-      _historyService
-          .addHistory(currentPlaying!.title, currentPlaying!.artist, currentPlaying!.id, currentPlaying!.albuml)
-          .catchError((e) {
-        debugPrint("Không thể lưu lịch sử khi toggle: $e");
-      });
-      _audioPlayer.play();
-      isPlaying = true;
+      await audioHandler.play();
     }
-    notifyListeners();
-  }
-  void seek(Duration position) {
-    _audioPlayer.seek(position);
   }
 
+  Future<void> seek(Duration position) async {
+    await audioHandler.seek(position);
+  }
+
+  Future<void> stopSong() async {
+    await audioHandler.stop();
+  }
+
+  // Nếu muốn, có thể thêm next/previous logic
   void nextSong() {
-    // TODO: Implement next song logic
     print("Next song");
   }
 
   void previousSong() {
-    // TODO: Implement previous song logic
     print("Previous song");
   }
 }

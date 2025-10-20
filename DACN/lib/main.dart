@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-
 import 'package:music_login/screens/home_screen.dart';
 import 'package:music_login/screens/forgot_password_screen.dart';
 import 'package:music_login/screens/verify_otp_screen.dart';
@@ -16,12 +15,30 @@ import '../screens/library_screen.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import '../models/ThemeProvider.dart';
-void main() {
+import 'package:just_audio_background/just_audio_background.dart';
+import 'package:audio_session/audio_session.dart';
+import 'package:audio_service/audio_service.dart';
+import '../models/audio_handler.dart';
+
+Future<void> main() async {
+  late final AudioHandler audioHandler;
   WidgetsFlutterBinding.ensureInitialized();
+  audioHandler = await AudioService.init(
+    builder: () => MyAudioHandler(),
+    config: const AudioServiceConfig(
+      androidNotificationChannelId: 'com.example.app.channel.audio',
+      androidNotificationChannelName: 'Music Playback',
+      androidShowNotificationBadge: true,
+    ),
+  );
+  final session = await AudioSession.instance;
+  await session.configure(const AudioSessionConfiguration.music());
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AudioPlayerProvider()),
+        ChangeNotifierProvider(
+          create: (_) => AudioPlayerProvider(audioHandler : audioHandler),
+        ),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
       child: const WaveMusicApp(),
@@ -29,15 +46,14 @@ void main() {
   );
 }
 
-
 class WaveMusicApp extends StatelessWidget {
   const WaveMusicApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-     final themeProvider = Provider.of<ThemeProvider>(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return MaterialApp(
-       debugShowCheckedModeBanner: false,
+      debugShowCheckedModeBanner: false,
       theme: AppTheme.buildTheme(
         ThemeData(
           useMaterial3: true,
@@ -84,7 +100,6 @@ class _MainNavigationState extends State<MainNavigation>
     });
   }
 
-  @override
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<bool>(

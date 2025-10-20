@@ -20,3 +20,14 @@ class Album {
     );
   }
 }
+// String? getAlbumUrl(String albumId) {
+//   try {
+//     final album = Album.firstWhere(
+//       (a) => a.id == albumId,
+//     );
+//     return album.url;
+//   } catch (e) {
+//     // Nếu không tìm thấy album thì trả về null
+//     return null;
+//   }
+// }

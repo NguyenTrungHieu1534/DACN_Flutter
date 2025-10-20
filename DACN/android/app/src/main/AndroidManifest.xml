@@ -1,8 +1,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <application
         android:label="Wave Music"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+            <service
+        android:name="com.ryanheise.audioservice.AudioService"
+        android:exported="false"
+        android:stopWithTask="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -36,6 +44,7 @@
          https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.
 
          In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
+         
     <queries>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
@@ -43,3 +52,4 @@
         </intent>
     </queries>
 </manifest>
+

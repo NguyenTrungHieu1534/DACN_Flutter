@@ -312,8 +312,7 @@ class TrendingSong extends StatelessWidget {
 
   // Widget hiển thị danh sách Songs
   Widget _buildSongsList(BuildContext context) {
-    final audioProvider =
-        Provider.of<AudioPlayerProvider>(context, listen: false);
+    final audioProvider = Provider.of<AudioPlayerProvider>(context, listen: false);
     return SizedBox(
       height: 150,
       child: ListView.separated(
@@ -491,8 +490,6 @@ class TrendingSong extends StatelessWidget {
                           ],
                         ),
                       ),
-
-                      // Nút play retro
                       TextButton(
                         onPressed: () {
                           audioProvider.playSong(song);
