@@ -101,4 +101,9 @@ class MyAudioHandler extends BaseAudioHandler {
         return AudioProcessingState.completed;
     }
   }
+   @override
+  Future<void> onTaskRemoved() async {
+    await stop(); // Tắt nhạc
+    return super.onTaskRemoved();
+  }
 }
