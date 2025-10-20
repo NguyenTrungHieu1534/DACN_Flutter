@@ -26,9 +26,10 @@ Future<void> main() async {
   audioHandler = await AudioService.init(
     builder: () => MyAudioHandler(),
     config: const AudioServiceConfig(
-      androidNotificationChannelId: 'com.example.app.channel.audio',
-      androidNotificationChannelName: 'Music Playback',
-      androidShowNotificationBadge: true,
+  androidNotificationChannelId: 'com.example.app.channel.audio',
+  androidNotificationChannelName: 'Wave Music',
+  androidShowNotificationBadge: true,
+  androidNotificationIcon: 'mipmap/ic_launcher', // Icon app
     ),
   );
   final session = await AudioSession.instance;

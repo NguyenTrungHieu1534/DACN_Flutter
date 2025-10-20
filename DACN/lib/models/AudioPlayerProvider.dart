@@ -48,6 +48,15 @@ class AudioPlayerProvider extends ChangeNotifier {
       artist: song.artist,
       album: song.albuml,
       artUri: Uri.parse(song.thumbnail),
+      extras: {
+        'displayTitle': song.title,
+        'displaySubtitle': song.artist,
+        'artworkType': 'GRADIENT',
+        'backgroundColor': '#FFF8E1',  // Light background color
+        'accentColor': '#EF6C00',      // Orange accent color
+        'secondaryColor': '#FF8F00',   // Secondary orange
+        'displayDescription': song.albuml,
+      },
       // duration: song.duration ?? Duration.zero,
     );
     audioHandler.addQueueItem(mediaItem);

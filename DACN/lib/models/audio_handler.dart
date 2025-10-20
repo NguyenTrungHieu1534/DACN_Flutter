@@ -69,14 +69,19 @@ class MyAudioHandler extends BaseAudioHandler {
         MediaControl.skipToPrevious,
         playerState.playing ? MediaControl.pause : MediaControl.play,
         MediaControl.skipToNext,
-        MediaControl.stop,
+        MediaControl(
+          androidIcon: 'drawable/ic_favorite',
+          label: 'Yêu thích',
+          action: MediaAction.custom,
+        ),
       ],
       systemActions: const {
         MediaAction.seek,
         MediaAction.seekForward,
         MediaAction.seekBackward,
+        MediaAction.custom,
       },
-      androidCompactActionIndices: const [1, 2],
+      androidCompactActionIndices: const [0, 1, 2],  // Show prev, play/pause, next in compact view
       processingState: processingState,
       playing: playerState.playing,
     ));
@@ -94,8 +99,6 @@ class MyAudioHandler extends BaseAudioHandler {
         return AudioProcessingState.ready;
       case ProcessingState.completed:
         return AudioProcessingState.completed;
-      default:
-        return AudioProcessingState.idle;
     }
   }
 }
