@@ -39,16 +39,20 @@ class AudioPlayerUI extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.orange.shade100, Colors.pink.shade50],
+          colors: [
+            const Color(0xFF121212),     // Dark background
+            const Color(0xFF1E1E1E),     // Slightly lighter
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        boxShadow: const [
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        boxShadow: [
           BoxShadow(
-            color: Colors.black26,
-            blurRadius: 10,
-            offset: Offset(0, 4),
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, -2),
+            spreadRadius: 1,
           ),
         ],
       ),
@@ -59,9 +63,10 @@ class AudioPlayerUI extends StatelessWidget {
           Text(
             song.title,
             style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.brown,
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+              letterSpacing: 0.5,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -71,7 +76,8 @@ class AudioPlayerUI extends StatelessWidget {
             song.artist,
             style: const TextStyle(
               fontSize: 14,
-              color: Colors.brown,
+              color: Colors.white70,
+              fontWeight: FontWeight.w400,
             ),
           ),
           const SizedBox(height: 12),
@@ -89,7 +95,7 @@ class AudioPlayerUI extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: const LinearGradient(
-                        colors: [Colors.orangeAccent, Colors.deepOrange],
+                        colors: [Color(0xFFEF6C00), Color(0xFFFF9800)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -97,7 +103,7 @@ class AudioPlayerUI extends StatelessWidget {
                         image: NetworkImage(thumbnailUrl),
                         fit: BoxFit.cover,
                         colorFilter: ColorFilter.mode(
-                          Colors.black.withOpacity(0.1),
+                          Colors.black.withOpacity(0.15),
                           BlendMode.darken,
                         ),
                       ),
@@ -132,12 +138,15 @@ class AudioPlayerUI extends StatelessWidget {
               Expanded(
                 child: SliderTheme(
                   data: SliderTheme.of(context).copyWith(
-                    activeTrackColor: Theme.of(context).colorScheme.primary,
-                    inactiveTrackColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-                    trackHeight: 3,
-                    thumbColor: Theme.of(context).colorScheme.primary,
-                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                    overlayColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                    activeTrackColor: const Color(0xFFEF6C00),
+                    inactiveTrackColor: Colors.white24,
+                    trackHeight: 4,
+                    thumbColor: Colors.white,
+                    thumbShape: const RoundSliderThumbShape(
+                      enabledThumbRadius: 6,
+                      pressedElevation: 8,
+                    ),
+                    overlayColor: const Color(0xFFEF6C00).withOpacity(0.2),
                   ),
                   child: Slider(
                     value: position.inMilliseconds
@@ -193,13 +202,18 @@ class AudioPlayerUI extends StatelessWidget {
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: gradient,
-          color: gradient == null ? Colors.brown.shade200 : null,
-          boxShadow: const [
+          gradient: gradient ?? LinearGradient(
+            colors: [
+              Colors.white.withOpacity(0.1),
+              Colors.white.withOpacity(0.05),
+            ],
+          ),
+          boxShadow: [
             BoxShadow(
-              color: Colors.black26,
-              blurRadius: 6,
-              offset: Offset(0, 3),
+              color: const Color(0xFFEF6C00).withOpacity(0.3),
+              blurRadius: 8,
+              spreadRadius: 1,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
