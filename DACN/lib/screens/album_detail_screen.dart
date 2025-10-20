@@ -31,18 +31,13 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
   final FavoriteService favoriteService = FavoriteService();
   @override
   void initState() {
-  super.initState();
-  futureSongs = AlbumService.fetchSongsByAlbum(widget.albumName);
-
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    if (mounted) {
-      _rotationController = AnimationController(
-        vsync: this,
-        duration: const Duration(seconds: 10),
-      )..repeat();
-    }
-  });
-}
+    super.initState();
+    futureSongs = AlbumService.fetchSongsByAlbum(widget.albumName);
+    _rotationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 10),
+    )..repeat();
+  }
 
   @override
   void dispose() {
@@ -440,7 +435,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                   RotationTransition(
   turns: (_rotationController.isAnimating)
       ? _rotationController
-      : AlwaysStoppedAnimation(0),
+      : const AlwaysStoppedAnimation(0),
   child: CircleAvatar(
     backgroundImage: NetworkImage(currentPlaying.thumbnail),
     radius: 20,

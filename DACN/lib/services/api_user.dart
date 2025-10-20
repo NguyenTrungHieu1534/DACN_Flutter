@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/album.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 

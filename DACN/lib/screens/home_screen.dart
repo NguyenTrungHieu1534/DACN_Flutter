@@ -92,7 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: Theme.of(context).colorScheme.error,
                         size: 48,
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       Text(
                         "Oops! Something went wrong",
                         style: TextStyle(

@@ -123,19 +123,21 @@ class AudioPlayerUI extends StatelessWidget {
             children: [
               Text(
                 _formatDuration(position),
-                style: const TextStyle(fontSize: 12, color: Colors.brown),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: SliderTheme(
                   data: SliderTheme.of(context).copyWith(
-                    activeTrackColor: Colors.deepOrange,
-                    inactiveTrackColor: Colors.orange.shade100,
+                    activeTrackColor: Theme.of(context).colorScheme.primary,
+                    inactiveTrackColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
                     trackHeight: 3,
-                    thumbColor: Colors.deepOrange,
-                    thumbShape:
-                        const RoundSliderThumbShape(enabledThumbRadius: 6),
-                    overlayColor: Colors.deepOrange.withOpacity(0.2),
+                    thumbColor: Theme.of(context).colorScheme.primary,
+                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                    overlayColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
                   ),
                   child: Slider(
                     value: position.inMilliseconds
@@ -150,7 +152,10 @@ class AudioPlayerUI extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 _formatDuration(duration),
-                style: const TextStyle(fontSize: 12, color: Colors.brown),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                ),
               ),
             ],
           ),

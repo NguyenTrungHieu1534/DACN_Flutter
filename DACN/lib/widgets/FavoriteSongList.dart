@@ -7,16 +7,16 @@ class FavoriteSongList extends StatelessWidget {
   final Function(FavoriteSong song)? onTap;
   final FavoriteService favoriteService = FavoriteService();
   FavoriteSongList({
-    Key? key,
+    super.key,
     required this.songs,
     this.onDelete,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
   if (songs.isEmpty) {
-    return Center(
+    return const Center(
       child: Text(
         "💔 Chưa có bài hát yêu thích nào",
         style: TextStyle(
@@ -29,22 +29,22 @@ class FavoriteSongList extends StatelessWidget {
   }
 
   final retroColors = [
-    Color(0xFFFFF4D9), // Vàng pastel
-    Color(0xFFE0F7FA), // Xanh biển nhạt
-    Color(0xFFFFE4E1), // Hồng đào nhạt
-    Color(0xFFE8F5E9), // Xanh lá nhạt
-    Color(0xFFFDEBD0), // Cam pastel
+    const Color(0xFFFFF4D9), // Vàng pastel
+    const Color(0xFFE0F7FA), // Xanh biển nhạt
+    const Color(0xFFFFE4E1), // Hồng đào nhạt
+    const Color(0xFFE8F5E9), // Xanh lá nhạt
+    const Color(0xFFFDEBD0), // Cam pastel
   ];
 
   return ListView.builder(
-    padding: EdgeInsets.all(12),
+    padding: const EdgeInsets.all(12),
     itemCount: songs.length,
     itemBuilder: (context, index) {
       final song = songs[index];
       final color = retroColors[index % retroColors.length];
 
       return Container(
-        margin: EdgeInsets.only(bottom: 12),
+        margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(20),
@@ -52,13 +52,13 @@ class FavoriteSongList extends StatelessWidget {
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
               blurRadius: 6,
-              offset: Offset(2, 4),
+              offset: const Offset(2, 4),
             )
           ],
         ),
         child: ListTile(
           leading: Container(
-            padding: EdgeInsets.all(10),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.7),
               shape: BoxShape.circle,
@@ -84,12 +84,12 @@ class FavoriteSongList extends StatelessWidget {
                     onDelete?.call(song);
                   },
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.brown.shade700,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(Icons.delete, color: Colors.white),
+                    child: const Icon(Icons.delete, color: Colors.white),
                   ),
                 )
               : null,

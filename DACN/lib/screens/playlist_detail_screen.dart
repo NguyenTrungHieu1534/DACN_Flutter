@@ -6,8 +6,7 @@ import '../services/api_playlist.dart';
 
 class PlaylistDetailScreen extends StatefulWidget {
   final String playlistName;
-  const PlaylistDetailScreen({Key? key, required this.playlistName})
-      : super(key: key);
+  const PlaylistDetailScreen({super.key, required this.playlistName});
 
   @override
   _PlaylistDetailScreenState createState() => _PlaylistDetailScreenState();
@@ -54,7 +53,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
       appBar: AppBar(
         title: Text(widget.playlistName),
         centerTitle: true,
-        backgroundColor: Color.fromARGB(255, 112, 150, 193),
+        backgroundColor: const Color.fromARGB(255, 112, 150, 193),
         elevation: 0,
       ),
       body: RefreshIndicator(
@@ -63,17 +62,17 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
           future: _songsFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator());
             }
 
             if (snapshot.hasError) {
-              return Center(child: Text('Không thể tải playlist'));
+              return const Center(child: Text('Không thể tải playlist'));
             }
 
             final songs = snapshot.data ?? [];
             if (songs.isEmpty) {
               return ListView(
-                children: [
+                children: const [
                   SizedBox(height: 160),
                   Center(child: Text('Playlist trống')),
                 ],
@@ -81,9 +80,9 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
             }
 
             return ListView.separated(
-              padding: EdgeInsets.all(12),
+              padding: const EdgeInsets.all(12),
               itemCount: songs.length,
-              separatorBuilder: (_, __) => SizedBox(height: 8),
+              separatorBuilder: (_, __) => const SizedBox(height: 8),
               itemBuilder: (context, index) {
                 final song = songs[index];
                 return ListTile(
@@ -92,7 +91,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                         ? NetworkImage(song.thumbnail)
                         : null,
                     child:
-                        song.thumbnail.isEmpty ? Icon(Icons.music_note) : null,
+                        song.thumbnail.isEmpty ? const Icon(Icons.music_note) : null,
                   ),
                   title: Text(song.title,
                       maxLines: 1, overflow: TextOverflow.ellipsis),

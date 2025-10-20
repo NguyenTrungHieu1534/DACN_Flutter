@@ -63,7 +63,7 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
               return const Center(child: CircularProgressIndicator());
             }
             if (snapshot.hasError) {
-              return Center(child: Text("Lỗi tải playlist 😢"));
+              return const Center(child: Text("Lỗi tải playlist 😢"));
             }
 
             final playlists = snapshot.data ?? [];

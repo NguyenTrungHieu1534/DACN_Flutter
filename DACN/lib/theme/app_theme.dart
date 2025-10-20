@@ -62,10 +62,8 @@ class AppTheme {
     colorScheme: const ColorScheme.dark(
       primary: Color(0xFF1DB954),
       surface: Color(0xFF161B22),
-      background: Color(0xFF0D1117),
       onPrimary: Colors.white,
       onSurface: Colors.white70,
-      onBackground: Colors.white70,
       secondary: AppColors.oceanBlue,
       onSecondary: Colors.white,
       error: Colors.redAccent,

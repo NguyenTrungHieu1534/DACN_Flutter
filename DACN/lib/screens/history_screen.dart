@@ -30,12 +30,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Lịch sử nghe 🌺"),
+        title: const Text("Lịch sử nghe 🌺"),
         centerTitle: true,
-        backgroundColor: Color(0xFF70A0C1), // xanh skyblue retro
+        backgroundColor: const Color(0xFF70A0C1), // xanh skyblue retro
       ),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -50,10 +50,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
           future: _historyFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator());
             }
             if (snapshot.hasError) {
-              return Center(child: Text("Lỗi tải dữ liệu 😢"));
+              return const Center(child: Text("Lỗi tải dữ liệu 😢"));
             }
             final history = snapshot.data ?? [];
             return HistoryList(

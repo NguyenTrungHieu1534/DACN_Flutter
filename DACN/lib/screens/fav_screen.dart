@@ -4,7 +4,7 @@ import '../services/api_favsongs.dart';
 import '../widgets/FavoriteSongList.dart';
 
 class FavScreen extends StatefulWidget {
-  const FavScreen({Key? key}) : super(key: key);
+  const FavScreen({super.key});
 
   @override
   _FavScreenState createState() => _FavScreenState();
@@ -36,15 +36,15 @@ class _FavScreenState extends State<FavScreen> {
   Widget build(BuildContext context) {
   return Scaffold(
     appBar: AppBar(
-      title: Text("Yêu Thích"),
+      title: const Text("Yêu Thích"),
       centerTitle: true,
-      backgroundColor: Color.fromARGB(255, 112, 150, 193),
+      backgroundColor: const Color.fromARGB(255, 112, 150, 193),
       elevation: 0,
     ),
     backgroundColor: Colors.transparent,
      
     body: Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
@@ -59,11 +59,11 @@ class _FavScreenState extends State<FavScreen> {
         future: _favoritesFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
-            return Center(child: Text("Lỗi tải dữ liệu 😢"));
+            return const Center(child: Text("Lỗi tải dữ liệu 😢"));
           }
 
           final favorites = snapshot.data ?? [];

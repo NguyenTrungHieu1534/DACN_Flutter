@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 // TODO: Redesign with Glassmorphism, Card Stack, Minimal Icons, and Gradient Banner
 class RetroHawaiiSearchPage extends StatefulWidget {
-  const RetroHawaiiSearchPage({Key? key}) : super(key: key);
+  const RetroHawaiiSearchPage({super.key});
 
   @override
   State<RetroHawaiiSearchPage> createState() => _RetroHawaiiSearchPageState();
@@ -88,7 +88,6 @@ class _RetroHawaiiSearchPageState extends State<RetroHawaiiSearchPage> {
               width: 56,
               height: 56,
               alignment: Alignment.center,
-              child: const Icon(Icons.music_note, size: 30, color: Colors.white),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
@@ -99,6 +98,7 @@ class _RetroHawaiiSearchPageState extends State<RetroHawaiiSearchPage> {
                   ],
                 ),
               ),
+              child: const Icon(Icons.music_note, size: 30, color: Colors.white),
             ),
           ),
           const SizedBox(width: 12),
@@ -108,7 +108,7 @@ class _RetroHawaiiSearchPageState extends State<RetroHawaiiSearchPage> {
               children: [
                 Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 6),
-                Opacity(opacity: 0.8, child: Text('Artist • Album', style: const TextStyle(color: Colors.white70, fontSize: 12))),
+                const Opacity(opacity: 0.8, child: Text('Artist • Album', style: TextStyle(color: Colors.white70, fontSize: 12))),
               ],
             ),
           ),
@@ -181,12 +181,12 @@ class _RetroHawaiiSearchPageState extends State<RetroHawaiiSearchPage> {
                     ),
                   ),
                   // Retro sun and palm silhouette
-                  Positioned(
+                  const Positioned(
                     top: 28,
                     left: 20,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text('Aloha', style: TextStyle(color: Colors.white70, fontSize: 18, fontWeight: FontWeight.w600)),
                         SizedBox(height: 6),
                         Text('Search', style: TextStyle(color: Colors.white, fontSize: 34, fontWeight: FontWeight.w800)),

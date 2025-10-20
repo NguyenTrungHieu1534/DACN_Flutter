@@ -58,7 +58,7 @@ class AudioPlayerProvider extends ChangeNotifier {
       }
       Uri? uriToPlay;
       String logMessage = '';
-      if (uriToPlay == null && song.mp3Url.isNotEmpty) {
+      if (song.mp3Url.isNotEmpty) {
         try {
           uriToPlay = Uri.parse(song.mp3Url);
           logMessage = 'dang play mp3 url';
