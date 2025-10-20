@@ -65,6 +65,15 @@ class AudioPlayerProvider extends ChangeNotifier {
         } catch (_) {
           // Nếu MP3 URL cũng không hợp lệ
         }
+      } else {
+        if (uriToPlay == null && song.url.isNotEmpty) {
+          try {
+            uriToPlay = Uri.parse(song.url);
+            logMessage = 'dang play mp3 url';
+          } catch (_) {
+            // Nếu MP3 URL cũng không hợp lệ
+          }
+        }
       }
 
       // 2. XỬ LÝ KHI KHÔNG CÓ URI HỢP LỆ
