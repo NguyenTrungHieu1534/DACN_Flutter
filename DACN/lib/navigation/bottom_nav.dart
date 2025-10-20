@@ -87,7 +87,6 @@ class BuildNaviBotState extends State<BuildNaviBot>
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Non-blocking small offline banner shown above the bottom dock
             if (!widget.hasInternet)
               Padding(
                 padding:

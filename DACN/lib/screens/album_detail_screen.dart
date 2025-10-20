@@ -10,6 +10,7 @@ import '../screens/player_screen.dart';
 import '../widgets/autoScroollerText.dart';
 import '../services/api_favsongs.dart';
 import '../services/api_playlist.dart';
+
 class AlbumDetailScreen extends StatefulWidget {
   final String albumName;
   final String albumImage;
@@ -255,8 +256,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                           borderRadius: BorderRadius.circular(24),
                           onTap: () {
                             final audioProvider =
-                                Provider.of<AudioPlayerProvider>(
-                                    context,
+                                Provider.of<AudioPlayerProvider>(context,
                                     listen: false);
 
                             final updatedSong = Songs(
@@ -266,7 +266,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                               albuml: song.albuml,
                               url: song.url,
                               thumbnail: widget.albumImage,
-                              mp3Url: song.mp3Url,
+                              mp3Url:  song.url
                             );
 
                             audioProvider.playSong(updatedSong);
@@ -282,8 +282,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(16),
                                     image: DecorationImage(
-                                      image:
-                                          NetworkImage(widget.albumImage),
+                                      image: NetworkImage(widget.albumImage),
                                       fit: BoxFit.cover,
                                     ),
                                   ),
@@ -331,12 +330,11 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
                                         const SnackBar(
-                                          content: Text(
-                                              'Đã thêm vào yêu thích 💙'),
+                                          content:
+                                              Text('Đã thêm vào yêu thích 💙'),
                                           duration: Duration(seconds: 1),
                                         ),
                                       );
-
                                     } else if (value == 'playlist') {
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
@@ -435,7 +433,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                   RotationTransition(
   turns: (_rotationController.isAnimating)
       ? _rotationController
-      : const AlwaysStoppedAnimation(0),
+      : AlwaysStoppedAnimation(0),
   child: CircleAvatar(
     backgroundImage: NetworkImage(currentPlaying.thumbnail),
     radius: 20,
@@ -443,8 +441,8 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
 ),
                                   const SizedBox(width: 10),
                                   SizedBox(
-                                    width: MediaQuery.of(context).size.width *
-                                        0.5,
+                                    width:
+                                        MediaQuery.of(context).size.width * 0.5,
                                     child: autoTextScroller(
                                       currentPlaying.title,
                                       const TextStyle(
