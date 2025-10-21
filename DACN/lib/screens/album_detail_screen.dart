@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../services/api_album.dart';
@@ -10,6 +11,7 @@ import '../screens/player_screen.dart';
 import '../widgets/autoScroollerText.dart';
 import '../services/api_favsongs.dart';
 import '../services/api_playlist.dart';
+import '../models/playlist.dart' as playlist_model;
 
 class AlbumDetailScreen extends StatefulWidget {
   final String albumName;
@@ -30,6 +32,8 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
   late Future<List<Songs>> futureSongs;
   late AnimationController _rotationController;
   final FavoriteService favoriteService = FavoriteService();
+  final  ApiPlaylist apiPlaylist= ApiPlaylist();
+
   @override
   void initState() {
     super.initState();
@@ -44,6 +48,121 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
   void dispose() {
     _rotationController.dispose();
     super.dispose();
+  }
+
+  Future<void> _showAddToPlaylistDialog(Songs song) async {
+    // Hiển thị loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      // Lấy danh sách playlist
+      final playlists = await apiPlaylist.getPlaylistsByUser();
+      Navigator.pop(context); // Tắt loading
+
+      // Hiển thị dialog chọn playlist
+      await showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Thêm vào Playlist'),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (playlists.isEmpty)
+                    const Text('Bạn chưa có playlist nào. Hãy tạo một cái mới!'),
+                  ...playlists.map((p) => ListTile(
+                        title: Text(p.name),
+                        onTap: () async {
+                          Navigator.pop(context); // Đóng dialog chọn
+                          await _addSongToExistingPlaylist(song, p.id);
+                        },
+                      )),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Hủy'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  Navigator.pop(context); // Đóng dialog chọn
+                  await _createNewPlaylistAndAddSong(song);
+                },
+                child: const Text('Tạo Playlist Mới'),
+              ),
+            ],
+          );
+        },
+      );
+    } catch (e) {
+      Navigator.pop(context); // Tắt loading nếu có lỗi
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi tải danh sách playlist: $e')),
+      );
+    }
+  }
+
+  Future<void> _addSongToExistingPlaylist(Songs song, String playlistId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    if (token == null) return;
+
+    final success = await ApiPlaylist.addSongToPlaylist(token, playlistId, song);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(success
+                ? 'Đã thêm bài hát vào playlist!'
+                : 'Thêm bài hát thất bại.')),
+      );
+    }
+  }
+
+  Future<void> _createNewPlaylistAndAddSong(Songs song) async {
+    final nameController = TextEditingController();
+    final newPlaylistName = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Tạo Playlist Mới'),
+        content: TextField(
+          controller: nameController,
+          decoration: const InputDecoration(hintText: "Tên playlist"),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Hủy')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, nameController.text.trim()),
+            child: const Text('Tạo'),
+          ),
+        ],
+      ),
+    );
+
+    if (newPlaylistName != null && newPlaylistName.isNotEmpty) {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      if (token == null) return;
+
+      final newPlaylist = await ApiPlaylist.createPlaylist(token, newPlaylistName, '');
+      if (newPlaylist != null) {
+        // Thêm bài hát vào playlist vừa tạo
+        await _addSongToExistingPlaylist(song, newPlaylist.id);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Tạo playlist mới thất bại.')),
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -336,14 +455,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                         ),
                                       );
                                     } else if (value == 'playlist') {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                              'Đã thêm vào playlist khác 🎵'),
-                                          duration: Duration(seconds: 1),
-                                        ),
-                                      );
+                                      _showAddToPlaylistDialog(song);
                                     }
                                   },
                                   itemBuilder: (context) => [

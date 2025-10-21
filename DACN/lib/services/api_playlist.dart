@@ -29,7 +29,7 @@ class ApiPlaylist {
     }
   }
 
-  static Future<bool> createPlaylist(
+  static Future<Playlist?> createPlaylist(
       String token, String name, String description) async {
     final response = await http.post(
       Uri.parse("$baseUrl/api/playlist"),
@@ -43,7 +43,11 @@ class ApiPlaylist {
       }),
     );
 
-    return response.statusCode == 201;
+    if (response.statusCode == 201) {
+      // Giả sử backend trả về playlist vừa tạo
+      return Playlist.fromJson(json.decode(response.body));
+    }
+    return null;
   }
 
   static Future<Map<String, dynamic>?> renamePlaylist(String token,
