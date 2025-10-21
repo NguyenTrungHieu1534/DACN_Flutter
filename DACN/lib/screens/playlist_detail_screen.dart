@@ -22,6 +22,8 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
   final ApiPlaylist _api = ApiPlaylist();
   late Future<List<Songs>> _songsFuture;
   String? _currentPicUrl;
+  String _currentPlaylistName = '';
+  String _currentPlaylistDesc = '';
   bool _isUploading = false;
 
   @override
@@ -29,6 +31,8 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     super.initState();
     _currentPicUrl = widget.playlist.picUrl;
     _songsFuture = _loadSongs();
+    _currentPlaylistName = widget.playlist.name;
+    _currentPlaylistDesc = widget.playlist.description;
   }
 
   Future<void> _showImagePicker(BuildContext context) async {
@@ -116,6 +120,67 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     }
   }
 
+  Future<void> _showRenameDialog() async {
+    final nameController = TextEditingController(text: _currentPlaylistName);
+    final descController = TextEditingController(text: _currentPlaylistDesc);
+
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Edit Playlist'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Name'),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: descController,
+                decoration: const InputDecoration(labelText: 'Description'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final name = nameController.text.trim();
+                final desc = descController.text.trim();
+                if (name.isEmpty) return;
+
+                final prefs = await SharedPreferences.getInstance();
+                final token = prefs.getString('token');
+                if (token == null) {
+                  Navigator.pop(context);
+                  return;
+                }
+
+                final updatedData = await ApiPlaylist.renamePlaylist(
+                    token, widget.playlist.id, name, desc);
+                Navigator.pop(context, updatedData);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result != null && result['playlist'] != null) {
+      final updatedPlaylist = Playlist.fromJson(result['playlist']);
+      setState(() {
+        _currentPlaylistName = updatedPlaylist.name;
+        _currentPlaylistDesc = updatedPlaylist.description;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final audioProvider =
@@ -145,12 +210,21 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                 pinned: true,
                 stretch: true,
                 backgroundColor: Colors.transparent,
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined, color: Colors.white),
+                    onPressed: _showRenameDialog,
+                    tooltip: 'Edit playlist details',
+                  ),
+                ],
                 elevation: 0,
                 flexibleSpace: FlexibleSpaceBar(
                   centerTitle: true,
                   titlePadding: const EdgeInsets.only(bottom: 16),
                   title: Text(
-                    widget.playlist.name,
+                    _currentPlaylistName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -164,8 +238,6 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                       ],
                     ),
                   ),
-                  
-                  
                   background: Stack(
                     fit: StackFit.expand,
                     children: [
@@ -237,6 +309,24 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                                 ),
                               ),
                             ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 48,
+                        left: 24,
+                        right: 24,
+                        child: Text(
+                          _currentPlaylistDesc,
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.85),
+                            fontSize: 14,
+                            shadows: const [
+                              Shadow(color: Colors.black26, blurRadius: 4)
+                            ],
                           ),
                         ),
                       ),

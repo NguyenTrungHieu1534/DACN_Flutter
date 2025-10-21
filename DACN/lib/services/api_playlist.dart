@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../models/playlist.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -45,8 +46,8 @@ class ApiPlaylist {
     return response.statusCode == 201;
   }
 
-  static Future<bool> renamePlaylist(String token, String playlistId,
-      String newName, String newDescription) async {
+  static Future<Map<String, dynamic>?> renamePlaylist(String token,
+      String playlistId, String newName, String newDescription) async {
     final response = await http.put(
       Uri.parse("$baseUrl/api/playlist/$playlistId/rename"),
       headers: {
@@ -59,7 +60,14 @@ class ApiPlaylist {
       }),
     );
 
-    return response.statusCode == 200;
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      AlertDialog(
+        title: const Text("toi bi ngu"),
+      );
+    }
+    return null;
   }
 
   static Future<bool> deletePlaylist(String token, String playlistId) async {
@@ -177,6 +185,37 @@ class ApiPlaylist {
       }
     } catch (e) {
       return null;
+    }
+  }
+
+  Future<Map<String, dynamic>> editPlaylistDescription({
+    required String playlistId,
+    required String token,
+    required String description,
+  }) async {
+    final url = Uri.parse('$baseUrl/api/playlist/$playlistId/edit');
+
+    try {
+      final response = await http.put(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'description': description,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        print(' Edit failed: ${response.statusCode}, ${response.body}');
+        return {'error': response.body};
+      }
+    } catch (e) {
+      print('Edit exception: $e');
+      return {'error': e.toString()};
     }
   }
 }

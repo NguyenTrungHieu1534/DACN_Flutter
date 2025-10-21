@@ -10,6 +10,7 @@ import '../services/api_favsongs.dart';
 import '../models/favSongs.dart';
 import '../services/api_history.dart';
 import '../models/history.dart';
+import 'package:music_login/screens/playlist_detail_screen.dart';
 
 class LibraryScreen extends StatefulWidget {
   const LibraryScreen({super.key});
@@ -34,9 +35,23 @@ class _LibraryScreenState extends State<LibraryScreen> {
   @override
   void initState() {
     super.initState();
-    _loadPlaylists();
-    _loadFavorites();
-    _loadHistory();
+    _loadPreferencesAndData();
+  }
+
+  Future<void> _loadPreferencesAndData() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      // Đọc lựa chọn layout, mặc định là grid (true) nếu chưa có
+      _showAsGrid = prefs.getBool('library_screens_style') ?? true;
+    });
+    // Sau khi có layout, tải dữ liệu
+    await _handleRefresh();
+  }
+
+  Future<void> _handleRefresh() async {
+    // Tải lại tất cả dữ liệu song song để tối ưu tốc độ
+    await Future.wait(
+        [_loadPlaylists(), _loadFavorites(), _loadHistory()]);
   }
 
   Future<void> _loadHistory() async {
@@ -91,133 +106,143 @@ class _LibraryScreenState extends State<LibraryScreen> {
         title: const Text('Library'),
         actions: [
           IconButton(
-            tooltip: 'Toggle layout',
-            onPressed: () => setState(() => _showAsGrid = !_showAsGrid),
+            tooltip: 'Chuyển đổi layout',
+            onPressed: () async {
+              // Cập nhật trạng thái giao diện
+              setState(() => _showAsGrid = !_showAsGrid);
+              // Lưu lựa chọn mới vào SharedPreferences
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setBool('library_screens_style', _showAsGrid);
+            },
             icon: Icon(_showAsGrid
                 ? Icons.view_list_rounded
                 : Icons.grid_view_rounded),
           ),
         ],
       ),
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextField(
-                    controller: _searchController,
-                    textInputAction: TextInputAction.search,
-                    decoration: InputDecoration(
-                      hintText: 'Search in your library',
-                      prefixIcon:
-                          Icon(Icons.search, color: Theme.of(context).iconTheme.color),
+      body: RefreshIndicator(
+        onRefresh: _handleRefresh,
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextField(
+                      controller: _searchController,
+                      textInputAction: TextInputAction.search,
+                      decoration: InputDecoration(
+                        hintText: 'Search in your library',
+                        prefixIcon: Icon(Icons.search,
+                            color: Theme.of(context).iconTheme.color),
+                      ),
+                      onSubmitted: (_) => setState(() {}),
                     ),
-                    onSubmitted: (_) => setState(() {}),
-                  ),
-                  const SizedBox(height: 12),
-                  // SingleChildScrollView(
-                  //   scrollDirection: Axis.horizontal,
-                  //   child: Row(
-                  //     children: ['All', 'Playlists', 'Liked', 'History'].map((f) {
-                  //       final bool selected = _activeFilter == f;
-                  //       return Padding(
-                  //         padding: const EdgeInsets.only(right: 8),
-                  //         child: ChoiceChip(
-                  //           label: Text(f),
-                  //           selected: selected,
-                  //           selectedColor: AppColors.oceanBlue.withOpacity(0.15),
-                  //           side: BorderSide(
-                  //             color: selected ? AppColors.oceanBlue : AppColors.oceanBlue.withOpacity(0.3),
-                  //           ),
-                  //           labelStyle: TextStyle(
-                  //             color: selected ? AppColors.oceanDeep : AppColors.oceanDeep.withOpacity(0.8),
-                  //             fontWeight: FontWeight.w600,
-                  //           ),
-                  //           onSelected: (_) => setState(() => _activeFilter = f),
-                  //         ),
-                  //       );
-                  //     }).toList(),
-                  //   ),
-                  // ),
-                  const SizedBox(height: 16),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        _quickAction(
-                          icon: Icons.music_note,
-                          label: 'ALL',
-                          color: AppColors.oceanBlue,
-                          isSelected: _activeFilter == 'All',
-                          onTap: () {
-                            setState(() => _activeFilter = 'All');
-                          },
-                        ),
-                        const SizedBox(width: 10),
-                        _quickAction(
-                          icon: Icons.favorite,
-                          label: 'Liked',
-                          color: AppColors.oceanBlue,
-                          isSelected: _activeFilter == 'Liked',
-                          onTap: () {
-                            setState(() => _activeFilter = 'Liked');
-                          },
-                        ),
-                        const SizedBox(width: 10),
-                        _quickAction(
-                          icon: Icons.history,
-                          label: 'History',
-                          color: AppColors.skyBlue,
-                          isSelected: _activeFilter == 'History',
-                          onTap: () {
-                            setState(() => _activeFilter = 'History');
-                          },
-                        ),
-                        const SizedBox(width: 10),
-                        _quickAction(
-                          icon: Icons.playlist_add,
-                          label: 'Playlists',
-                          color: AppColors.oceanDeep,
-                          isSelected: _activeFilter == 'Playlists',
-                          onTap: () {
-                            setState(() => _activeFilter = 'Playlists');
-                          },
-                        ),
-                      ],
+                    const SizedBox(height: 12),
+                    // SingleChildScrollView(
+                    //   scrollDirection: Axis.horizontal,
+                    //   child: Row(
+                    //     children: ['All', 'Playlists', 'Liked', 'History'].map((f) {
+                    //       final bool selected = _activeFilter == f;
+                    //       return Padding(
+                    //         padding: const EdgeInsets.only(right: 8),
+                    //         child: ChoiceChip(
+                    //           label: Text(f),
+                    //           selected: selected,
+                    //           selectedColor: AppColors.oceanBlue.withOpacity(0.15),
+                    //           side: BorderSide(
+                    //             color: selected ? AppColors.oceanBlue : AppColors.oceanBlue.withOpacity(0.3),
+                    //           ),
+                    //           labelStyle: TextStyle(
+                    //             color: selected ? AppColors.oceanDeep : AppColors.oceanDeep.withOpacity(0.8),
+                    //             fontWeight: FontWeight.w600,
+                    //           ),
+                    //           onSelected: (_) => setState(() => _activeFilter = f),
+                    //         ),
+                    //       );
+                    //     }).toList(),
+                    //   ),
+                    // ),
+                    const SizedBox(height: 16),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _quickAction(
+                            icon: Icons.music_note,
+                            label: 'ALL',
+                            color: AppColors.oceanBlue,
+                            isSelected: _activeFilter == 'All',
+                            onTap: () {
+                              setState(() => _activeFilter = 'All');
+                            },
+                          ),
+                          const SizedBox(width: 10),
+                          _quickAction(
+                            icon: Icons.favorite,
+                            label: 'Liked',
+                            color: AppColors.oceanBlue,
+                            isSelected: _activeFilter == 'Liked',
+                            onTap: () {
+                              setState(() => _activeFilter = 'Liked');
+                            },
+                          ),
+                          const SizedBox(width: 10),
+                          _quickAction(
+                            icon: Icons.history,
+                            label: 'History',
+                            color: AppColors.skyBlue,
+                            isSelected: _activeFilter == 'History',
+                            onTap: () {
+                              setState(() => _activeFilter = 'History');
+                            },
+                          ),
+                          const SizedBox(width: 10),
+                          _quickAction(
+                            icon: Icons.playlist_add,
+                            label: 'Playlists',
+                            color: AppColors.oceanDeep,
+                            isSelected: _activeFilter == 'Playlists',
+                            onTap: () {
+                              setState(() => _activeFilter = 'Playlists');
+                            },
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
 
-                  const SizedBox(height: 12),
-                ],
-              ),
-            ),
-          ),
-          if (_isLoading)
-            const SliverFillRemaining(
-              hasScrollBody: false,
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else if (_error != null)
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: Center(
-                child: Text(
-                  _error!,
-                  style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+                    const SizedBox(height: 12),
+                  ],
                 ),
               ),
-            )
-          else
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              sliver: SliverToBoxAdapter(
-                child: _buildContent(),
-              ),
             ),
-        ],
+            if (_isLoading)
+              const SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (_error != null)
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(
+                  child: Text(
+                    _error!,
+                    style: TextStyle(
+                        color: Theme.of(context).textTheme.bodyLarge?.color),
+                  ),
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                sliver: SliverToBoxAdapter(
+                  child: _buildContent(),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -236,7 +261,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
         child: Container(
           height: 64,
           decoration: BoxDecoration(
-            color: isSelected ? color.withOpacity(0.1) : Theme.of(context).cardColor,
+            color: isSelected
+                ? color.withOpacity(0.1)
+                : Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: isSelected ? color : AppColors.oceanBlue.withOpacity(0.15),
@@ -307,7 +334,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-                color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7), fontSize: 12),
+                color: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.color
+                    ?.withOpacity(0.7),
+                fontSize: 12),
           )
         ],
       ),
@@ -343,7 +375,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
     );
   }
 
-  Widget _buildPreviewGrid(List<Playlist> playlists) {
+  Widget _buildPreviewGrid(List<Playlist> playlists,
+      {required Function(Playlist) onTapPlaylist}) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -351,60 +384,136 @@ class _LibraryScreenState extends State<LibraryScreen> {
         crossAxisCount: 2,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
-        childAspectRatio: 1.2,
+        childAspectRatio: 1,
       ),
       itemCount: playlists.length,
       itemBuilder: (context, index) {
-        final item = playlists[index];
-        return _collectionCard(
-          title: item.name,
-          subtitle: 'Playlist • ${item.songs.length} songs',
-        );
+        final playlist = playlists[index];
+        return GestureDetector(
+          onTap: () => onTapPlaylist(playlist),
+          child: Card(
+            elevation: 3,
+            shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  FadeInImage.assetNetwork(
+                  placeholder: 'assets/default_pic/default_playlistPic.png',
+                  image: playlist.picUrl,
+                    fit: BoxFit.cover,
+                    imageErrorBuilder: (_, __, ___) => Image.asset(
+                    'default_pic/default_playlistPic.png',
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  Container(
+                    color: Colors.black.withOpacity(0.35),
+                ),
+                Positioned(
+                  bottom: 8,
+                  left: 8,
+                  right: 8,
+                  child: Text(
+                    playlist.name,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Positioned(
+                  top: 4,
+                  right: 4,
+                  child: _buildPlaylistMenu(playlist),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
       },
     );
   }
 
-  Widget _buildPreviewList(List<Playlist> playlists) {
+  Widget _buildPreviewList(List<Playlist> playlists,
+      {required Function(Playlist) onTapPlaylist}) {
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: playlists.length,
       itemBuilder: (context, index) {
-        final item = playlists[index];
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.oceanBlue.withOpacity(0.12)),
-          ),
+        final playlist = playlists[index];
+        return Card(
+          margin: const EdgeInsets.only(bottom: 10),
           child: ListTile(
-            leading: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.oceanBlue.withOpacity(0.15),
-                shape: BoxShape.circle,
+            leading: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: FadeInImage.assetNetwork(
+                placeholder: 'default_pic/default_playlistPic.png',
+                image: playlist.picUrl,
+                fit: BoxFit.cover,
+                width: 50,
+                height: 50,
+                imageErrorBuilder: (_, __, ___) => Image.asset(
+                  'default_pic/default_playlistPic.png',
+                  width: 50,
+                  height: 50,
+                  fit: BoxFit.cover,
+                ),
               ),
-              child: const Icon(Icons.queue_music, color: AppColors.oceanBlue),
             ),
             title: Text(
-              item.name,
-              style: TextStyle(
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-                fontWeight: FontWeight.w700,
-              ),
+              playlist.name,
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             subtitle: Text(
-              'Playlist • ${item.songs.length} songs',
-              style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7)),
+              '${playlist.songs.length} songs',
+              style: TextStyle(
+                  color: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.color
+                      ?.withOpacity(0.7)),
             ),
-            trailing:
-                Icon(Icons.chevron_right, color: Theme.of(context).iconTheme.color),
-            onTap: () {},
+            trailing: _buildPlaylistMenu(playlist, useDarkIcon: false),
+            onTap: () => onTapPlaylist(playlist),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildPlaylistMenu(Playlist playlist, {bool useDarkIcon = true}) {
+    return PopupMenuButton<String>(
+      icon: Icon(Icons.more_vert, color: useDarkIcon ? Colors.white : null),
+      onSelected: (value) {
+        if (value == 'rename') {
+          _showRenamePlaylistDialog(playlist);
+        } else if (value == 'delete') {
+          // TODO: Implement delete functionality
+        }
+      },
+      itemBuilder: (context) => [
+        const PopupMenuItem(
+          value: 'rename',
+          child: ListTile(
+            leading: Icon(Icons.edit),
+            title: Text('Rename'),
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'delete',
+          child: ListTile(
+            leading: Icon(Icons.delete_outline, color: Colors.red),
+            title: Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ),
+      ],
     );
   }
 
@@ -412,7 +521,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
     if (favorites.isEmpty) {
       return Center(
         child: Text('No favorite songs yet',
-            style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color)),
+            style:
+                TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color)),
       );
     }
 
@@ -448,10 +558,15 @@ class _LibraryScreenState extends State<LibraryScreen> {
             ),
             subtitle: Text(
               song.artist,
-              style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7)),
+              style: TextStyle(
+                  color: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.color
+                      ?.withOpacity(0.7)),
             ),
-            trailing:
-                Icon(Icons.chevron_right, color: Theme.of(context).iconTheme.color),
+            trailing: Icon(Icons.chevron_right,
+                color: Theme.of(context).iconTheme.color),
             onTap: () {}, // Navigate to song detail or start playing
           ),
         );
@@ -463,7 +578,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
     if (history.isEmpty) {
       return Center(
         child: Text('No listening history yet',
-            style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color)),
+            style:
+                TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color)),
       );
     }
 
@@ -497,8 +613,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   ),
                   subtitle: Text(
                     '${song.artist} • ${_formatDate(song.playedAt)}',
-                    style:
-                        TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7)),
+                    style: TextStyle(
+                        color: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.color
+                            ?.withOpacity(0.7)),
                   ),
                   trailing: Icon(Icons.chevron_right,
                       color: Theme.of(context).iconTheme.color),
@@ -546,7 +666,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
           const SizedBox(height: 4),
           Text(
             'Create your first playlist to get started.',
-            style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7)),
+            style: TextStyle(
+                color: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.color
+                    ?.withOpacity(0.7)),
           ),
           const SizedBox(height: 12),
           SizedBox(
@@ -580,8 +705,30 @@ class _LibraryScreenState extends State<LibraryScreen> {
         }),
         if (_playlists.isNotEmpty)
           _showAsGrid
-              ? _buildPreviewGrid(_playlists)
-              : _buildPreviewList(_playlists),
+              ? _buildPreviewGrid(
+                  _playlists.toList(),
+                  onTapPlaylist: (playlist) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            PlaylistDetailScreen(playlist: playlist),
+                      ),
+                    ).then((_) => _loadPlaylists());
+                  },
+                )
+              : _buildPreviewList(
+                  _playlists.take(4).toList(),
+                  onTapPlaylist: (playlist) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            PlaylistDetailScreen(playlist: playlist),
+                      ),
+                    ).then((_) => _loadPlaylists());
+                  },
+                ),
         if (_activeFilter == 'All') const SizedBox(height: 1),
       ]);
     }
@@ -595,7 +742,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
             MaterialPageRoute(builder: (_) => const FavScreen()),
           );
         }),
-        _buildFavoritesList(_favorites),
+        _buildFavoritesList(_favorites.take(3).toList()),
         if (_activeFilter == 'All') const SizedBox(height: 1),
       ]);
     }
@@ -609,11 +756,71 @@ class _LibraryScreenState extends State<LibraryScreen> {
             MaterialPageRoute(builder: (_) => const HistoryScreen()),
           );
         }),
-        _buildHistoryList(_history),
+        _buildHistoryList(_history.take(3).toList()),
       ]);
     }
 
     return Column(children: content);
+  }
+
+  Future<void> _showRenamePlaylistDialog(Playlist playlist) async {
+    final nameController = TextEditingController(text: playlist.name);
+    final descController = TextEditingController(text: playlist.description);
+
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Rename Playlist'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Name'),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: descController,
+                decoration: const InputDecoration(labelText: 'Description'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final name = nameController.text.trim();
+                final desc = descController.text.trim();
+                if (name.isEmpty) return;
+
+                final prefs = await SharedPreferences.getInstance();
+                final token = prefs.getString('token');
+                if (token == null) {
+                  Navigator.pop(context);
+                  return;
+                }
+
+                final updatedData = await ApiPlaylist.renamePlaylist(
+                    token, playlist.id, name, desc);
+                Navigator.pop(context, updatedData);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['message'] ?? 'Playlist updated!')),
+      );
+      await _loadPlaylists();
+    }
   }
 
   Future<void> _showCreatePlaylistDialog() async {
