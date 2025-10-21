@@ -126,7 +126,7 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (_) => PlaylistDetailScreen(
-                            playlistName: playlist.name,
+                            playlist: playlist,
                           ),
                         ),
                       );

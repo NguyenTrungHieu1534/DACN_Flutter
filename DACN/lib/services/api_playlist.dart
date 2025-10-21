@@ -4,6 +4,7 @@ import '../models/playlist.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/songs.dart';
+import 'dart:io';
 
 class ApiPlaylist {
   static const String baseUrl = "https://backend-dacn-9l4w.onrender.com";
@@ -127,6 +128,55 @@ class ApiPlaylist {
       return songs;
     } else {
       throw Exception('Không thể lấy playlist (${response.statusCode})');
+    }
+  }
+
+  Future<String?> fetchPlaylistPicUrl(
+      String username, String playlistName, String token) async {
+    final url = Uri.parse(
+        'https://backend-dacn-9l4w.onrender.com/api/playlistPic/$username/$playlistName');
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['picUrl'] as String?;
+    } else {
+      print('Lỗi khi lấy picUrl: ${response.statusCode}');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> uploadPlaylistPic({
+    required String playlistId,
+    required File imageFile,
+  }) async {
+    final uri = Uri.parse(
+        'https://backend-dacn-9l4w.onrender.com/api/upload-playlistPic');
+    try {
+      final request = http.MultipartRequest('POST', uri);
+      request.fields['id'] = playlistId;
+      final multipartFile = await http.MultipartFile.fromPath(
+        'picUrl',
+        imageFile.path,
+      );
+      request.files.add(multipartFile);
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as Map<String, dynamic>;
+      } else {
+        print(
+            "Upload playlist pic failed: ${response.statusCode} ${response.body}");
+        return null;
+      }
+    } catch (e) {
+      return null;
     }
   }
 }
