@@ -123,7 +123,7 @@ class _SearchPageState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.mist,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Search'),
       ),
@@ -140,9 +140,9 @@ class _SearchPageState extends State<SearchScreen> {
                 onChanged: _onQueryChanged,
                 onSubmitted: handleSearch,
                 textInputAction: TextInputAction.search,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'Search songs, artists, albums...',
-                  prefixIcon: Icon(Icons.search, color: AppColors.oceanDeep),
+                  prefixIcon: Icon(Icons.search, color: Theme.of(context).iconTheme.color),
                 ),
               ),
             ),
@@ -158,12 +158,12 @@ class _SearchPageState extends State<SearchScreen> {
                     child: ChoiceChip(
                       label: Text(type),
                       selected: selected,
-                      selectedColor: AppColors.oceanBlue.withOpacity(0.15),
+                      selectedColor: Theme.of(context).colorScheme.primary.withOpacity(0.15),
                       side: BorderSide(
-                        color: selected ? AppColors.oceanBlue : AppColors.oceanBlue.withOpacity(0.3),
+                        color: selected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.primary.withOpacity(0.3),
                       ),
                       labelStyle: TextStyle(
-                        color: selected ? AppColors.oceanDeep : AppColors.oceanDeep.withOpacity(0.8),
+                        color: selected ? Theme.of(context).textTheme.bodyLarge?.color : Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8),
                         fontWeight: FontWeight.w600,
                       ),
                       onSelected: (_) => setState(() => selectedFilter = type),
@@ -192,25 +192,25 @@ class _SearchPageState extends State<SearchScreen> {
       itemBuilder: (context, index) {
         final song = songResults[index];
         return Card(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           margin: const EdgeInsets.only(bottom: 10),
           child: ListTile(
-            leading: const CircleAvatar(
-              backgroundColor: AppColors.oceanBlue,
-              child: Icon(Icons.music_note, color: Colors.white),
+            leading: CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              child: Icon(Icons.music_note, color: Theme.of(context).colorScheme.onPrimary),
             ),
             title: Text(
               song.title ?? '-',
-              style: const TextStyle(
-                color: AppColors.oceanDeep,
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyLarge?.color,
                 fontWeight: FontWeight.w600,
               ),
             ),
             subtitle: Text(
               song.artist ?? '-',
-              style: TextStyle(color: AppColors.oceanDeep.withOpacity(0.7)),
+              style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7)),
             ),
             onTap: () async {
               try {
@@ -263,8 +263,8 @@ class _SearchPageState extends State<SearchScreen> {
       padding: const EdgeInsets.only(top: 8, bottom: 6),
       child: Text(
         title,
-        style: const TextStyle(
-          color: AppColors.oceanDeep,
+        style: TextStyle(
+          color: Theme.of(context).textTheme.headlineSmall?.color,
           fontWeight: FontWeight.w800,
           fontSize: 16,
         ),
@@ -274,25 +274,25 @@ class _SearchPageState extends State<SearchScreen> {
 
   Widget _songTile(Songs song) {
     return Card(
-      color: Colors.white,
+      color: Theme.of(context).cardColor,
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       margin: const EdgeInsets.only(bottom: 10),
       child: ListTile(
-        leading: const CircleAvatar(
-          backgroundColor: AppColors.oceanBlue,
-          child: Icon(Icons.music_note, color: Colors.white),
+        leading: CircleAvatar(
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          child: Icon(Icons.music_note, color: Theme.of(context).colorScheme.onPrimary),
         ),
         title: Text(
           song.title,
-          style: const TextStyle(
-            color: AppColors.oceanDeep,
+          style: TextStyle(
+            color: Theme.of(context).textTheme.bodyLarge?.color,
             fontWeight: FontWeight.w600,
           ),
         ),
         subtitle: Text(
           song.artist,
-          style: TextStyle(color: AppColors.oceanDeep.withOpacity(0.7)),
+          style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7)),
         ),
         onTap: () async {
           try {
@@ -311,19 +311,19 @@ class _SearchPageState extends State<SearchScreen> {
   Widget _artistTile(Map<String, dynamic> artist) {
     final name = artist['name'] ?? artist['artist'] ?? 'Unknown Artist';
     return Card(
-      color: Colors.white,
+      color: Theme.of(context).cardColor,
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       margin: const EdgeInsets.only(bottom: 10),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: AppColors.oceanBlue.withOpacity(0.15),
-          child: const Icon(Icons.person, color: AppColors.oceanBlue),
+          backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.15),
+          child: Icon(Icons.person, color: Theme.of(context).colorScheme.primary),
         ),
         title: Text(
           name,
-          style: const TextStyle(
-            color: AppColors.oceanDeep,
+          style: TextStyle(
+            color: Theme.of(context).textTheme.bodyLarge?.color,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -336,23 +336,23 @@ class _SearchPageState extends State<SearchScreen> {
     final title = album['name'] ?? 'Unknown Album';
     final by = album['artist'] ?? '';
     return Card(
-      color: Colors.white,
+      color: Theme.of(context).cardColor,
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       margin: const EdgeInsets.only(bottom: 10),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: AppColors.skyBlue.withOpacity(0.2),
-          child: const Icon(Icons.album, color: AppColors.oceanBlue),
+          backgroundColor: Theme.of(context).colorScheme.secondary.withOpacity(0.2),
+          child: Icon(Icons.album, color: Theme.of(context).colorScheme.primary),
         ),
         title: Text(
           title,
-          style: const TextStyle(
-            color: AppColors.oceanDeep,
+          style: TextStyle(
+            color: Theme.of(context).textTheme.bodyLarge?.color,
             fontWeight: FontWeight.w600,
           ),
         ),
-        subtitle: by.isNotEmpty ? Text(by, style: TextStyle(color: AppColors.oceanDeep.withOpacity(0.7))) : null,
+        subtitle: by.isNotEmpty ? Text(by, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7))) : null,
         onTap: () {},
       ),
     );
@@ -361,18 +361,18 @@ class _SearchPageState extends State<SearchScreen> {
     return ListView(
       children: history.map((item) {
         return Card(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           margin: const EdgeInsets.only(bottom: 10),
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: AppColors.oceanBlue.withOpacity(0.2),
-              child: const Icon(Icons.history, color: AppColors.oceanBlue),
+              backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+              child: Icon(Icons.history, color: Theme.of(context).colorScheme.primary),
             ),
             title: Text(
               item,
-              style: const TextStyle(color: AppColors.oceanDeep, fontWeight: FontWeight.w500),
+              style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color, fontWeight: FontWeight.w500),
             ),
             onTap: () {
               searchController.text = item;
@@ -390,9 +390,9 @@ class _SearchPageState extends State<SearchScreen> {
         margin: const EdgeInsets.only(bottom: 12),
         height: 64,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.oceanBlue.withOpacity(0.12)),
+          border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.12)),
         ),
       ),
     );

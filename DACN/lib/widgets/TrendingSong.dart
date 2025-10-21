@@ -97,7 +97,7 @@ class TrendingSong extends StatelessWidget {
         else if (isShowingSongs)
           _buildSongsList(context)
         else
-          _buildAlbumsList(),
+          _buildAlbumsList(context),
       ],
     );
   }
@@ -132,7 +132,8 @@ class TrendingSong extends StatelessWidget {
   }
 
   // Widget hiển thị danh sách Albums
-  Widget _buildAlbumsList() {
+  Widget _buildAlbumsList(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SizedBox(
       height: 250,
       child: ListView.builder(
@@ -143,7 +144,12 @@ class TrendingSong extends StatelessWidget {
           final album = itemsAlbum[index];
           final heroTag = 'hawai-album-${album.url}-$index';
 
-          final gradientColors = [
+          final gradientColors = isDark ? [
+            [const Color(0xFF1A1A1A), const Color(0xFF2D2D2D)], // dark gray gradient
+            [const Color(0xFF0F0F0F), const Color(0xFF1A1A1A)], // very dark gray
+            [const Color(0xFF2C2C2C), const Color(0xFF3A3A3A)], // medium dark gray
+            [const Color(0xFF1F1F1F), const Color(0xFF2A2A2A)], // dark charcoal
+          ] : [
             [const Color(0xFFFFE7C2), const Color(0xFFFBD2D7)], // peach sunset
             [
               const Color(0xFFC9F4F1),
@@ -225,7 +231,7 @@ class TrendingSong extends StatelessWidget {
                         width: 46,
                         height: 46,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.surface,
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
@@ -235,9 +241,9 @@ class TrendingSong extends StatelessWidget {
                             ),
                           ],
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.play_arrow_rounded,
-                          color: Colors.black87,
+                          color: Theme.of(context).colorScheme.onSurface,
                           size: 30,
                         ),
                       ),
@@ -292,9 +298,9 @@ class TrendingSong extends StatelessWidget {
                               ),
                             ],
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.attach_file,
-                            color: Colors.black87,
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
                             size: 26,
                           ),
                         ),
@@ -313,6 +319,12 @@ class TrendingSong extends StatelessWidget {
   // Widget hiển thị danh sách Songs
   Widget _buildSongsList(BuildContext context) {
     final audioProvider = Provider.of<AudioPlayerProvider>(context, listen: false);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final playGradient = isDark ? LinearGradient(
+      colors: [Colors.grey[700]!, Colors.grey[800]!],
+    ) : const LinearGradient(
+      colors: [Colors.orangeAccent, Colors.deepOrange],
+    );
     return SizedBox(
       height: 150,
       child: ListView.separated(
@@ -323,15 +335,15 @@ class TrendingSong extends StatelessWidget {
         itemBuilder: (context, index) {
           final song = itemsSsongs[index];
 
-          // Màu pastel ngẫu nhiên nhẹ nhàng cho mỗi thẻ
-          final retroColors = [
-            const Color(0xFFFFE5B4), // peach
-            const Color(0xFFB5EAD7), // mint
-            const Color(0xFFFFC8A2), // coral
-            const Color(0xFFD4A5A5), // rose
-            const Color(0xFFF7E8D0), // beige
+          // Theme-based background colors that adapt to light/dark mode
+          final themeColors = [
+            Theme.of(context).colorScheme.surfaceVariant.withOpacity(isDark ? 0.3 : 0.8), // lighter for light, darker for dark
+            Theme.of(context).colorScheme.secondaryContainer.withOpacity(isDark ? 0.4 : 0.7),
+            Theme.of(context).colorScheme.primaryContainer.withOpacity(isDark ? 0.3 : 0.8),
+            Theme.of(context).colorScheme.tertiaryContainer.withOpacity(isDark ? 0.4 : 0.7),
+            Theme.of(context).colorScheme.surface.withOpacity(isDark ? 0.5 : 0.9),
           ];
-          final bgColor = retroColors[index % retroColors.length];
+          final bgColor = themeColors[index % themeColors.length];
 
           return Container(
             width: 340,
@@ -376,17 +388,17 @@ class TrendingSong extends StatelessWidget {
                             child: Container(
                               width: 80,
                               height: 80,
-                              decoration: const BoxDecoration(
+                              decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: Colors.black87,
+                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
                               ),
                               child: Center(
                                 child: Container(
                                   width: 16,
                                   height: 16,
-                                  decoration: const BoxDecoration(
+                                  decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    color: Colors.redAccent,
+                                    color: Theme.of(context).colorScheme.primary,
                                   ),
                                 ),
                               ),
@@ -421,13 +433,13 @@ class TrendingSong extends StatelessWidget {
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.black87.withOpacity(0.8),
+                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Text(
                                   '#${index + 1}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.surface,
                                     fontSize: 12,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -499,13 +511,11 @@ class TrendingSong extends StatelessWidget {
                           width: 54,
                           height: 54,
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Colors.orangeAccent, Colors.deepOrange],
-                            ),
+                            gradient: playGradient,
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.deepOrange.withOpacity(0.4),
+                                color: isDark ? Colors.grey.withOpacity(0.4) : Colors.deepOrange.withOpacity(0.4),
                                 blurRadius: 12,
                                 offset: const Offset(0, 5),
                               ),

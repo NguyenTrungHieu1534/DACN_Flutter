@@ -17,6 +17,15 @@ class ThemeProvider with ChangeNotifier {
     _saveTheme();
   }
 
+  void setTheme(bool isDark) {
+    if (_isDark != isDark) {
+      _isDark = isDark;
+      notifyListeners();
+      print("Theme set to: $_isDark");
+      _saveTheme();
+    }
+  }
+
   Future<void> _saveTheme() async {
     final prefs = await SharedPreferences.getInstance();
     prefs.setBool('isDarkMode', _isDark);

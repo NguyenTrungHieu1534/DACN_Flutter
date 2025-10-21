@@ -3,9 +3,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:provider/provider.dart';
 import 'login_screen.dart';
 import '../services/api_user.dart';
 import '../screens/setting_screen.dart';
+import '../models/ThemeProvider.dart';
 
 class UserScreen extends StatefulWidget {
   const UserScreen({super.key});
@@ -145,22 +147,22 @@ class _UserScreenState extends State<UserScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFDFF6FF),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFA5E8FF),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
         title: Row(
           children: [
-            const Text(
+            Text(
               '🌤️ Wave Music',
               style: TextStyle(
                 fontWeight: FontWeight.w700,
                 fontSize: 22,
-                color: Color(0xFF1B4965),
+                color: Theme.of(context).appBarTheme.foregroundColor,
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.settings, color: Color(0xFF1B4965)),
+              icon: Icon(Icons.settings, color: Theme.of(context).appBarTheme.foregroundColor),
               onPressed: () {
                 Navigator.push(
                   context,
@@ -174,7 +176,7 @@ class _UserScreenState extends State<UserScreen> {
         actions: _token != null
             ? [
                 IconButton(
-                  icon: const Icon(Icons.logout, color: Color(0xFF1B4965)),
+                  icon: Icon(Icons.logout, color: Theme.of(context).appBarTheme.foregroundColor),
                   onPressed: _logout,
                 ),
               ]
@@ -203,22 +205,22 @@ class _UserScreenState extends State<UserScreen> {
                         onTap: () => _showImagePicker(context),
                         child: CircleAvatar(
                           radius: 40,
-                          backgroundColor: Colors.white.withOpacity(0.6),
+                          backgroundColor: Theme.of(context).colorScheme.surface.withOpacity(0.6),
                           backgroundImage:
                               _avatar != null ? NetworkImage(_avatar!) : null,
                           child: _avatar == null
-                              ? const Icon(Icons.person,
-                                  size: 40, color: Color(0xFF1B4965))
+                              ? Icon(Icons.person,
+                                  size: 40, color: Theme.of(context).colorScheme.onSurface)
                               : null,
                         ),
                       ),
                       const SizedBox(height: 10),
                       Text(
                         _username?.toUpperCase() ?? 'USER',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF1B4965),
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ],
@@ -230,10 +232,42 @@ class _UserScreenState extends State<UserScreen> {
                   flex: 2,
                   child: Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
                       borderRadius:
                           BorderRadius.vertical(top: Radius.circular(24)),
+                    ),
+                    child: Consumer<ThemeProvider>(
+                      builder: (context, themeProvider, child) {
+                        return Column(
+                          children: [
+                            ListTile(
+                              leading: Icon(Icons.palette, color: Theme.of(context).colorScheme.onSurface),
+                              title: Text('Theme', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+                              trailing: DropdownButton<bool>(
+                                value: themeProvider.isDark,
+                                dropdownColor: Theme.of(context).colorScheme.surface,
+                                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                                items: const [
+                                  DropdownMenuItem(
+                                    value: false,
+                                    child: Text('Light Mode'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: true,
+                                    child: Text('Dark Mode'),
+                                  ),
+                                ],
+                                onChanged: (bool? value) {
+                                  if (value != null) {
+                                    themeProvider.setTheme(value);
+                                  }
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ),

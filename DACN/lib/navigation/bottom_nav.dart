@@ -140,8 +140,7 @@ class BuildNaviBotState extends State<BuildNaviBot>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   decoration: BoxDecoration(
-                    color: const Color.fromARGB(255, 255, 255, 255)
-                        .withOpacity(0.9),
+                    color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
                     borderRadius: BorderRadius.circular(30),
                     boxShadow: [
                       BoxShadow(
@@ -200,13 +199,11 @@ class BuildNaviBotState extends State<BuildNaviBot>
               margin: const EdgeInsets.only(bottom: 16, left: 40, right: 40),
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               decoration: BoxDecoration(
-                color:
-                    const Color.fromARGB(255, 255, 255, 255).withOpacity(0.8),
+                color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
                 borderRadius: BorderRadius.circular(30),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color.fromARGB(255, 112, 110, 110)
-                        .withOpacity(0.5),
+                    color: Theme.of(context).shadowColor.withOpacity(0.5),
                     blurRadius: 12,
                     offset: const Offset(0, 3),
                   ),
@@ -253,7 +250,7 @@ class BuildNaviBotState extends State<BuildNaviBot>
             child: Icon(
               icon,
               size: 24,
-              color: isActive ? AppColors.oceanBlue : Colors.grey[600],
+              color: isActive ? AppColors.oceanBlue : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
             ),
           ),
           AnimatedSize(
@@ -267,7 +264,7 @@ class BuildNaviBotState extends State<BuildNaviBot>
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w500,
-                        color: Colors.grey[800],
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
                       ),
                     ),
                   )

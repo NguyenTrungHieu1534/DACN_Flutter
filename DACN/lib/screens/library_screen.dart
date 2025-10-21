@@ -87,7 +87,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.mist,
       appBar: AppBar(
         title: const Text('Library'),
         actions: [
@@ -111,10 +110,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   TextField(
                     controller: _searchController,
                     textInputAction: TextInputAction.search,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: 'Search in your library',
                       prefixIcon:
-                          Icon(Icons.search, color: AppColors.oceanDeep),
+                          Icon(Icons.search, color: Theme.of(context).iconTheme.color),
                     ),
                     onSubmitted: (_) => setState(() {}),
                   ),
@@ -207,7 +206,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
               child: Center(
                 child: Text(
                   _error!,
-                  style: const TextStyle(color: AppColors.oceanDeep),
+                  style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
                 ),
               ),
             )
@@ -237,7 +236,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
         child: Container(
           height: 64,
           decoration: BoxDecoration(
-            color: isSelected ? color.withOpacity(0.1) : Colors.white,
+            color: isSelected ? color.withOpacity(0.1) : Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: isSelected ? color : AppColors.oceanBlue.withOpacity(0.15),
@@ -259,8 +258,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
               const SizedBox(width: 8),
               Text(
                 label,
-                style: const TextStyle(
-                  color: AppColors.oceanDeep,
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -274,7 +273,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   Widget _collectionCard({required String title, required String subtitle}) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.oceanBlue.withOpacity(0.12)),
       ),
@@ -298,8 +297,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
             title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: AppColors.oceanDeep,
+            style: TextStyle(
+              color: Theme.of(context).textTheme.bodyLarge?.color,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -308,7 +307,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-                color: AppColors.oceanDeep.withOpacity(0.7), fontSize: 12),
+                color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7), fontSize: 12),
           )
         ],
       ),
@@ -323,8 +322,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
         children: [
           Text(
             title,
-            style: const TextStyle(
-              color: AppColors.oceanDeep,
+            style: TextStyle(
+              color: Theme.of(context).textTheme.headlineSmall?.color,
               fontSize: 18,
               fontWeight: FontWeight.w700,
             ),
@@ -375,7 +374,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: AppColors.oceanBlue.withOpacity(0.12)),
           ),
@@ -391,17 +390,17 @@ class _LibraryScreenState extends State<LibraryScreen> {
             ),
             title: Text(
               item.name,
-              style: const TextStyle(
-                color: AppColors.oceanDeep,
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyLarge?.color,
                 fontWeight: FontWeight.w700,
               ),
             ),
             subtitle: Text(
               'Playlist • ${item.songs.length} songs',
-              style: TextStyle(color: AppColors.oceanDeep.withOpacity(0.7)),
+              style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7)),
             ),
             trailing:
-                const Icon(Icons.chevron_right, color: AppColors.oceanDeep),
+                Icon(Icons.chevron_right, color: Theme.of(context).iconTheme.color),
             onTap: () {},
           ),
         );
@@ -411,9 +410,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   Widget _buildFavoritesList(List<FavoriteSong> favorites) {
     if (favorites.isEmpty) {
-      return const Center(
+      return Center(
         child: Text('No favorite songs yet',
-            style: TextStyle(color: AppColors.oceanDeep)),
+            style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color)),
       );
     }
 
@@ -426,7 +425,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: AppColors.oceanBlue.withOpacity(0.12)),
           ),
@@ -442,17 +441,17 @@ class _LibraryScreenState extends State<LibraryScreen> {
             ),
             title: Text(
               song.title,
-              style: const TextStyle(
-                color: AppColors.oceanDeep,
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyLarge?.color,
                 fontWeight: FontWeight.w700,
               ),
             ),
             subtitle: Text(
               song.artist,
-              style: TextStyle(color: AppColors.oceanDeep.withOpacity(0.7)),
+              style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7)),
             ),
             trailing:
-                const Icon(Icons.chevron_right, color: AppColors.oceanDeep),
+                Icon(Icons.chevron_right, color: Theme.of(context).iconTheme.color),
             onTap: () {}, // Navigate to song detail or start playing
           ),
         );
@@ -462,9 +461,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   Widget _buildHistoryList(List<HistorySong> history) {
     if (history.isEmpty) {
-      return const Center(
+      return Center(
         child: Text('No listening history yet',
-            style: TextStyle(color: AppColors.oceanDeep)),
+            style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color)),
       );
     }
 
@@ -473,7 +472,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
           .map((song) => Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(14),
                   border:
                       Border.all(color: AppColors.oceanBlue.withOpacity(0.12)),
@@ -491,18 +490,18 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   ),
                   title: Text(
                     song.title,
-                    style: const TextStyle(
-                      color: AppColors.oceanDeep,
+                    style: TextStyle(
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   subtitle: Text(
                     '${song.artist} • ${_formatDate(song.playedAt)}',
                     style:
-                        TextStyle(color: AppColors.oceanDeep.withOpacity(0.7)),
+                        TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7)),
                   ),
-                  trailing: const Icon(Icons.chevron_right,
-                      color: AppColors.oceanDeep),
+                  trailing: Icon(Icons.chevron_right,
+                      color: Theme.of(context).iconTheme.color),
                   onTap: () {},
                 ),
               ))
@@ -528,7 +527,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   Widget _emptyStateCard() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.oceanBlue.withOpacity(0.12)),
       ),
@@ -536,10 +535,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'No collections yet',
             style: TextStyle(
-              color: AppColors.oceanDeep,
+              color: Theme.of(context).textTheme.bodyLarge?.color,
               fontWeight: FontWeight.w700,
               fontSize: 16,
             ),
@@ -547,7 +546,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
           const SizedBox(height: 4),
           Text(
             'Create your first playlist to get started.',
-            style: TextStyle(color: AppColors.oceanDeep.withOpacity(0.7)),
+            style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7)),
           ),
           const SizedBox(height: 12),
           SizedBox(

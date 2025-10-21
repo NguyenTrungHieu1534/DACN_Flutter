@@ -57,26 +57,74 @@ class AppTheme {
 
   static final ThemeData darkTheme = ThemeData(
     brightness: Brightness.dark,
-    scaffoldBackgroundColor: const Color(0xFF0D1117),
-    primaryColor: const Color(0xFF1DB954),
+    scaffoldBackgroundColor: const Color(0xFF0A1929), // Deeper ocean-inspired background
+    primaryColor: AppColors.oceanBlue,
     colorScheme: const ColorScheme.dark(
-      primary: Color(0xFF1DB954),
-      surface: Color(0xFF161B22),
+      primary: AppColors.oceanBlue,
+      surface: Color(0xFF1A2332), // Slightly lighter surface for cards
       onPrimary: Colors.white,
-      onSurface: Colors.white70,
-      secondary: AppColors.oceanBlue,
+      onSurface: Color(0xFFE8EDF1), // Mist color for better readability
+      secondary: AppColors.skyBlue,
       onSecondary: Colors.white,
-      error: Colors.redAccent,
+      error: Color(0xFFFF6B6B), // Softer red for errors
       onError: Colors.white,
+      surfaceContainerHighest: Color(0xFF233044), // For elevated surfaces
     ),
     appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF161B22),
-      foregroundColor: Colors.white,
+      backgroundColor: Color(0xFF1A2332),
+      foregroundColor: Color(0xFFE8EDF1),
+      elevation: 0,
     ),
     textTheme: const TextTheme(
-      bodyMedium: TextStyle(color: Colors.white70),
+      bodyMedium: TextStyle(color: Color(0xFFE8EDF1)),
+      bodySmall: TextStyle(color: Color(0xFFB0B7C3)), // Lighter for secondary text
+      titleMedium: TextStyle(color: Color(0xFFE8EDF1)),
+      headlineSmall: TextStyle(color: Color(0xFFE8EDF1)),
     ),
-    cardColor: const Color(0xFF161B22),
+    cardColor: const Color(0xFF1A2332),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: const Color(0xFF1A2332),
+      hintStyle: const TextStyle(color: Color(0xFFB0B7C3)),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: AppColors.oceanBlue.withOpacity(0.3)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: AppColors.oceanBlue.withOpacity(0.3)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: AppColors.oceanBlue, width: 1.6),
+      ),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.oceanBlue,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 2,
+        shadowColor: AppColors.oceanBlue.withOpacity(0.3),
+      ),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(foregroundColor: AppColors.skyBlue),
+    ),
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: Color(0xFF1A2332),
+      selectedItemColor: AppColors.oceanBlue,
+      unselectedItemColor: Color(0xFFB0B7C3),
+    ),
+    popupMenuTheme: const PopupMenuThemeData(
+      color: Color(0xFF1A2332),
+      textStyle: TextStyle(color: Color(0xFFE8EDF1)),
+    ),
+    dropdownMenuTheme: const DropdownMenuThemeData(
+      textStyle: TextStyle(color: Color(0xFFE8EDF1)),
+    ),
   );
 }
 
