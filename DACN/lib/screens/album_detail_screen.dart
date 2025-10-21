@@ -32,7 +32,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
   late Future<List<Songs>> futureSongs;
   late AnimationController _rotationController;
   final FavoriteService favoriteService = FavoriteService();
-  final  ApiPlaylist apiPlaylist= ApiPlaylist();
+  final ApiPlaylist apiPlaylist = ApiPlaylist();
 
   @override
   void initState() {
@@ -75,11 +75,12 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (playlists.isEmpty)
-                    const Text('Bạn chưa có playlist nào. Hãy tạo một cái mới!'),
+                    const Text(
+                        'Bạn chưa có playlist nào. Hãy tạo một cái mới!'),
                   ...playlists.map((p) => ListTile(
                         title: Text(p.name),
                         onTap: () async {
-                          Navigator.pop(context); // Đóng dialog chọn
+                          Navigator.pop(context); 
                           await _addSongToExistingPlaylist(song, p.id);
                         },
                       )),
@@ -93,7 +94,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
               ),
               ElevatedButton(
                 onPressed: () async {
-                  Navigator.pop(context); // Đóng dialog chọn
+                  Navigator.pop(context);
                   await _createNewPlaylistAndAddSong(song);
                 },
                 child: const Text('Tạo Playlist Mới'),
@@ -115,13 +116,15 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
     final token = prefs.getString('token');
     if (token == null) return;
 
-    final success = await ApiPlaylist.addSongToPlaylist(token, playlistId, song);
+    final success =
+        await ApiPlaylist.addSongToPlaylist(token, playlistId, song);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(success
-                ? 'Đã thêm bài hát vào playlist!'
-                : 'Thêm bài hát thất bại.')),
+          content: Text(success
+              ? 'Đã thêm bài hát vào playlist!'
+              : 'Thêm bài hát thất bại.'),
+        ),
       );
     }
   }
@@ -137,7 +140,9 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
           decoration: const InputDecoration(hintText: "Tên playlist"),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Hủy')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Hủy')),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, nameController.text.trim()),
             child: const Text('Tạo'),
@@ -151,9 +156,9 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
       final token = prefs.getString('token');
       if (token == null) return;
 
-      final newPlaylist = await ApiPlaylist.createPlaylist(token, newPlaylistName, '');
+      final newPlaylist =
+          await ApiPlaylist.createPlaylist(token, newPlaylistName, '');
       if (newPlaylist != null) {
-        // Thêm bài hát vào playlist vừa tạo
         await _addSongToExistingPlaylist(song, newPlaylist.id);
       } else {
         if (mounted) {
@@ -379,14 +384,13 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                     listen: false);
 
                             final updatedSong = Songs(
-                              id: song.id,
-                              title: song.title,
-                              artist: song.artist,
-                              albuml: song.albuml,
-                              url: song.url,
-                              thumbnail: widget.albumImage,
-                              mp3Url:  song.url
-                            );
+                                id: song.id,
+                                title: song.title,
+                                artist: song.artist,
+                                albuml: song.albuml,
+                                url: song.url,
+                                thumbnail: widget.albumImage,
+                                mp3Url: song.url);
 
                             audioProvider.playSong(updatedSong);
                           },
@@ -543,14 +547,15 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                               child: Row(
                                 children: [
                                   RotationTransition(
-  turns: (_rotationController.isAnimating)
-      ? _rotationController
-      : AlwaysStoppedAnimation(0),
-  child: CircleAvatar(
-    backgroundImage: NetworkImage(currentPlaying.thumbnail),
-    radius: 20,
-  ),
-),
+                                    turns: (_rotationController.isAnimating)
+                                        ? _rotationController
+                                        : AlwaysStoppedAnimation(0),
+                                    child: CircleAvatar(
+                                      backgroundImage: NetworkImage(
+                                          currentPlaying.thumbnail),
+                                      radius: 20,
+                                    ),
+                                  ),
                                   const SizedBox(width: 10),
                                   SizedBox(
                                     width:

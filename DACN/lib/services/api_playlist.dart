@@ -32,7 +32,7 @@ class ApiPlaylist {
   static Future<Playlist?> createPlaylist(
       String token, String name, String description) async {
     final response = await http.post(
-      Uri.parse("$baseUrl/api/playlist"),
+      Uri.parse("$baseUrl/api/playlistNew"),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -44,7 +44,6 @@ class ApiPlaylist {
     );
 
     if (response.statusCode == 201) {
-      // Giả sử backend trả về playlist vừa tạo
       return Playlist.fromJson(json.decode(response.body));
     }
     return null;
@@ -97,7 +96,7 @@ class ApiPlaylist {
         'songTitle': song.title,
         'artist': song.artist,
         'songId': song.id,
-        'album': song.albuml,
+        'album': song.albuml, 
         'url': song.url,
         'mp3url': song.mp3Url,
       }),
