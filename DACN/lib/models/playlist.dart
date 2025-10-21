@@ -48,7 +48,6 @@ class Playlist {
     required this.description,
     required this.songs,
   });
-
   factory Playlist.fromJson(Map<String, dynamic> json) {
     return Playlist(
       id: json['_id'] ?? '',
