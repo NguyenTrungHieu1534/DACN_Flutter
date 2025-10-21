@@ -495,7 +495,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
         if (value == 'rename') {
           _showRenamePlaylistDialog(playlist);
         } else if (value == 'delete') {
-          // TODO: Implement delete functionality
+          _showDeleteConfirmationDialog(playlist);
         }
       },
       itemBuilder: (context) => [
@@ -820,6 +820,48 @@ class _LibraryScreenState extends State<LibraryScreen> {
         SnackBar(content: Text(result['message'] ?? 'Playlist updated!')),
       );
       await _loadPlaylists();
+    }
+  }
+
+  Future<void> _showDeleteConfirmationDialog(Playlist playlist) async {
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Xóa Playlist?'),
+        content: Text(
+            'Bạn có chắc chắn muốn xóa playlist "${playlist.name}" không? Hành động này không thể hoàn tác.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Hủy'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Xóa'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      if (token == null) return;
+
+      final success = await ApiPlaylist.deletePlaylist(token, playlist.id);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(success
+                ? 'Đã xóa playlist "${playlist.name}"'
+                : 'Xóa playlist thất bại.'),
+            backgroundColor: success ? Colors.green : Colors.red,
+          ),
+        );
+      }
+      if (success) await _loadPlaylists();
     }
   }
 
