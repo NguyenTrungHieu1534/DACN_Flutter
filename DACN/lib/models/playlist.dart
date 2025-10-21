@@ -4,13 +4,14 @@ class SongInPlaylist {
   final String filename;
   final String album;
   final String songId;
-
+  
   SongInPlaylist({
     required this.title,
     required this.artist,
     required this.filename,
     required this.album,
     required this.songId,
+
   });
 
   factory SongInPlaylist.fromJson(Map<String, dynamic> json) {
@@ -40,6 +41,7 @@ class Playlist {
   final String name;
   final String description;
   final List<SongInPlaylist> songs;
+  final String picUrl;
 
   Playlist({
     required this.id,
@@ -47,6 +49,7 @@ class Playlist {
     required this.name,
     required this.description,
     required this.songs,
+    this.picUrl = '',
   });
 
   factory Playlist.fromJson(Map<String, dynamic> json) {
@@ -59,6 +62,7 @@ class Playlist {
               ?.map((e) => SongInPlaylist.fromJson(e))
               .toList() ??
           [],
+      picUrl: json['picUrl'] ?? '',
     );
   }
 
