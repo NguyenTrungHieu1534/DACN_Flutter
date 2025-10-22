@@ -385,50 +385,102 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                         separatorBuilder: (_, __) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           final song = songs[index];
-                          return Material(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            elevation: 2,
-                            shadowColor: Colors.blue.withOpacity(0.1),
-                            child: ListTile(
-                              shape: RoundedRectangleBorder(
+                          return Dismissible(
+                            key: ValueKey(song.id),
+                            direction: DismissDirection.endToStart,
+                            onDismissed: (direction) async {
+                              final prefs =
+                                  await SharedPreferences.getInstance();
+                              final token = prefs.getString('token');
+                              if (token == null) return;
+
+                              final success =
+                                  await ApiPlaylist.removeSongFromPlaylist(
+                                token,
+                                widget.playlist.id,
+                                song.id,
+                              );
+
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(success
+                                        ? 'Đã xóa bài hát khỏi playlist'
+                                        : 'Xóa bài hát thất bại'),
+                                    backgroundColor:
+                                        success ? Colors.green : Colors.red,
+                                  ),
+                                );
+                                if (success) {
+                                  setState(() {
+                                    songs.removeAt(index);
+                                  });
+                                }
+                              }
+                            },
+                            background: Container(
+                              margin: const EdgeInsets.symmetric(vertical: 4),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 20),
+                              decoration: BoxDecoration(
+                                color: Colors.redAccent,
                                 borderRadius: BorderRadius.circular(16),
                               ),
-                              leading: ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: song.thumbnail.isNotEmpty
-                                    ? Image.network(
-                                        song.thumbnail,
-                                        width: 55,
-                                        height: 55,
-                                        fit: BoxFit.cover,
-                                      )
-                                    : Container(
-                                        width: 55,
-                                        height: 55,
-                                        color: Colors.grey.shade200,
-                                        child: const Icon(Icons.music_note,
-                                            color: Colors.grey),
-                                      ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Icon(Icons.delete, color: Colors.white),
+                                  SizedBox(width: 8),
+                                  Text('Xóa',
+                                      style: TextStyle(color: Colors.white)),
+                                ],
                               ),
-                              title: Text(
-                                song.title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Colors.black87,
-                                  fontWeight: FontWeight.w600,
+                            ),
+                            child: Material(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              elevation: 2,
+                              shadowColor: Colors.blue.withOpacity(0.1),
+                              child: ListTile(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
+                                leading: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: song.thumbnail.isNotEmpty
+                                      ? Image.network(
+                                          song.thumbnail,
+                                          width: 55,
+                                          height: 55,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Container(
+                                          width: 55,
+                                          height: 55,
+                                          color: Colors.grey.shade200,
+                                          child: const Icon(Icons.music_note,
+                                              color: Colors.grey),
+                                        ),
+                                ),
+                                title: Text(
+                                  song.title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Colors.black87,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  song.artist,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(color: Colors.black54),
+                                ),
+                                trailing: const Icon(Icons.play_arrow_rounded,
+                                    color: Colors.blueAccent, size: 30),
+                                onTap: () => audioProvider.playSong(song),
                               ),
-                              subtitle: Text(
-                                song.artist,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(color: Colors.black54),
-                              ),
-                              trailing: const Icon(Icons.play_arrow_rounded,
-                                  color: Colors.blueAccent, size: 30),
-                              onTap: () => audioProvider.playSong(song),
                             ),
                           );
                         },

@@ -357,7 +357,15 @@ class _LibraryScreenState extends State<LibraryScreen> {
             MaterialPageRoute(builder: (_) => const FavScreen()),
           );
         }),
-        FavoritesPreviewList(favorites: _favorites.take(3).toList()),
+        FavoritesPreviewList(
+          favorites: _favorites.take(3).toList(),
+          onDelete: (song) async {
+            final result = await _favService.deleteFavoriteById(song.id.toString());
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)));
+            }
+            _loadFavorites();
+          },),
         if (_activeFilter == 'All') const SizedBox(height: 1),
       ]);
     }

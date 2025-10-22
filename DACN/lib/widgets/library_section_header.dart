@@ -26,11 +26,11 @@ class LibrarySectionHeader extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
-          TextButton(
-            onPressed: onSeeAll,
-            child: const Text('See all',
-                style: TextStyle(color: AppColors.oceanBlue, fontWeight: FontWeight.w600)),
-          ),
+          // TextButton(
+          //   onPressed: onSeeAll,
+          //   child: const Text('See all',
+          //       style: TextStyle(color: AppColors.oceanBlue, fontWeight: FontWeight.w600)),
+          // ),
         ],
       ),
     );

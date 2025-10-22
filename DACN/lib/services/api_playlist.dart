@@ -108,7 +108,7 @@ class ApiPlaylist {
   static Future<bool> removeSongFromPlaylist(
       String token, String playlistId, String songId) async {
     final response = await http.delete(
-      Uri.parse("$baseUrl/api/playlist/$playlistId/$songId"),
+      Uri.parse("$baseUrl/api/playlistSong/$playlistId/$songId"),
       headers: {
         'Authorization': 'Bearer $token',
       },
