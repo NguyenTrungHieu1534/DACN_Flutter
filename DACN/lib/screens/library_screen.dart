@@ -17,6 +17,7 @@ import '../widgets/playlist_preview_grid.dart';
 import '../widgets/playlist_preview_list.dart';
 import '../widgets/favorites_preview_list.dart';
 import '../widgets/history_preview_list.dart';
+import '../navigation/custom_page_route.dart';
 import '../widgets/library_empty_state.dart';
 
 class LibraryScreen extends StatefulWidget {
@@ -309,10 +310,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     if (_activeFilter == 'All' || _activeFilter == 'Playlists') {
       content.addAll([
         LibrarySectionHeader(title: 'Playlists 🎵', onSeeAll: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const PlaylistScreen()),
-          );
+          Navigator.push(context, FadePageRoute(child: const PlaylistScreen()));
         }),
         if (_playlists.isNotEmpty)
           _showAsGrid
@@ -323,10 +321,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   onTapPlaylist: (playlist) {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            PlaylistDetailScreen(playlist: playlist),
-                      ),
+                      FadePageRoute(
+                          child: PlaylistDetailScreen(playlist: playlist)),
                     ).then((_) => _loadPlaylists());
                   },
                 )
@@ -337,10 +333,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   onTapPlaylist: (playlist) {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            PlaylistDetailScreen(playlist: playlist),
-                      ),
+                      FadePageRoute(
+                          child: PlaylistDetailScreen(playlist: playlist)),
                     ).then((_) => _loadPlaylists());
                   },
                 ),
@@ -351,13 +345,19 @@ class _LibraryScreenState extends State<LibraryScreen> {
     // Favorites Section
     if (_activeFilter == 'All' || _activeFilter == 'Liked') {
       content.addAll([
-        LibrarySectionHeader(title: 'Bài hát yêu thích ❤️', onSeeAll: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const FavScreen()),
-          );
-        }),
-        FavoritesPreviewList(favorites: _favorites.take(3).toList()),
+        LibrarySectionHeader(
+            title: 'Bài hát yêu thích ❤️',
+            onSeeAll: () =>
+                Navigator.push(context, FadePageRoute(child: const FavScreen()))),
+        FavoritesPreviewList(
+          favorites: _favorites.take(3).toList(),
+          onDelete: (song) async {
+            final result = await _favService.deleteFavoriteById(song.id.toString());
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)));
+            }
+            _loadFavorites();
+          },),
         if (_activeFilter == 'All') const SizedBox(height: 1),
       ]);
     }
@@ -365,12 +365,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
     // History Section
     if (_activeFilter == 'All' || _activeFilter == 'History') {
       content.addAll([
-        LibrarySectionHeader(title: 'Lịch sử nghe gần đây 🕒', onSeeAll: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const HistoryScreen()),
-          );
-        }),
+        LibrarySectionHeader(
+            title: 'Lịch sử nghe gần đây 🕒',
+            onSeeAll: () => Navigator.push(
+                context, FadePageRoute(child: const HistoryScreen()))),
         HistoryPreviewList(
             history: _history.take(3).toList(), formatDate: _formatDate),
       ]);

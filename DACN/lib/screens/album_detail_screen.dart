@@ -11,7 +11,10 @@ import '../screens/player_screen.dart';
 import '../widgets/autoScroollerText.dart';
 import '../services/api_favsongs.dart';
 import '../services/api_playlist.dart';
+import '../widgets/mini_player_widget.dart';
 import '../models/playlist.dart' as playlist_model;
+import 'artist_detail_screen.dart';
+import '../navigation/custom_page_route.dart';
 
 class AlbumDetailScreen extends StatefulWidget {
   final String albumName;
@@ -427,12 +430,20 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                       const SizedBox(height: 6),
-                                      Text(
-                                        song.artist,
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          color: AppColors.skyBlue,
-                                          fontWeight: FontWeight.w600,
+                                      InkWell(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            FadePageRoute(child: ArtistDetailScreen(artistName: song.artist)),
+                                          );
+                                        },
+                                        child: Text(
+                                          song.artist,
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            color: AppColors.skyBlue,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -513,98 +524,6 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                       ),
                     );
                   },
-                );
-              },
-            ),
-          ),
-
-          /// 🎵 Mini Player ở cuối trang (giống nav)
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Consumer<AudioPlayerProvider>(
-              builder: (context, audioPlayerProvider, child) {
-                final currentPlaying = audioPlayerProvider.currentPlaying;
-                final isPlaying = audioPlayerProvider.isPlaying;
-
-                if (currentPlaying == null) return const SizedBox.shrink();
-
-                return Padding(
-                  padding:
-                      const EdgeInsets.only(left: 40, right: 40, bottom: 16),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(30),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.35),
-                          borderRadius: BorderRadius.circular(30),
-                          border:
-                              Border.all(color: Colors.white.withOpacity(0.3)),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.25),
-                              blurRadius: 8,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        PlayerScreen(song: currentPlaying),
-                                  ),
-                                );
-                              },
-                              child: Row(
-                                children: [
-                                  RotationTransition(
-                                    turns: (_rotationController.isAnimating)
-                                        ? _rotationController
-                                        : AlwaysStoppedAnimation(0),
-                                    child: CircleAvatar(
-                                      backgroundImage: NetworkImage(
-                                          currentPlaying.thumbnail),
-                                      radius: 20,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  SizedBox(
-                                    width:
-                                        MediaQuery.of(context).size.width * 0.5,
-                                    child: autoTextScroller(
-                                      currentPlaying.title,
-                                      const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            IconButton(
-                              icon: Icon(
-                                isPlaying
-                                    ? Icons.pause_rounded
-                                    : Icons.play_arrow_rounded,
-                                color: Colors.black87,
-                              ),
-                              onPressed: () {
-                                audioPlayerProvider.togglePlayPause();
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
                 );
               },
             ),
