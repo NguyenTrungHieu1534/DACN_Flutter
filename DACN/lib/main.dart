@@ -19,7 +19,7 @@ import 'package:just_audio_background/just_audio_background.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:audio_service/audio_service.dart';
 import '../models/audio_handler.dart';
-
+import '../screens/login_screen.dart';
 Future<void> main() async {
   late final AudioHandler audioHandler;
   WidgetsFlutterBinding.ensureInitialized();
@@ -68,6 +68,7 @@ class WaveMusicApp extends StatelessWidget {
       home: const MainNavigation(),
       routes: {
         '/home': (context) => const MainNavigation(),
+        '/login': (context) => const LoginScreen(),
         '/forgotPassword': (context) => const ForgotPasswordScreen(),
         '/verifyOTP': (context) => const VerifyOtpScreen(email: ''),
         '/resetPassword': (context) =>
