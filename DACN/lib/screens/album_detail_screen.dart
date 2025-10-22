@@ -104,7 +104,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
         },
       );
     } catch (e) {
-      Navigator.pop(context); // Tắt loading nếu có lỗi
+      Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Lỗi tải danh sách playlist: $e')),
       );

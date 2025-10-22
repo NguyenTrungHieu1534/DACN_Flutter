@@ -237,38 +237,38 @@ class _UserScreenState extends State<UserScreen> {
                       borderRadius:
                           BorderRadius.vertical(top: Radius.circular(24)),
                     ),
-                    child: Consumer<ThemeProvider>(
-                      builder: (context, themeProvider, child) {
-                        return Column(
-                          children: [
-                            // ListTile(
-                            //   leading: Icon(Icons.palette, color: Theme.of(context).colorScheme.onSurface),
-                            //   title: Text('Theme', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
-                            //   trailing: DropdownButton<bool>(
-                            //     value: themeProvider.isDark,
-                            //     dropdownColor: Theme.of(context).colorScheme.surface,
-                            //     style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                            //     items: const [
-                            //       DropdownMenuItem(
-                            //         value: false,
-                            //         child: Text('Light Mode'),
-                            //       ),
-                            //       DropdownMenuItem(
-                            //         value: true,
-                            //         child: Text('Dark Mode'),
-                            //       ),
-                            //     ],
-                            //     onChanged: (bool? value) {
-                            //       if (value != null) {
-                            //         themeProvider.setTheme(value);
-                            //       }
-                            //     },
-                            //   ),
-                            // ),
-                          ],
-                        );
-                      },
-                    ),
+                    // child: Consumer<ThemeProvider>(
+                    //   builder: (context, themeProvider, child) {
+                    //     return Column(
+                    //       children: [
+                    //         // ListTile(
+                    //         //   leading: Icon(Icons.palette, color: Theme.of(context).colorScheme.onSurface),
+                    //         //   title: Text('Theme', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+                    //         //   trailing: DropdownButton<bool>(
+                    //         //     value: themeProvider.isDark,
+                    //         //     dropdownColor: Theme.of(context).colorScheme.surface,
+                    //         //     style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                    //         //     items: const [
+                    //         //       DropdownMenuItem(
+                    //         //         value: false,
+                    //         //         child: Text('Light Mode'),
+                    //         //       ),
+                    //         //       DropdownMenuItem(
+                    //         //         value: true,
+                    //         //         child: Text('Dark Mode'),
+                    //         //       ),
+                    //         //     ],
+                    //         //     onChanged: (bool? value) {
+                    //         //       if (value != null) {
+                    //         //         themeProvider.setTheme(value);
+                    //         //       }
+                    //         //     },
+                    //         //   ),
+                    //         // ),
+                    //       ],
+                    //     );
+                    //   },
+                    // ),
                   ),
                 ),
               ],
