@@ -88,69 +88,72 @@ class AudioPlayerProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> playSong(Songs song) async {
-    if (song.url.isEmpty) return;
+  Future<void> playSong([Songs? song]) async {
+  // Nếu không truyền tham số, dùng bài hiện tại
+  final selectedSong = song ?? currentPlaying;
 
-    currentPlaying = song;
-    final mediaItem = _createMediaItem(song);
+  if (selectedSong == null || selectedSong.url.isEmpty) return;
 
-    try {
-      final handler = audioHandler as MyAudioHandler;
-      
-      // Dừng bài hát đang phát nếu có
-      if (handler.playbackState.value.playing) {
-        await handler.stop();
-      }
+  currentPlaying = selectedSong;
+  final mediaItem = _createMediaItem(selectedSong);
 
-      // Thêm bài hát mới vào queue
-      await handler.addQueueItem(mediaItem);
+  try {
+    final handler = audioHandler as MyAudioHandler;
 
-      // Tìm URL hợp lệ để phát nhạc
-      Uri? uriToPlay;
-      
-      // Ưu tiên sử dụng mp3Url
-      if (song.mp3Url.isNotEmpty) {
-        try {
-          uriToPlay = Uri.parse(song.mp3Url);
-        } catch (e) {
-          debugPrint('Không thể parse mp3Url: ${song.mp3Url}');
-        }
-      }
-      
-      // Thử dùng url thông thường nếu mp3Url không khả dụng
-      if (uriToPlay == null && song.url.isNotEmpty) {
-        try {
-          uriToPlay = Uri.parse(song.url);
-        } catch (e) {
-          debugPrint('Không thể parse url: ${song.url}');
-        }
-      }
-
-      if (uriToPlay == null) {
-        throw Exception('Không có URL hợp lệ để phát nhạc');
-      }
-
-      // Cài đặt nguồn audio
-      await handler.setAudioSource(mediaItem, uriToPlay);
-      
-      // Thêm vào lịch sử
-      try {
-        await _historyService.addHistory(
-          song.title, 
-          song.artist, 
-          song.albuml, 
-          song.id
-        );
-      } catch (e) {
-        debugPrint('Lỗi khi thêm vào lịch sử: $e');
-      }
-      
-      // Phát nhạc
-      await handler.play();
-    } catch (e) {
-      debugPrint('Lỗi khi phát bài ${song.title}: $e');
+    // Dừng bài hát đang phát nếu có
+    if (handler.playbackState.value.playing) {
+      await handler.stop();
     }
+
+    // Thêm bài hát mới vào queue
+    await handler.addQueueItem(mediaItem);
+
+    // Tìm URL hợp lệ để phát nhạc
+    Uri? uriToPlay;
+
+    // Ưu tiên sử dụng mp3Url
+    if (selectedSong.mp3Url.isNotEmpty) {
+      try {
+        uriToPlay = Uri.parse(selectedSong.mp3Url);
+      } catch (e) {
+        debugPrint('Không thể parse mp3Url: ${selectedSong.mp3Url}');
+      }
+    }
+
+    // Thử dùng url thông thường nếu mp3Url không khả dụng
+    if (uriToPlay == null && selectedSong.url.isNotEmpty) {
+      try {
+        uriToPlay = Uri.parse(selectedSong.url);
+      } catch (e) {
+        debugPrint('Không thể parse url: ${selectedSong.url}');
+      }
+    }
+
+    if (uriToPlay == null) {
+      throw Exception('Không có URL hợp lệ để phát nhạc');
+    }
+
+    // Cài đặt nguồn audio
+    await handler.setAudioSource(mediaItem, uriToPlay);
+
+    // Thêm vào lịch sử
+    try {
+      await _historyService.addHistory(
+        selectedSong.title,
+        selectedSong.artist,
+        selectedSong.albuml,
+        selectedSong.id,
+      );
+    } catch (e) {
+      debugPrint('Lỗi khi thêm vào lịch sử: $e');
+    }
+
+    // Phát nhạc
+    await handler.play();
+  } catch (e) {
+    debugPrint('Lỗi khi phát bài ${selectedSong.title}: $e');
   }
+}
 
 
 

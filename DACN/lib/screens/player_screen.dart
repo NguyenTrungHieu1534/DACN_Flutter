@@ -2,6 +2,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../models/songs.dart';
 import '../theme/app_theme.dart';
+import 'package:provider/provider.dart';
+import '../models/AudioPlayerProvider.dart';
 
 class PlayerScreen extends StatefulWidget {
   /// You can either pass a [Songs] object via [song], or provide [title]/[subtitle]/[imageUrl]/[heroTag] manually.
@@ -258,12 +260,35 @@ class _PlayerScreenState extends State<PlayerScreen>
                                 ),
                               ],
                             ),
-                            child: IconButton(
-                              icon: const Icon(Icons.play_arrow),
+                            child: Consumer<AudioPlayerProvider>(
+                              builder: (context, player, _) {
+                              final isPlaying = player.isPlaying;
+                                return IconButton(
+                              icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
                               color: AppColors.oceanBlue,
                               iconSize: 44,
-                              onPressed: () {},
-                            ),
+                              onPressed: () async {
+                              final currentSong = widget.song;
+                              // Nếu chưa có bài hát nào đang phát
+                              if (currentSong == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Không có bài hát để phát')),
+                                );
+                              return;
+                              }
+        // Nếu đã có bài đang phát, toggle Play/Pause
+        if (player.currentPlaying != null &&
+            player.currentPlaying!.id == currentSong.id) {
+          await player.togglePlayPause();
+        } else {
+          // Nếu là bài mới → phát bài đó
+          await player.playSong(currentSong);
+        }
+      },
+    );
+  },
+),
+
                           ),
 
                           IconButton(
@@ -398,7 +423,7 @@ class _ChillSlider extends StatelessWidget {
                       ],
                       stops: const [0.0, 0.5, 1.0],
                       transform:
-                          GradientTranslation(anim.value * rect.width, 0),
+                          GradientTranslation(dx: anim.value * rect.width, dy: 0),
                     ).createShader(rect);
                   },
                   blendMode: BlendMode.srcATop,
@@ -473,9 +498,10 @@ class LyricsScreen extends StatelessWidget {
 }
 
 class GradientTranslation extends GradientTransform {
-  const GradientTranslation(this.dx, this.dy);
+  const GradientTranslation({required this.dx, required this.dy});
   final double dx;
   final double dy;
+
   @override
   Matrix4 transform(Rect bounds, {TextDirection? textDirection}) {
     return Matrix4.identity()..translate(dx, dy);
