@@ -7,7 +7,7 @@ import '../models/songs.dart';
 import '../models/artist.dart';
 
 class ArtistService {
-  static const String _baseUrl = 'YOUR_RENDER_BASE_URL';
+  static const String _baseUrl = 'https://backend-dacn-9l4w.onrender.com';
   final http.Client _client;
 
   ArtistService({http.Client? client}) : _client = client ?? http.Client();

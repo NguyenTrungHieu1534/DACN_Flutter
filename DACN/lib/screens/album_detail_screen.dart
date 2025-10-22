@@ -13,6 +13,8 @@ import '../services/api_favsongs.dart';
 import '../services/api_playlist.dart';
 import '../widgets/mini_player_widget.dart';
 import '../models/playlist.dart' as playlist_model;
+import 'artist_detail_screen.dart';
+import '../navigation/custom_page_route.dart';
 
 class AlbumDetailScreen extends StatefulWidget {
   final String albumName;
@@ -428,12 +430,20 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                       const SizedBox(height: 6),
-                                      Text(
-                                        song.artist,
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          color: AppColors.skyBlue,
-                                          fontWeight: FontWeight.w600,
+                                      InkWell(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            FadePageRoute(child: ArtistDetailScreen(artistName: song.artist)),
+                                          );
+                                        },
+                                        child: Text(
+                                          song.artist,
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            color: AppColors.skyBlue,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                         ),
                                       ),
                                     ],

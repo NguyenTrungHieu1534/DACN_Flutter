@@ -8,6 +8,8 @@ import '../models/songs.dart';
 import '../services/api_playlist.dart';
 import 'dart:ui';
 import 'package:image_picker/image_picker.dart';
+import 'artist_detail_screen.dart';
+import '../navigation/custom_page_route.dart';
 import 'dart:io';
 
 class PlaylistDetailScreen extends StatefulWidget {
@@ -471,11 +473,19 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                subtitle: Text(
-                                  song.artist,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(color: Colors.black54),
+                                subtitle: InkWell(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      FadePageRoute(child: ArtistDetailScreen(artistName: song.artist)),
+                                    );
+                                  },
+                                  child: Text(
+                                    song.artist,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(color: Colors.black54),
+                                  ),
                                 ),
                                 trailing: const Icon(Icons.play_arrow_rounded,
                                     color: Colors.blueAccent, size: 30),
