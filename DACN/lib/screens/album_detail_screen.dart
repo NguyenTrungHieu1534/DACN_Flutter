@@ -15,7 +15,7 @@ import '../widgets/mini_player_widget.dart';
 import '../models/playlist.dart' as playlist_model;
 import 'artist_detail_screen.dart';
 import '../navigation/custom_page_route.dart';
-
+import '../screens/login_screen.dart';
 class AlbumDetailScreen extends StatefulWidget {
   final String albumName;
   final String albumImage;
@@ -83,7 +83,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                   ...playlists.map((p) => ListTile(
                         title: Text(p.name),
                         onTap: () async {
-                          Navigator.pop(context); 
+                          Navigator.pop(context);
                           await _addSongToExistingPlaylist(song, p.id);
                         },
                       )),
@@ -434,7 +434,9 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                         onTap: () {
                                           Navigator.push(
                                             context,
-                                            FadePageRoute(child: ArtistDetailScreen(artistName: song.artist)),
+                                            FadePageRoute(
+                                                child: ArtistDetailScreen(
+                                                    artistName: song.artist)),
                                           );
                                         },
                                         child: Text(
@@ -450,73 +452,78 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                   ),
                                 ),
                                 PopupMenuButton<String>(
-  shape: RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(16),
-  ),
-  color: Colors.white,
-  icon: const Icon(
-    Icons.more_vert_rounded,
-    color: AppColors.skyBlue,
-  ),
-  onSelected: (value) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  color: Colors.white,
+                                  icon: const Icon(
+                                    Icons.more_vert_rounded,
+                                    color: AppColors.skyBlue,
+                                  ),
+                                  onSelected: (value) async {
+                                    final prefs =
+                                        await SharedPreferences.getInstance();
+                                    final token = prefs.getString('token');
 
-    // 🔹 Nếu chưa đăng nhập
-    if (token == null || token.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Vui lòng đăng nhập để sử dụng tính năng này 🔒'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+                                    // 🔹 Nếu chưa đăng nhập
+                                    if (token == null || token.isEmpty) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                              'Vui lòng đăng nhập để sử dụng tính năng này 🔒'),
+                                          duration: Duration(seconds: 2),
+                                        ),
+                                      );
+                                      Future.delayed(const Duration(seconds: 1),
+                                          () {
+                                        // Navigator.pushNamed(context, '/login');
+                                        // hoặc: 
+                                        Navigator.push(context, MaterialPageRoute(builder: (_) => LoginScreen()));
+                                      });
+                                      return;
+                                    }
 
-      // 🔹 Chuyển hướng sang trang đăng nhập sau 1.5 giây
-      Future.delayed(const Duration(seconds: 1), () {
-        Navigator.pushNamed(context, '/login');
-        // hoặc: Navigator.push(context, MaterialPageRoute(builder: (_) => LoginScreen()));
-      });
-      return;
-    }
-
-    // 🔹 Nếu đã đăng nhập, xử lý bình thường
-    if (value == 'favorite') {
-      favoriteService.addFavorite(song);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Đã thêm vào yêu thích 💙'),
-          duration: Duration(seconds: 1),
-        ),
-      );
-    } else if (value == 'playlist') {
-      _showAddToPlaylistDialog(song);
-    }
-  },
-  itemBuilder: (context) => [
-    const PopupMenuItem(
-      value: 'favorite',
-      child: Row(
-        children: [
-          Icon(Icons.favorite_border, color: Colors.redAccent),
-          SizedBox(width: 10),
-          Text('Thêm vào yêu thích'),
-        ],
-      ),
-    ),
-    const PopupMenuItem(
-      value: 'playlist',
-      child: Row(
-        children: [
-          Icon(Icons.playlist_add, color: AppColors.oceanBlue),
-          SizedBox(width: 10),
-          Text('Thêm vào playlist khác'),
-        ],
-      ),
-    ),
-  ],
-),
-
-
+                                    // 🔹 Nếu đã đăng nhập, xử lý bình thường
+                                    if (value == 'favorite') {
+                                      favoriteService.addFavorite(song);
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content:
+                                              Text('Đã thêm vào yêu thích 💙'),
+                                          duration: Duration(seconds: 1),
+                                        ),
+                                      );
+                                    } else if (value == 'playlist') {
+                                      _showAddToPlaylistDialog(song);
+                                    }
+                                  },
+                                  itemBuilder: (context) => [
+                                    const PopupMenuItem(
+                                      value: 'favorite',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.favorite_border,
+                                              color: Colors.redAccent),
+                                          SizedBox(width: 10),
+                                          Text('Thêm vào yêu thích'),
+                                        ],
+                                      ),
+                                    ),
+                                    const PopupMenuItem(
+                                      value: 'playlist',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.playlist_add,
+                                              color: AppColors.oceanBlue),
+                                          SizedBox(width: 10),
+                                          Text('Thêm vào playlist khác'),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ],
                             ),
                           ),

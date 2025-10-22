@@ -21,16 +21,17 @@ import 'package:audio_session/audio_session.dart';
 import 'package:audio_service/audio_service.dart';
 import '../models/audio_handler.dart';
 import '../screens/login_screen.dart';
+
 Future<void> main() async {
   late final AudioHandler audioHandler;
   WidgetsFlutterBinding.ensureInitialized();
   audioHandler = await AudioService.init(
     builder: () => MyAudioHandler(),
     config: const AudioServiceConfig(
-  androidNotificationChannelId: 'com.example.app.channel.audio',
-  androidNotificationChannelName: 'Wave Music',
-  androidShowNotificationBadge: true,
-  androidNotificationIcon: 'mipmap/ic_launcher', // Icon app
+      androidNotificationChannelId: 'com.example.app.channel.audio',
+      androidNotificationChannelName: 'Wave Music',
+      androidShowNotificationBadge: true,
+      androidNotificationIcon: 'mipmap/ic_launcher', // Icon app
     ),
   );
   final session = await AudioSession.instance;
@@ -39,7 +40,7 @@ Future<void> main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => AudioPlayerProvider(audioHandler : audioHandler),
+          create: (_) => AudioPlayerProvider(audioHandler: audioHandler),
         ),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
@@ -71,9 +72,8 @@ class WaveMusicApp extends StatelessWidget {
         '/home': (context) => const MainNavigation(),
         '/login': (context) => const LoginScreen(),
         '/forgotPassword': (context) => const ForgotPasswordScreen(),
-        '/verifyOTP': (context) => const VerifyOtpScreen(email: ''),
-        '/resetPassword': (context) =>
-            const ResetPasswordScreen(email: '', otp: ''),
+         '/verifyOTP': (context) => const VerifyOtpScreen(email: ''),
+         '/resetPassword': (context) => const ResetPasswordScreen(email: '', otp: ''),
       },
     );
   }
@@ -104,6 +104,25 @@ class _MainNavigationState extends State<MainNavigation>
     UserScreen(),
   ];
 
+  // Khai báo danh sách các widget Navigator để tái sử dụng
+  late final List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    // Khởi tạo danh sách các widget Navigator một lần duy nhất
+    _screens = List.generate(
+      _rootScreens.length,
+      (index) => Navigator(
+        key: _navigatorKeys[index],
+        onGenerateRoute: (routeSettings) => FadePageRoute(
+          child: _rootScreens[index],
+          settings: routeSettings,
+        ),
+      ),
+    );
+  }
+
   Stream<bool> get connectionStream async* {
     yield* Connectivity().onConnectivityChanged.asyncMap((status) async {
       if (status == ConnectivityResult.none) return false;
@@ -117,7 +136,7 @@ class _MainNavigationState extends State<MainNavigation>
       stream: connectionStream,
       builder: (context, snapshot) {
         final hasInternet = snapshot.data ?? true;
-        
+
         return PopScope(
           canPop: false,
           onPopInvoked: (didPop) async {
@@ -131,15 +150,7 @@ class _MainNavigationState extends State<MainNavigation>
             extendBody: true,
             body: IndexedStack(
               index: _currentIndex,
-              children: List.generate(_rootScreens.length, (index) {
-                return Navigator(
-                  key: _navigatorKeys[index],
-                  onGenerateRoute: (routeSettings) => FadePageRoute(
-                    child: _rootScreens[index],
-                    settings: routeSettings,
-                  ),
-                );
-              }),
+              children: _screens, // Sử dụng danh sách đã được khởi tạo
             ),
             bottomNavigationBar: BuildNaviBot(
               currentIndex: _currentIndex,

@@ -8,8 +8,7 @@ import 'dart:math' as math;
 import 'dart:async';
 
 class PlayerScreen extends StatefulWidget {
-  /// You can either pass a [Songs] object via [song], or provide [title]/[subtitle]/[imageUrl]/[heroTag] manually.
-  const PlayerScreen({
+   const PlayerScreen({
     super.key,
     this.song,
     this.title,

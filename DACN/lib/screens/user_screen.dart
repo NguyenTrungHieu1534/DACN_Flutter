@@ -132,9 +132,10 @@ class _UserScreenState extends State<UserScreen> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
 
-    Navigator.pushReplacement(
+    Navigator.pushNamedAndRemoveUntil( // Khi đăng xuất, xóa toàn bộ stack và về màn hình đăng nhập
       context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      '/login',
+      (route) => false,
     );
   }
 
@@ -185,10 +186,9 @@ class _UserScreenState extends State<UserScreen> {
       body: _token == null
           ? Center(
               child: ElevatedButton(
-                onPressed: () {
+                onPressed: () { // Khi chưa đăng nhập, nhấn nút "Đăng nhập" sẽ đẩy LoginScreen lên
                   Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    context, MaterialPageRoute(builder: (_) => const LoginScreen()),
                   );
                 },
                 child: const Text('Đăng nhập'),
