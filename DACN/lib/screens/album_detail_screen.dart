@@ -499,12 +499,6 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
               },
             ),
           ),
-
-          /// 🎵 Mini Player ở cuối trang (giống nav)
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: MiniPlayerWidget(),
-          ),
         ],
       ),
     );
