@@ -15,9 +15,18 @@ class MyAudioHandler extends BaseAudioHandler {
       }
     });
 
-    // _player.positionStream.listen((position) {
-    //   playbackState.add(playbackState.value.copyWith(position: position));
-    // });
+    // Bổ sung lại để cập nhật thời gian phát thực tế
+    _player.positionStream.listen((position) {
+  final oldState = playbackState.value;
+  playbackState.add(PlaybackState(
+    controls: oldState.controls,
+    systemActions: oldState.systemActions,
+    androidCompactActionIndices: oldState.androidCompactActionIndices,
+    processingState: oldState.processingState,
+    playing: oldState.playing,
+    updatePosition: position,
+  ));
+});
   }
 
   AudioPlayer get player => _player;
@@ -25,21 +34,20 @@ class MyAudioHandler extends BaseAudioHandler {
   @override
   Future<void> play() async {
     await _player.play();
-    // Bổ sung: Gửi trạng thái hiện tại (đang phát) lên audio_service
     _broadcastState(_player.playerState);
   }
 
   @override
   Future<void> pause() async {
     await _player.pause();
-    // Bổ sung: Gửi trạng thái hiện tại (đã tạm dừng) lên audio_service
     _broadcastState(_player.playerState);
   }
 
   @override
   Future<void> stop() async {
     await _player.stop();
-    await super.stop();
+    // KHÔNG gọi super.stop(); vì nó reset playbackState về 0
+    _broadcastState(_player.playerState);
   }
 
   @override
@@ -81,7 +89,7 @@ class MyAudioHandler extends BaseAudioHandler {
         MediaAction.seekBackward,
         MediaAction.custom,
       },
-      androidCompactActionIndices: const [0, 1, 2],  // Show prev, play/pause, next in compact view
+      androidCompactActionIndices: const [0, 1, 2],
       processingState: processingState,
       playing: playerState.playing,
     ));
@@ -101,9 +109,10 @@ class MyAudioHandler extends BaseAudioHandler {
         return AudioProcessingState.completed;
     }
   }
-   @override
+
+  @override
   Future<void> onTaskRemoved() async {
-    await stop(); // Tắt nhạc
+    await stop();
     return super.onTaskRemoved();
   }
 }

@@ -4,6 +4,8 @@ import '../models/songs.dart';
 import '../theme/app_theme.dart';
 import 'package:provider/provider.dart';
 import '../models/AudioPlayerProvider.dart';
+import 'dart:math' as math;
+import 'dart:async';
 
 class PlayerScreen extends StatefulWidget {
   /// You can either pass a [Songs] object via [song], or provide [title]/[subtitle]/[imageUrl]/[heroTag] manually.
@@ -28,8 +30,12 @@ class PlayerScreen extends StatefulWidget {
 
 class _PlayerScreenState extends State<PlayerScreen>
     with TickerProviderStateMixin {
+      Timer? _seekIgnoreTimer;
   late final AnimationController _shimmerController;
-
+  late final StreamSubscription<Duration> _positionSub;
+  late final StreamSubscription<Duration?> _durationSub;
+  Duration _currentPosition = Duration.zero;
+  Duration _totalDuration = Duration.zero;
   @override
   void initState() {
     super.initState();
@@ -37,6 +43,19 @@ class _PlayerScreenState extends State<PlayerScreen>
     _shimmerController =
         AnimationController(vsync: this, duration: const Duration(seconds: 3))
           ..repeat(reverse: true);
+          final player = Provider.of<AudioPlayerProvider>(context, listen: false);
+
+// Lắng nghe stream thời gian phát nhạc
+_positionSub = player.positionStream.listen((pos) {
+  if (_seekIgnoreTimer?.isActive == true) return;
+  if (mounted) setState(() => _currentPosition = pos);
+});
+
+// Lắng nghe stream tổng thời lượng bài hát
+_durationSub = player.durationStream.listen((dur) {
+  if (mounted && dur != null) setState(() => _totalDuration = dur);
+});
+
   }
 
   @override
@@ -213,16 +232,62 @@ class _PlayerScreenState extends State<PlayerScreen>
                         ),
                       ),
                       const SizedBox(height: 16),
+                      // NEW 🔹 Thanh tiến trình phát nhạc thật
+Column(
+  children: [
+    // Tính max (double) để tránh max == 0 gây lỗi
+    Builder(builder: (context) {
+      final double maxMs =
+          _totalDuration.inMilliseconds > 0 ? _totalDuration.inMilliseconds.toDouble() : 1.0;
+      final double currentMs = math.min(_currentPosition.inMilliseconds.toDouble(), maxMs);
 
-                      // Animated chill slider (value fixed at 0)
-                      _ChillSlider(controller: _shimmerController),
-                      const Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('0:00', style: TextStyle(color: Colors.white70)),
-                          Text('0:00', style: TextStyle(color: Colors.white70)),
-                        ],
-                      ),
+      return Slider(
+        activeColor: Colors.white,
+        inactiveColor: Colors.white24,
+        min: 0.0,
+        max: maxMs,
+        value: currentMs,
+        onChanged: (double value) {
+          setState(() {
+            _currentPosition = Duration(milliseconds: value.toInt());
+          });
+        },
+        onChangeEnd: (double value) async {
+  final player = Provider.of<AudioPlayerProvider>(context, listen: false);
+  final requested = Duration(milliseconds: value.toInt());
+
+  // Cập nhật ngay UI để tránh nhảy khi handler phản hồi chậm
+  if (mounted) setState(() => _currentPosition = requested);
+
+  // Gọi seek tới handler
+  await player.seek(requested);
+
+  // IGNORE các update position từ handler trong 400ms để tránh nhảy về 0
+  _seekIgnoreTimer?.cancel();
+  _seekIgnoreTimer = Timer(const Duration(milliseconds: 400), () {
+    // Sau 400ms, cho phép positionStream cập nhật lại UI
+  });
+},
+
+      );
+    }),
+
+    Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(_formatTime(_currentPosition),
+              style: const TextStyle(color: Colors.white70, fontSize: 12)),
+          Text(_formatTime(_totalDuration),
+              style: const TextStyle(color: Colors.white70, fontSize: 12)),
+        ],
+      ),
+    ),
+  ],
+),
+
+
                       const SizedBox(height: 10),
 
                       Row(
@@ -371,6 +436,20 @@ class _PlayerScreenState extends State<PlayerScreen>
       ),
     );
   }
+   String _formatTime(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    final seconds = twoDigits(duration.inSeconds.remainder(60));
+    return "$minutes:$seconds";
+  }
+  @override
+void dispose() {
+  _positionSub.cancel();
+  _durationSub.cancel();
+  _shimmerController.dispose();
+  _seekIgnoreTimer?.cancel();
+  super.dispose();
+}
 }
 
 // removed spinning disco widgets; using cover image as top background + static thumbnail

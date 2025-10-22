@@ -5,6 +5,7 @@ import '../services/api_history.dart';
 import '../models/audio_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:ui' show window;
+import 'dart:async';
 
 class AudioPlayerProvider extends ChangeNotifier {
   MediaItem _createMediaItem(Songs song) {
@@ -45,21 +46,36 @@ class AudioPlayerProvider extends ChangeNotifier {
     
     // Nghe trạng thái phát nhạc từ AudioHandler
     audioHandler.playbackState.listen((state) {
+      debugPrint('[Provider] playbackState: playing=${state.playing}, processing=${state.processingState}, position=${state.position.inMilliseconds}');
       isPlaying = state.playing;
       notifyListeners();
     });
 
     // Nghe MediaItem để cập nhật duration
     audioHandler.mediaItem.listen((item) {
+      debugPrint('[Provider] mediaItem: id=${item?.id}, duration=${item?.duration}');
       _duration = item?.duration ?? Duration.zero;
       notifyListeners();
     });
 
     // Nghe progress từ AudioHandler
-    audioHandler.playbackState.listen((state) {
-      _position = state.position;
-      notifyListeners();
-    });
+    // ✅ FIX 🔹 Lắng nghe tiến trình phát nhạc chính xác, không reset sai
+audioHandler.playbackState.listen((state) {
+  // Cập nhật vị trí phát nhạc thực
+  if (state.playing || state.processingState == AudioProcessingState.ready) {
+    _position = state.position;
+  }
+
+  // Chỉ reset khi bài hát kết thúc hoàn toàn
+  if (state.processingState == AudioProcessingState.completed) {
+    _position = Duration.zero;
+    isPlaying = false;
+  }
+
+  // ⚠️ KHÔNG reset ở trạng thái idle (vì stop/pause cũng dùng idle)
+  notifyListeners();
+});
+
   }
 
   Duration get position => _position;
@@ -101,14 +117,11 @@ class AudioPlayerProvider extends ChangeNotifier {
     final handler = audioHandler as MyAudioHandler;
 
     // Dừng bài hát đang phát nếu có
-    if (handler.playbackState.value.playing) {
-      await handler.stop();
-    }
-
-    // Thêm bài hát mới vào queue
+    if (handler.playbackState.value.playing &&
+    currentPlaying?.id != selectedSong.id) {
+  await handler.stop();
+}
     await handler.addQueueItem(mediaItem);
-
-    // Tìm URL hợp lệ để phát nhạc
     Uri? uriToPlay;
 
     // Ưu tiên sử dụng mp3Url
@@ -149,6 +162,9 @@ class AudioPlayerProvider extends ChangeNotifier {
     }
 
     // Phát nhạc
+    if (_position > Duration.zero && _position < _duration) {
+  await handler.seek(_position);
+}
     await handler.play();
   } catch (e) {
     debugPrint('Lỗi khi phát bài ${selectedSong.title}: $e');
@@ -163,22 +179,28 @@ class AudioPlayerProvider extends ChangeNotifier {
   }
 
   Future<void> togglePlayPause() async {
-    if (isPlaying) {
-      await pauseSong();
-    } else if (currentPlaying != null) {
-      await audioHandler.play();
+  if (isPlaying) {
+    await pauseSong();
+  } else if (currentPlaying != null) {
+    // 🔹 Nếu đang dừng giữa chừng, seek lại vị trí cũ
+    if (_position > Duration.zero) {
+      await audioHandler.seek(_position);
     }
+    await audioHandler.play();
   }
+}
 
   Future<void> seek(Duration position) async {
-    await audioHandler.seek(position);
-  }
+  _position = position;
+  notifyListeners();
+  await audioHandler.seek(position);
+}
 
   Future<void> stopSong() async {
-    await audioHandler.stop();
-  }
-
-  // Nếu muốn, có thể thêm next/previous logic
+  await audioHandler.stop();
+  isPlaying = false;
+  notifyListeners();
+}
   void nextSong() {
     print("Next song");
   }
@@ -186,4 +208,13 @@ class AudioPlayerProvider extends ChangeNotifier {
   void previousSong() {
     print("Previous song");
   }
+  Stream<Duration> get positionStream {
+  return audioHandler.playbackState
+      .map((state) => state.position)
+      .distinct();
+}
+
+Stream<Duration?> get durationStream {
+  return audioHandler.mediaItem.map((item) => item?.duration).distinct();
+}
 }
