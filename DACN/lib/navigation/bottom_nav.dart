@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart'; // Import Provider
 import '../theme/app_theme.dart';
 import '../models/AudioPlayerProvider.dart'; // Import AudioPlayerProvider
-import '../widgets/autoScroollerText.dart';
-import '../screens/player_screen.dart';
 import '../models/songs.dart';
+import '../widgets/mini_player_widget.dart';
 
 class BuildNaviBot extends StatefulWidget {
   final int currentIndex;
@@ -129,72 +128,7 @@ class BuildNaviBotState extends State<BuildNaviBot>
                   ),
                 ),
               ),
-            if (currentPlaying != null)
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () {},
-                child: Container(
-                  height: 60,
-                  margin:
-                      const EdgeInsets.only(left: 40, right: 40, bottom: 10),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  PlayerScreen(song: currentPlaying),
-                            ),
-                          );
-                        },
-                        behavior: HitTestBehavior.opaque,
-                        child: Row(
-                          children: [
-                            RotationTransition(
-                              turns: _rotationController,
-                              child: CircleAvatar(
-                                backgroundImage:
-                                    NetworkImage(currentPlaying.thumbnail),
-                                radius: 20,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.51,
-                              child: autoTextScroller(
-                                currentPlaying.title,
-                                const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
-                        onPressed: () {
-                          audioPlayerProvider.togglePlayPause();
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            const MiniPlayerWidget(),
             Container(
               margin: const EdgeInsets.only(bottom: 16, left: 40, right: 40),
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
