@@ -16,6 +16,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import '../models/ThemeProvider.dart';
 import 'package:just_audio_background/just_audio_background.dart';
+import 'navigation/custom_page_route.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:audio_service/audio_service.dart';
 import '../models/audio_handler.dart';
@@ -132,11 +133,10 @@ class _MainNavigationState extends State<MainNavigation>
               children: List.generate(_rootScreens.length, (index) {
                 return Navigator(
                   key: _navigatorKeys[index],
-                  onGenerateRoute: (routeSettings) {
-                    return MaterialPageRoute(
-                      builder: (context) => _rootScreens[index],
-                    );
-                  },
+                  onGenerateRoute: (routeSettings) => FadePageRoute(
+                    child: _rootScreens[index],
+                    settings: routeSettings,
+                  ),
                 );
               }),
             ),

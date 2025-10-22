@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/AudioPlayerProvider.dart';
 import '../screens/player_screen.dart';
 import 'autoScroollerText.dart';
+import '../navigation/custom_page_route.dart';
 
 class MiniPlayerWidget extends StatefulWidget {
   const MiniPlayerWidget({super.key});
@@ -51,9 +52,7 @@ class _MiniPlayerWidgetState extends State<MiniPlayerWidget>
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (_) => PlayerScreen(song: currentPlaying),
-          ),
+          ModalSlideUpPageRoute(child: PlayerScreen(song: currentPlaying)),
         );
       },
       child: Container(
