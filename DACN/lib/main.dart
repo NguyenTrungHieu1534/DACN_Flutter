@@ -21,6 +21,8 @@ import 'package:audio_session/audio_session.dart';
 import 'package:audio_service/audio_service.dart';
 import '../models/audio_handler.dart';
 import '../screens/login_screen.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'dart:io';
 
 Future<void> main() async {
   late final AudioHandler audioHandler;
@@ -72,8 +74,9 @@ class WaveMusicApp extends StatelessWidget {
         '/home': (context) => const MainNavigation(),
         '/login': (context) => const LoginScreen(),
         '/forgotPassword': (context) => const ForgotPasswordScreen(),
-         '/verifyOTP': (context) => const VerifyOtpScreen(email: ''),
-         '/resetPassword': (context) => const ResetPasswordScreen(email: '', otp: ''),
+        '/verifyOTP': (context) => const VerifyOtpScreen(email: ''),
+        '/resetPassword': (context) =>
+            const ResetPasswordScreen(email: '', otp: ''),
       },
     );
   }
@@ -110,6 +113,7 @@ class _MainNavigationState extends State<MainNavigation>
   @override
   void initState() {
     super.initState();
+
     // Khởi tạo danh sách các widget Navigator một lần duy nhất
     _screens = List.generate(
       _rootScreens.length,

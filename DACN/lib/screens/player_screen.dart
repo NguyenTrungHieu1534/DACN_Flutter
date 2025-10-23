@@ -7,6 +7,8 @@ import 'dart:math' as math;
 import 'dart:async';
 import '../widgets/waveform_progress_bar.dart';
 import '../services/api_lyrics.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'dart:io';
 
 class PlayerScreen extends StatefulWidget {
   const PlayerScreen({
@@ -36,14 +38,17 @@ class _PlayerScreenState extends State<PlayerScreen>
   Duration _currentPosition = Duration.zero;
   Duration _totalDuration = Duration.zero;
   String? _lyrics;
+  String? _lyricsUrl;
   bool _isLoadingLyrics = true;
   String? _lyricsError;
+  WebViewController? _webController;
 
   @override
   void initState() {
     super.initState();
     final player = Provider.of<AudioPlayerProvider>(context, listen: false);
 
+    LyricsService lyricsService = LyricsService();
     // 🔹 Lắng nghe stream thời gian phát nhạc
     _positionSub = player.positionStream.listen((pos) {
       if (_seekIgnoreTimer?.isActive == true) return;
@@ -56,25 +61,53 @@ class _PlayerScreenState extends State<PlayerScreen>
     });
 
     // 🔹 Tải lyric 1 lần duy nhất khi mở màn hình
-    LyricsService.fetchLyrics(
-      artist: widget.song?.artist ?? '',
-      title: widget.song?.title ?? '',
-      id: widget.song?.id ?? '',
-    ).then((value) {
-      if (mounted) {
+    _loadLyrics(lyricsService);
+  }
+
+  Future<void> _loadLyrics(LyricsService lyricsService) async {
+    try {
+      final data = await lyricsService.fetchLyrics(
+        songId: widget.song?.id ?? '',
+        artist: widget.song?.artist ?? '',
+        title: widget.song?.title ?? '',
+      );
+
+      if (!mounted) return;
+
+      if (data != null &&
+          data["lyrics"] != null &&
+          data["lyrics"].trim().isNotEmpty) {
         setState(() {
-          _lyrics = value;
+          _lyrics = data["lyrics"];
+          _isLoadingLyrics = false;
+        });
+      } else {
+        final urlData = await lyricsService.fetchLyricsURL(
+          artist: widget.song?.artist ?? '',
+          title: widget.song?.title ?? '',
+        );
+        if (!mounted) return;
+
+        if (urlData != null && urlData["url"] != null) {
+          _lyricsUrl = urlData["url"];
+          await _initWebController(_lyricsUrl!);
+        } else {
+          setState(() {
+            _lyricsError = "Không tìm thấy lời bài hát.";
+          });
+        }
+        setState(() {
           _isLoadingLyrics = false;
         });
       }
-    }).catchError((error) {
+    } catch (error) {
       if (mounted) {
         setState(() {
-          _lyricsError = error.toString();
+          _lyricsError = "Lỗi khi tải lyric: $error";
           _isLoadingLyrics = false;
         });
       }
-    });
+    }
   }
 
   @override
@@ -195,36 +228,34 @@ class _PlayerScreenState extends State<PlayerScreen>
                               .textTheme
                               .headlineSmall
                               ?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w800,
-                                shadows: const [
-                                  Shadow(
-                                    offset: Offset(0, 4),
-                                    blurRadius: 8,
-                                    color: Colors.black45,
-                                  ),
-                                ],
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            shadows: const [
+                              Shadow(
+                                offset: Offset(0, 4),
+                                blurRadius: 8,
+                                color: Colors.black45,
                               ),
+                            ],
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           displaySubtitle,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(
-                                color: Colors.white.withOpacity(0.95),
-                                fontWeight: FontWeight.w600,
-                                shadows: const [
-                                  Shadow(
-                                    offset: Offset(0, 3),
-                                    blurRadius: 6,
-                                    color: Colors.black38,
-                                  ),
-                                ],
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: Colors.white.withOpacity(0.95),
+                            fontWeight: FontWeight.w600,
+                            shadows: const [
+                              Shadow(
+                                offset: Offset(0, 3),
+                                blurRadius: 6,
+                                color: Colors.black38,
                               ),
+                            ],
+                          ),
                         ),
                         const SizedBox(height: 24),
 
@@ -235,15 +266,14 @@ class _PlayerScreenState extends State<PlayerScreen>
                               progress: _currentPosition,
                               total: _totalDuration,
                               onSeek: (duration) async {
-                                final player =
-                                    Provider.of<AudioPlayerProvider>(context,
-                                        listen: false);
+                                final player = Provider.of<AudioPlayerProvider>(
+                                    context,
+                                    listen: false);
                                 await player.seek(duration);
 
                                 _seekIgnoreTimer?.cancel();
-                                _seekIgnoreTimer =
-                                    Timer(const Duration(milliseconds: 400),
-                                        () {});
+                                _seekIgnoreTimer = Timer(
+                                    const Duration(milliseconds: 400), () {});
                               },
                               waveColor: Colors.white38,
                               progressColor: Colors.white,
@@ -363,40 +393,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 20, vertical: 16),
-                    child: () {
-                      if (_isLoadingLyrics) {
-                        return const Center(
-                          child:
-                              CircularProgressIndicator(color: Colors.white70),
-                        );
-                      } else if (_lyricsError != null) {
-                        return const Text(
-                          'Không thể tải lời bài hát.',
-                          style: TextStyle(
-                              color: Colors.white70,
-                              fontStyle: FontStyle.italic),
-                          textAlign: TextAlign.center,
-                        );
-                      } else if (_lyrics == null || _lyrics!.isEmpty) {
-                        return const Text(
-                          'Chưa có lời bài hát cho bài này.',
-                          style: TextStyle(
-                              color: Colors.white54,
-                              fontStyle: FontStyle.italic),
-                          textAlign: TextAlign.center,
-                        );
-                      } else {
-                        return Text(
-                          _lyrics!,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 15,
-                            height: 1.5,
-                          ),
-                        );
-                      }
-                    }(),
+                    child: _buildLyricsWidget(),
                   ),
 
                   const SizedBox(height: 60),
@@ -407,6 +404,44 @@ class _PlayerScreenState extends State<PlayerScreen>
         ],
       ),
     );
+  }
+
+  Future<void> _initWebController(String url) async {
+    _webController = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..loadRequest(Uri.parse(url));
+  }
+
+  Widget _buildLyricsWidget() {
+    if (_isLoadingLyrics) {
+      return const Center(
+          child: CircularProgressIndicator(color: Colors.white70));
+    } else if (_lyricsUrl != null && _webController != null) {
+      return SizedBox(
+        height: 400,
+        child:
+            WebViewWidget(controller: _webController!), // đã chắc chắn non-null
+      );
+    } else if (_lyricsError != null) {
+      return Text(
+        _lyricsError!,
+        style:
+            const TextStyle(color: Colors.white70, fontStyle: FontStyle.italic),
+        textAlign: TextAlign.center,
+      );
+    } else if (_lyrics == null || _lyrics!.isEmpty) {
+      return const Text(
+        'Chưa có lời bài hát cho bài này.',
+        style: TextStyle(color: Colors.white54, fontStyle: FontStyle.italic),
+        textAlign: TextAlign.center,
+      );
+    } else {
+      return Text(
+        _lyrics!,
+        textAlign: TextAlign.center,
+        style: const TextStyle(color: Colors.white, fontSize: 15, height: 1.5),
+      );
+    }
   }
 
   String _formatTime(Duration duration) {
