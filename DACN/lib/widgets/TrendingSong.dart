@@ -337,7 +337,7 @@ class TrendingSong extends StatelessWidget {
 
           // Theme-based background colors that adapt to light/dark mode
           final themeColors = [
-            Theme.of(context).colorScheme.surfaceVariant.withOpacity(isDark ? 0.3 : 0.8), // lighter for light, darker for dark
+            Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(isDark ? 0.3 : 0.8), // lighter for light, darker for dark
             Theme.of(context).colorScheme.secondaryContainer.withOpacity(isDark ? 0.4 : 0.7),
             Theme.of(context).colorScheme.primaryContainer.withOpacity(isDark ? 0.3 : 0.8),
             Theme.of(context).colorScheme.tertiaryContainer.withOpacity(isDark ? 0.4 : 0.7),

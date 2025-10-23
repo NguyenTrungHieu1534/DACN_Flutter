@@ -69,7 +69,7 @@ class MyAudioHandler extends BaseAudioHandler {
         MediaControl.skipToPrevious,
         playerState.playing ? MediaControl.pause : MediaControl.play,
         MediaControl.skipToNext,
-        MediaControl(
+        const MediaControl(
           androidIcon: 'drawable/ic_favorite',
           label: 'Yêu thích',
           action: MediaAction.custom,

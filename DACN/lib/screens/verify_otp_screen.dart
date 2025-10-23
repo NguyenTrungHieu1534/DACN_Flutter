@@ -60,7 +60,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
             ElevatedButton(
               onPressed: _loading ? null : _verifyOtp,
               child: _loading
-                  ? const CircularProgressIndicator(color: Colors.white)
+                  ? CircularProgressIndicator(color: Theme.of(context).colorScheme.onPrimary)
                   : const Text("Xác minh"),
             ),
           ],

@@ -235,11 +235,11 @@ class _UserScreenState extends State<UserScreen> {
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.surface,
                       borderRadius:
-                          BorderRadius.vertical(top: Radius.circular(24)),
+                          const BorderRadius.vertical(top: Radius.circular(24)),
                     ),
                     child: Consumer<ThemeProvider>(
                       builder: (context, themeProvider, child) {
-                        return Column(
+                        return const Column(
                           children: [
                             // ListTile(
                             //   leading: Icon(Icons.palette, color: Theme.of(context).colorScheme.onSurface),

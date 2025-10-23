@@ -15,7 +15,6 @@ import '../screens/library_screen.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import '../models/ThemeProvider.dart';
-import 'package:just_audio_background/just_audio_background.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:audio_service/audio_service.dart';
 import '../models/audio_handler.dart';

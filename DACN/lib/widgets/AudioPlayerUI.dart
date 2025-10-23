@@ -38,10 +38,10 @@ class AudioPlayerUI extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           colors: [
-            const Color(0xFF121212),     // Dark background
-            const Color(0xFF1E1E1E),     // Slightly lighter
+            Color(0xFF121212),     // Dark background
+            Color(0xFF1E1E1E),     // Slightly lighter
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,

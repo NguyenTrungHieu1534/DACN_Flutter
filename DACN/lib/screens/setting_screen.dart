@@ -10,8 +10,8 @@ class SettingsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Cài đặt"),
-        backgroundColor: const Color(0xFFA5E8FF),
-        foregroundColor: const Color(0xFF1B4965),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        foregroundColor: Theme.of(context).appBarTheme.foregroundColor,
       ),
       body: ListView(
         children: [

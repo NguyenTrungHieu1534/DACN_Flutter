@@ -66,8 +66,8 @@ class ApiPlaylist {
     if (response.statusCode == 200) {
       return json.decode(response.body);
     } else {
-      AlertDialog(
-        title: const Text("toi bi ngu"),
+      const AlertDialog(
+        title: Text("toi bi ngu"),
       );
     }
     return null;

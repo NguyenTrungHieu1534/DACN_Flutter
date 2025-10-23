@@ -549,7 +549,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                   RotationTransition(
                                     turns: (_rotationController.isAnimating)
                                         ? _rotationController
-                                        : AlwaysStoppedAnimation(0),
+                                        : const AlwaysStoppedAnimation(0),
                                     child: CircleAvatar(
                                       backgroundImage: NetworkImage(
                                           currentPlaying.thumbnail),
