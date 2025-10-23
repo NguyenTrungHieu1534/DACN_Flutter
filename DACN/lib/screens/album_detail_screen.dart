@@ -11,8 +11,11 @@ import '../screens/player_screen.dart';
 import '../widgets/autoScroollerText.dart';
 import '../services/api_favsongs.dart';
 import '../services/api_playlist.dart';
+import '../widgets/mini_player_widget.dart';
 import '../models/playlist.dart' as playlist_model;
-
+import 'artist_detail_screen.dart';
+import '../navigation/custom_page_route.dart';
+import '../screens/login_screen.dart';
 class AlbumDetailScreen extends StatefulWidget {
   final String albumName;
   final String albumImage;
@@ -80,7 +83,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                   ...playlists.map((p) => ListTile(
                         title: Text(p.name),
                         onTap: () async {
-                          Navigator.pop(context); 
+                          Navigator.pop(context);
                           await _addSongToExistingPlaylist(song, p.id);
                         },
                       )),
@@ -104,7 +107,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
         },
       );
     } catch (e) {
-      Navigator.pop(context); // Tắt loading nếu có lỗi
+      Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Lỗi tải danh sách playlist: $e')),
       );
@@ -427,12 +430,22 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                       const SizedBox(height: 6),
-                                      Text(
-                                        song.artist,
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          color: AppColors.skyBlue,
-                                          fontWeight: FontWeight.w600,
+                                      InkWell(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            FadePageRoute(
+                                                child: ArtistDetailScreen(
+                                                    artistName: song.artist)),
+                                          );
+                                        },
+                                        child: Text(
+                                          song.artist,
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            color: AppColors.skyBlue,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -447,7 +460,31 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                     Icons.more_vert_rounded,
                                     color: AppColors.skyBlue,
                                   ),
-                                  onSelected: (value) {
+                                  onSelected: (value) async {
+                                    final prefs =
+                                        await SharedPreferences.getInstance();
+                                    final token = prefs.getString('token');
+
+                                    // 🔹 Nếu chưa đăng nhập
+                                    if (token == null || token.isEmpty) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                              'Vui lòng đăng nhập để sử dụng tính năng này 🔒'),
+                                          duration: Duration(seconds: 2),
+                                        ),
+                                      );
+                                      Future.delayed(const Duration(seconds: 1),
+                                          () {
+                                        // Navigator.pushNamed(context, '/login');
+                                        // hoặc: 
+                                        Navigator.push(context, MaterialPageRoute(builder: (_) => LoginScreen()));
+                                      });
+                                      return;
+                                    }
+
+                                    // 🔹 Nếu đã đăng nhập, xử lý bình thường
                                     if (value == 'favorite') {
                                       favoriteService.addFavorite(song);
                                       ScaffoldMessenger.of(context)

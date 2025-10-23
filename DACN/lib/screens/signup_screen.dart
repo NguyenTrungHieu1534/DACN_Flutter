@@ -44,10 +44,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
     setState(() => _isSubmitting = false);
 
     if (response['success'] == true) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-      );
+      // Chuyển đến màn hình đăng nhập và xóa màn hình đăng ký khỏi stack
+      if (context.mounted) {
+        Navigator.pushReplacementNamed(context, '/login');
+      }
     } else {
       final message = response['message']?.toString() ?? 'Đăng ký thất bại!';
       setState(() => _errorMessage = message);
@@ -266,12 +266,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 children: [
                                   const Text('Đã có tài khoản?'),
                                   TextButton(
-                                    onPressed: () {
-                                      Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(builder: (context) => const LoginScreen()),
-                                      );
-                                    },
+                                    onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
                                     child: const Text('Đăng nhập'),
                                   ),
                                 ],

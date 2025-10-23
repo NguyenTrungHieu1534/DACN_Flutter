@@ -132,9 +132,10 @@ class _UserScreenState extends State<UserScreen> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
 
-    Navigator.pushReplacement(
+    Navigator.pushNamedAndRemoveUntil( // Khi đăng xuất, xóa toàn bộ stack và về màn hình đăng nhập
       context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      '/login',
+      (route) => false,
     );
   }
 
@@ -185,10 +186,9 @@ class _UserScreenState extends State<UserScreen> {
       body: _token == null
           ? Center(
               child: ElevatedButton(
-                onPressed: () {
+                onPressed: () { // Khi chưa đăng nhập, nhấn nút "Đăng nhập" sẽ đẩy LoginScreen lên
                   Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    context, MaterialPageRoute(builder: (_) => const LoginScreen()),
                   );
                 },
                 child: const Text('Đăng nhập'),
@@ -237,38 +237,38 @@ class _UserScreenState extends State<UserScreen> {
                       borderRadius:
                           const BorderRadius.vertical(top: Radius.circular(24)),
                     ),
-                    child: Consumer<ThemeProvider>(
-                      builder: (context, themeProvider, child) {
-                        return const Column(
-                          children: [
-                            // ListTile(
-                            //   leading: Icon(Icons.palette, color: Theme.of(context).colorScheme.onSurface),
-                            //   title: Text('Theme', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
-                            //   trailing: DropdownButton<bool>(
-                            //     value: themeProvider.isDark,
-                            //     dropdownColor: Theme.of(context).colorScheme.surface,
-                            //     style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                            //     items: const [
-                            //       DropdownMenuItem(
-                            //         value: false,
-                            //         child: Text('Light Mode'),
-                            //       ),
-                            //       DropdownMenuItem(
-                            //         value: true,
-                            //         child: Text('Dark Mode'),
-                            //       ),
-                            //     ],
-                            //     onChanged: (bool? value) {
-                            //       if (value != null) {
-                            //         themeProvider.setTheme(value);
-                            //       }
-                            //     },
-                            //   ),
-                            // ),
-                          ],
-                        );
-                      },
-                    ),
+                    // child: Consumer<ThemeProvider>(
+                    //   builder: (context, themeProvider, child) {
+                    //     return Column(
+                    //       children: [
+                    //         // ListTile(
+                    //         //   leading: Icon(Icons.palette, color: Theme.of(context).colorScheme.onSurface),
+                    //         //   title: Text('Theme', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+                    //         //   trailing: DropdownButton<bool>(
+                    //         //     value: themeProvider.isDark,
+                    //         //     dropdownColor: Theme.of(context).colorScheme.surface,
+                    //         //     style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                    //         //     items: const [
+                    //         //       DropdownMenuItem(
+                    //         //         value: false,
+                    //         //         child: Text('Light Mode'),
+                    //         //       ),
+                    //         //       DropdownMenuItem(
+                    //         //         value: true,
+                    //         //         child: Text('Dark Mode'),
+                    //         //       ),
+                    //         //     ],
+                    //         //     onChanged: (bool? value) {
+                    //         //       if (value != null) {
+                    //         //         themeProvider.setTheme(value);
+                    //         //       }
+                    //         //     },
+                    //         //   ),
+                    //         // ),
+                    //       ],
+                    //     );
+                    //   },
+                    // ),
                   ),
                 ),
               ],

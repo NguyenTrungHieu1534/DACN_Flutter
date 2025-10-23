@@ -15,9 +15,12 @@ import '../screens/library_screen.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import '../models/ThemeProvider.dart';
+import 'package:just_audio_background/just_audio_background.dart';
+import 'navigation/custom_page_route.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:audio_service/audio_service.dart';
 import '../models/audio_handler.dart';
+import '../screens/login_screen.dart';
 
 Future<void> main() async {
   late final AudioHandler audioHandler;
@@ -25,10 +28,10 @@ Future<void> main() async {
   audioHandler = await AudioService.init(
     builder: () => MyAudioHandler(),
     config: const AudioServiceConfig(
-  androidNotificationChannelId: 'com.example.app.channel.audio',
-  androidNotificationChannelName: 'Wave Music',
-  androidShowNotificationBadge: true,
-  androidNotificationIcon: 'mipmap/ic_launcher', // Icon app
+      androidNotificationChannelId: 'com.example.app.channel.audio',
+      androidNotificationChannelName: 'Wave Music',
+      androidShowNotificationBadge: true,
+      androidNotificationIcon: 'mipmap/ic_launcher', // Icon app
     ),
   );
   final session = await AudioSession.instance;
@@ -37,7 +40,7 @@ Future<void> main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => AudioPlayerProvider(audioHandler : audioHandler),
+          create: (_) => AudioPlayerProvider(audioHandler: audioHandler),
         ),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
@@ -67,10 +70,10 @@ class WaveMusicApp extends StatelessWidget {
       home: const MainNavigation(),
       routes: {
         '/home': (context) => const MainNavigation(),
+        '/login': (context) => const LoginScreen(),
         '/forgotPassword': (context) => const ForgotPasswordScreen(),
-        '/verifyOTP': (context) => const VerifyOtpScreen(email: ''),
-        '/resetPassword': (context) =>
-            const ResetPasswordScreen(email: '', otp: ''),
+         '/verifyOTP': (context) => const VerifyOtpScreen(email: ''),
+         '/resetPassword': (context) => const ResetPasswordScreen(email: '', otp: ''),
       },
     );
   }
@@ -86,13 +89,40 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation>
     with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
-  final _screens = const [
+
+  final List<GlobalKey<NavigatorState>> _navigatorKeys = [
+    GlobalKey<NavigatorState>(),
+    GlobalKey<NavigatorState>(),
+    GlobalKey<NavigatorState>(),
+    GlobalKey<NavigatorState>(),
+  ];
+
+  final List<Widget> _rootScreens = const [
     HomeScreen(),
     SearchScreen(),
     LibraryScreen(),
     UserScreen(),
-    FavScreen(),
   ];
+
+  // Khai báo danh sách các widget Navigator để tái sử dụng
+  late final List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    // Khởi tạo danh sách các widget Navigator một lần duy nhất
+    _screens = List.generate(
+      _rootScreens.length,
+      (index) => Navigator(
+        key: _navigatorKeys[index],
+        onGenerateRoute: (routeSettings) => FadePageRoute(
+          child: _rootScreens[index],
+          settings: routeSettings,
+        ),
+      ),
+    );
+  }
+
   Stream<bool> get connectionStream async* {
     yield* Connectivity().onConnectivityChanged.asyncMap((status) async {
       if (status == ConnectivityResult.none) return false;
@@ -107,39 +137,50 @@ class _MainNavigationState extends State<MainNavigation>
       builder: (context, snapshot) {
         final hasInternet = snapshot.data ?? true;
 
-        return Stack(
-          children: [
-            Scaffold(
-              extendBody: true,
-              body: IndexedStack(
-                index: _currentIndex,
-                children: _screens,
-              ),
-              bottomNavigationBar: BuildNaviBot(
-                currentIndex: _currentIndex,
-                hasInternet: hasInternet,
-                onRetry: () async {
-                  final ok = await InternetConnectionChecker().hasConnection;
-                  if (!mounted) return;
-                  final messenger = ScaffoldMessenger.of(context);
-                  // Remove any existing snackbars to avoid stacking
-                  messenger.clearSnackBars();
-                  messenger.showSnackBar(
-                    SnackBar(
-                      content: Text(ok ? 'Đã kết nối' : 'Vẫn mất kết nối'),
-                      duration: const Duration(seconds: 2),
-                      behavior: SnackBarBehavior.floating,
-                      backgroundColor:
-                          ok ? Colors.greenAccent.shade700 : Colors.redAccent,
-                    ),
-                  );
-                },
-                onItemSelected: (index) {
-                  setState(() => _currentIndex = index);
-                },
-              ),
+        return PopScope(
+          canPop: false,
+          onPopInvoked: (didPop) async {
+            if (didPop) return;
+            final navigator = _navigatorKeys[_currentIndex].currentState!;
+            if (navigator.canPop()) {
+              navigator.pop();
+            }
+          },
+          child: Scaffold(
+            extendBody: true,
+            body: IndexedStack(
+              index: _currentIndex,
+              children: _screens, // Sử dụng danh sách đã được khởi tạo
             ),
-          ],
+            bottomNavigationBar: BuildNaviBot(
+              currentIndex: _currentIndex,
+              hasInternet: hasInternet,
+              onRetry: () async {
+                final ok = await InternetConnectionChecker().hasConnection;
+                if (!mounted) return;
+                final messenger = ScaffoldMessenger.of(context);
+                messenger.clearSnackBars();
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(ok ? 'Đã kết nối' : 'Vẫn mất kết nối'),
+                    duration: const Duration(seconds: 2),
+                    behavior: SnackBarBehavior.floating,
+                    backgroundColor:
+                        ok ? Colors.greenAccent.shade700 : Colors.redAccent,
+                  ),
+                );
+              },
+              onItemSelected: (index) {
+                if (_currentIndex == index) {
+                  _navigatorKeys[index]
+                      .currentState
+                      ?.popUntil((route) => route.isFirst);
+                } else {
+                  setState(() => _currentIndex = index);
+                }
+              },
+            ),
+          ),
         );
       },
     );

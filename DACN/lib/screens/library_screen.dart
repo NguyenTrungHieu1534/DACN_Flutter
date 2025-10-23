@@ -11,6 +11,14 @@ import '../models/favSongs.dart';
 import '../services/api_history.dart';
 import '../models/history.dart';
 import 'package:music_login/screens/playlist_detail_screen.dart';
+import '../widgets/library_quick_action.dart';
+import '../widgets/library_section_header.dart';
+import '../widgets/playlist_preview_grid.dart';
+import '../widgets/playlist_preview_list.dart';
+import '../widgets/favorites_preview_list.dart';
+import '../widgets/history_preview_list.dart';
+import '../navigation/custom_page_route.dart';
+import '../widgets/library_empty_state.dart';
 
 class LibraryScreen extends StatefulWidget {
   const LibraryScreen({super.key});
@@ -170,7 +178,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
-                          _quickAction(
+                          LibraryQuickAction(
                             icon: Icons.music_note,
                             label: 'ALL',
                             color: AppColors.oceanBlue,
@@ -180,7 +188,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                             },
                           ),
                           const SizedBox(width: 10),
-                          _quickAction(
+                          LibraryQuickAction(
                             icon: Icons.favorite,
                             label: 'Liked',
                             color: AppColors.oceanBlue,
@@ -190,7 +198,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                             },
                           ),
                           const SizedBox(width: 10),
-                          _quickAction(
+                          LibraryQuickAction(
                             icon: Icons.history,
                             label: 'History',
                             color: AppColors.skyBlue,
@@ -200,7 +208,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                             },
                           ),
                           const SizedBox(width: 10),
-                          _quickAction(
+                          LibraryQuickAction(
                             icon: Icons.playlist_add,
                             label: 'Playlists',
                             color: AppColors.oceanDeep,
@@ -247,247 +255,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
     );
   }
 
-  Widget _quickAction({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-    required bool isSelected,
-  }) {
-    return SizedBox(
-      width: 120,
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          height: 64,
-          decoration: BoxDecoration(
-            color: isSelected
-                ? color.withOpacity(0.1)
-                : Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: isSelected ? color : AppColors.oceanBlue.withOpacity(0.15),
-              width: isSelected ? 2 : 1,
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, size: 18, color: color),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: TextStyle(
-                  color: Theme.of(context).textTheme.bodyLarge?.color,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _collectionCard({required String title, required String subtitle}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.oceanBlue.withOpacity(0.12)),
-      ),
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.skyBlue.withOpacity(0.25),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Center(
-                child: Icon(Icons.album, size: 36, color: AppColors.oceanBlue),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: Theme.of(context).textTheme.bodyLarge?.color,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          Text(
-            subtitle,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-                color: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.color
-                    ?.withOpacity(0.7),
-                fontSize: 12),
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title, String type, VoidCallback onSeeAll) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              color: Theme.of(context).textTheme.headlineSmall?.color,
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          TextButton(
-            onPressed: onSeeAll,
-            child: const Text(
-              'See all',
-              style: TextStyle(
-                color: AppColors.oceanBlue,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPreviewGrid(List<Playlist> playlists,
-      {required Function(Playlist) onTapPlaylist}) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 1,
-      ),
-      itemCount: playlists.length,
-      itemBuilder: (context, index) {
-        final playlist = playlists[index];
-        return GestureDetector(
-          onTap: () => onTapPlaylist(playlist),
-          child: Card(
-            elevation: 3,
-            shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  FadeInImage.assetNetwork(
-                  placeholder: 'assets/default_pic/default_playlistPic.png',
-                  image: playlist.picUrl,
-                    fit: BoxFit.cover,
-                    imageErrorBuilder: (_, __, ___) => Image.asset(
-                    'default_pic/default_playlistPic.png',
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  Container(
-                    color: Colors.black.withOpacity(0.35),
-                ),
-                Positioned(
-                  bottom: 8,
-                  left: 8,
-                  right: 8,
-                  child: Text(
-                    playlist.name,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Positioned(
-                  top: 4,
-                  right: 4,
-                  child: _buildPlaylistMenu(playlist),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-      },
-    );
-  }
-
-  Widget _buildPreviewList(List<Playlist> playlists,
-      {required Function(Playlist) onTapPlaylist}) {
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: playlists.length,
-      itemBuilder: (context, index) {
-        final playlist = playlists[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 10),
-          child: ListTile(
-            leading: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: FadeInImage.assetNetwork(
-                placeholder: 'default_pic/default_playlistPic.png',
-                image: playlist.picUrl,
-                fit: BoxFit.cover,
-                width: 50,
-                height: 50,
-                imageErrorBuilder: (_, __, ___) => Image.asset(
-                  'default_pic/default_playlistPic.png',
-                  width: 50,
-                  height: 50,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            title: Text(
-              playlist.name,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Text(
-              '${playlist.songs.length} songs',
-              style: TextStyle(
-                  color: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.color
-                      ?.withOpacity(0.7)),
-            ),
-            trailing: _buildPlaylistMenu(playlist, useDarkIcon: false),
-            onTap: () => onTapPlaylist(playlist),
-          ),
-        );
-      },
-    );
-  }
-
   Widget _buildPlaylistMenu(Playlist playlist, {bool useDarkIcon = true}) {
     return PopupMenuButton<String>(
       icon: Icon(Icons.more_vert, color: useDarkIcon ? Colors.white : null),
@@ -517,118 +284,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
     );
   }
 
-  Widget _buildFavoritesList(List<FavoriteSong> favorites) {
-    if (favorites.isEmpty) {
-      return Center(
-        child: Text('No favorite songs yet',
-            style:
-                TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color)),
-      );
-    }
-
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: favorites.length,
-      itemBuilder: (context, index) {
-        final song = favorites[index];
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.oceanBlue.withOpacity(0.12)),
-          ),
-          child: ListTile(
-            leading: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.oceanBlue.withOpacity(0.15),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.favorite, color: AppColors.oceanBlue),
-            ),
-            title: Text(
-              song.title,
-              style: TextStyle(
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            subtitle: Text(
-              song.artist,
-              style: TextStyle(
-                  color: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.color
-                      ?.withOpacity(0.7)),
-            ),
-            trailing: Icon(Icons.chevron_right,
-                color: Theme.of(context).iconTheme.color),
-            onTap: () {}, // Navigate to song detail or start playing
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildHistoryList(List<HistorySong> history) {
-    if (history.isEmpty) {
-      return Center(
-        child: Text('No listening history yet',
-            style:
-                TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color)),
-      );
-    }
-
-    return Column(
-      children: history
-          .map((song) => Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(14),
-                  border:
-                      Border.all(color: AppColors.oceanBlue.withOpacity(0.12)),
-                ),
-                child: ListTile(
-                  leading: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: AppColors.oceanBlue.withOpacity(0.15),
-                      shape: BoxShape.circle,
-                    ),
-                    child:
-                        const Icon(Icons.history, color: AppColors.oceanBlue),
-                  ),
-                  title: Text(
-                    song.title,
-                    style: TextStyle(
-                      color: Theme.of(context).textTheme.bodyLarge?.color,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  subtitle: Text(
-                    '${song.artist} • ${_formatDate(song.playedAt)}',
-                    style: TextStyle(
-                        color: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
-                            ?.color
-                            ?.withOpacity(0.7)),
-                  ),
-                  trailing: Icon(Icons.chevron_right,
-                      color: Theme.of(context).iconTheme.color),
-                  onTap: () {},
-                ),
-              ))
-          .toList(),
-    );
-  }
-
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date);
@@ -644,52 +299,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
     }
   }
 
-  Widget _emptyStateCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.oceanBlue.withOpacity(0.12)),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'No collections yet',
-            style: TextStyle(
-              color: Theme.of(context).textTheme.bodyLarge?.color,
-              fontWeight: FontWeight.w700,
-              fontSize: 16,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Create your first playlist to get started.',
-            style: TextStyle(
-                color: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.color
-                    ?.withOpacity(0.7)),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 44,
-            child: ElevatedButton.icon(
-              onPressed: _showCreatePlaylistDialog,
-              icon: const Icon(Icons.playlist_add),
-              label: const Text('Create playlist'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildContent() {
     if (_playlists.isEmpty && _favorites.isEmpty && _history.isEmpty) {
-      return _emptyStateCard();
+      return LibraryEmptyState(onCreatePlaylist: _showCreatePlaylistDialog);
     }
 
     final List<Widget> content = [];
@@ -697,35 +309,32 @@ class _LibraryScreenState extends State<LibraryScreen> {
     // Playlists Section
     if (_activeFilter == 'All' || _activeFilter == 'Playlists') {
       content.addAll([
-        _buildSectionTitle('Playlists 🎵', 'Playlists', () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const PlaylistScreen()),
-          );
+        LibrarySectionHeader(title: 'Playlists 🎵', onSeeAll: () {
+          Navigator.push(context, FadePageRoute(child: const PlaylistScreen()));
         }),
         if (_playlists.isNotEmpty)
           _showAsGrid
-              ? _buildPreviewGrid(
+              ? PlaylistPreviewGrid(
                   _playlists.toList(),
+                  buildPlaylistMenu: (playlist) =>
+                      _buildPlaylistMenu(playlist, useDarkIcon: true),
                   onTapPlaylist: (playlist) {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            PlaylistDetailScreen(playlist: playlist),
-                      ),
+                      FadePageRoute(
+                          child: PlaylistDetailScreen(playlist: playlist)),
                     ).then((_) => _loadPlaylists());
                   },
                 )
-              : _buildPreviewList(
+              : PlaylistPreviewList(
                   _playlists.take(4).toList(),
+                  buildPlaylistMenu: (playlist) =>
+                      _buildPlaylistMenu(playlist, useDarkIcon: false),
                   onTapPlaylist: (playlist) {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            PlaylistDetailScreen(playlist: playlist),
-                      ),
+                      FadePageRoute(
+                          child: PlaylistDetailScreen(playlist: playlist)),
                     ).then((_) => _loadPlaylists());
                   },
                 ),
@@ -736,13 +345,19 @@ class _LibraryScreenState extends State<LibraryScreen> {
     // Favorites Section
     if (_activeFilter == 'All' || _activeFilter == 'Liked') {
       content.addAll([
-        _buildSectionTitle('Bài hát yêu thích ❤️', 'Liked', () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const FavScreen()),
-          );
-        }),
-        _buildFavoritesList(_favorites.take(3).toList()),
+        LibrarySectionHeader(
+            title: 'Bài hát yêu thích ❤️',
+            onSeeAll: () =>
+                Navigator.push(context, FadePageRoute(child: const FavScreen()))),
+        FavoritesPreviewList(
+          favorites: _favorites.take(3).toList(),
+          onDelete: (song) async {
+            final result = await _favService.deleteFavoriteById(song.id.toString());
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)));
+            }
+            _loadFavorites();
+          },),
         if (_activeFilter == 'All') const SizedBox(height: 1),
       ]);
     }
@@ -750,13 +365,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
     // History Section
     if (_activeFilter == 'All' || _activeFilter == 'History') {
       content.addAll([
-        _buildSectionTitle('Lịch sử nghe gần đây 🕒', 'History', () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const HistoryScreen()),
-          );
-        }),
-        _buildHistoryList(_history.take(3).toList()),
+        LibrarySectionHeader(
+            title: 'Lịch sử nghe gần đây 🕒',
+            onSeeAll: () => Navigator.push(
+                context, FadePageRoute(child: const HistoryScreen()))),
+        HistoryPreviewList(
+            history: _history.take(3).toList(), formatDate: _formatDate),
       ]);
     }
 
