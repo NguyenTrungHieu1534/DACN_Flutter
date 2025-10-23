@@ -16,6 +16,7 @@ import '../models/playlist.dart' as playlist_model;
 import 'artist_detail_screen.dart';
 import '../navigation/custom_page_route.dart';
 import '../screens/login_screen.dart';
+
 class AlbumDetailScreen extends StatefulWidget {
   final String albumName;
   final String albumImage;
@@ -75,8 +76,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
             title: Text(
               'Thêm vào Playlist',
               style: TextStyle(
-                color: Theme.of(context).textTheme.titleLarge?.color
-              ),
+                  color: Theme.of(context).textTheme.titleLarge?.color),
             ),
             content: SizedBox(
               width: double.maxFinite,
@@ -146,31 +146,27 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
         backgroundColor: Theme.of(context).dialogBackgroundColor,
         title: Text(
           'Tạo Playlist Mới',
-          style: TextStyle(
-            color: Theme.of(context).textTheme.titleLarge?.color
-          ),
+          style:
+              TextStyle(color: Theme.of(context).textTheme.titleLarge?.color),
         ),
         content: TextField(
           controller: nameController,
           decoration: InputDecoration(
             hintText: "Tên playlist",
             hintStyle: TextStyle(
-              color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6)
-            ),
+                color: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.color
+                    ?.withOpacity(0.6)),
             enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(
-                color: Theme.of(context).dividerColor
-              ),
+              borderSide: BorderSide(color: Theme.of(context).dividerColor),
             ),
             focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(
-                color: Theme.of(context).primaryColor
-              ),
+              borderSide: BorderSide(color: Theme.of(context).primaryColor),
             ),
           ),
-          style: TextStyle(
-            color: Theme.of(context).textTheme.bodyLarge?.color
-          ),
+          style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
         ),
         actions: [
           TextButton(
@@ -229,9 +225,10 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                         child: Text(
                           widget.albumName,
                           style: TextStyle(
-                            color: Theme.of(context).brightness == Brightness.dark 
-                              ? Colors.white 
-                              : Colors.black87,
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white
+                                    : Colors.black87,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
@@ -249,15 +246,16 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                               gradient: LinearGradient(
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
-                                colors: Theme.of(context).brightness == Brightness.dark 
-                                  ? [
-                                      Colors.black.withOpacity(0.5),
-                                      Colors.black.withOpacity(0.8),
-                                    ]
-                                  : [
-                                      Colors.black.withOpacity(0.2),
-                                      Colors.black.withOpacity(0.5),
-                                    ],
+                                colors: Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? [
+                                        Colors.black.withOpacity(0.5),
+                                        Colors.black.withOpacity(0.8),
+                                      ]
+                                    : [
+                                        Colors.black.withOpacity(0.2),
+                                        Colors.black.withOpacity(0.5),
+                                      ],
                               ),
                             ),
                           ),
@@ -377,9 +375,8 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                   return Center(
                     child: Text(
                       'Lỗi: ${snapshot.error}',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error
-                      ),
+                      style:
+                          TextStyle(color: Theme.of(context).colorScheme.error),
                     ),
                   );
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -387,7 +384,11 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                     child: Text(
                       'Không có bài hát trong album này 😢',
                       style: TextStyle(
-                        color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6),
+                        color: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.color
+                            ?.withOpacity(0.6),
                         fontSize: 16,
                       ),
                     ),
@@ -412,9 +413,10 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: Theme.of(context).brightness == Brightness.dark
-                                ? Colors.black.withOpacity(0.2)
-                                : AppColors.oceanBlue.withOpacity(0.08),
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.black.withOpacity(0.2)
+                                    : AppColors.oceanBlue.withOpacity(0.08),
                             blurRadius: 8,
                             offset: const Offset(0, 3),
                           ),
@@ -467,8 +469,12 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
-                                          color: Theme.of(context).brightness == Brightness.dark
-                                              ? Theme.of(context).textTheme.titleLarge?.color
+                                          color: Theme.of(context).brightness ==
+                                                  Brightness.dark
+                                              ? Theme.of(context)
+                                                  .textTheme
+                                                  .titleLarge
+                                                  ?.color
                                               : AppColors.oceanDeep,
                                         ),
                                         maxLines: 1,
@@ -488,7 +494,9 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                           song.artist,
                                           style: TextStyle(
                                             fontSize: 13,
-                                            color: Theme.of(context).brightness == Brightness.dark
+                                            color: Theme.of(context)
+                                                        .brightness ==
+                                                    Brightness.dark
                                                 ? Theme.of(context).primaryColor
                                                 : AppColors.skyBlue,
                                             fontWeight: FontWeight.w600,
@@ -502,12 +510,14 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(16),
                                   ),
-                                  color: Theme.of(context).brightness == Brightness.dark
+                                  color: Theme.of(context).brightness ==
+                                          Brightness.dark
                                       ? Theme.of(context).cardColor
                                       : Colors.white,
                                   icon: Icon(
                                     Icons.more_vert_rounded,
-                                    color: Theme.of(context).brightness == Brightness.dark
+                                    color: Theme.of(context).brightness ==
+                                            Brightness.dark
                                         ? Theme.of(context).primaryColor
                                         : AppColors.skyBlue,
                                   ),
@@ -529,8 +539,11 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                       Future.delayed(const Duration(seconds: 1),
                                           () {
                                         // Navigator.pushNamed(context, '/login');
-                                        // hoặc: 
-                                        Navigator.push(context, MaterialPageRoute(builder: (_) => LoginScreen()));
+                                        // hoặc:
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (_) => LoginScreen()));
                                       });
                                       return;
                                     }
@@ -561,8 +574,10 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                           Text(
                                             'Thêm vào yêu thích',
                                             style: TextStyle(
-                                              color: Theme.of(context).textTheme.bodyLarge?.color
-                                            ),
+                                                color: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyLarge
+                                                    ?.color),
                                           ),
                                         ],
                                       ),
@@ -572,15 +587,20 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                       child: Row(
                                         children: [
                                           Icon(Icons.playlist_add,
-                                              color: Theme.of(context).brightness == Brightness.dark
-                                                  ? Theme.of(context).primaryColor
+                                              color: Theme.of(context)
+                                                          .brightness ==
+                                                      Brightness.dark
+                                                  ? Theme.of(context)
+                                                      .primaryColor
                                                   : AppColors.oceanBlue),
                                           const SizedBox(width: 10),
                                           Text(
                                             'Thêm vào playlist khác',
                                             style: TextStyle(
-                                              color: Theme.of(context).textTheme.bodyLarge?.color
-                                            ),
+                                                color: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyLarge
+                                                    ?.color),
                                           ),
                                         ],
                                       ),
@@ -594,110 +614,6 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                       ),
                     );
                   },
-                );
-              },
-            ),
-          ),
-
-          /// 🎵 Mini Player ở cuối trang (giống nav)
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Consumer<AudioPlayerProvider>(
-              builder: (context, audioPlayerProvider, child) {
-                final currentPlaying = audioPlayerProvider.currentPlaying;
-                final isPlaying = audioPlayerProvider.isPlaying;
-
-                if (currentPlaying == null) return const SizedBox.shrink();
-
-                return Padding(
-                  padding:
-                      const EdgeInsets.only(left: 40, right: 40, bottom: 16),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(30),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.black.withOpacity(0.5)
-                              : Colors.white.withOpacity(0.35),
-                          borderRadius: BorderRadius.circular(30),
-                          border: Border.all(
-                            color: Theme.of(context).brightness == Brightness.dark
-                                ? Colors.white.withOpacity(0.1)
-                                : Colors.white.withOpacity(0.3)
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Theme.of(context).brightness == Brightness.dark
-                                  ? Colors.black.withOpacity(0.3)
-                                  : Colors.black.withOpacity(0.25),
-                              blurRadius: 8,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        PlayerScreen(song: currentPlaying),
-                                  ),
-                                );
-                              },
-                              child: Row(
-                                children: [
-                                  RotationTransition(
-                                    turns: (_rotationController.isAnimating)
-                                        ? _rotationController
-                                        : const AlwaysStoppedAnimation(0),
-                                    child: CircleAvatar(
-                                      backgroundImage: NetworkImage(
-                                          currentPlaying.thumbnail),
-                                      radius: 20,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  SizedBox(
-                                    width:
-                                        MediaQuery.of(context).size.width * 0.5,
-                                    child: autoTextScroller(
-                                      currentPlaying.title,
-                                      TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Theme.of(context).brightness == Brightness.dark
-                                              ? Colors.white
-                                              : Colors.black87),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            IconButton(
-                              icon: Icon(
-                                isPlaying
-                                    ? Icons.pause_rounded
-                                    : Icons.play_arrow_rounded,
-                                color: Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.white
-                                    : Colors.black87,
-                              ),
-                              onPressed: () {
-                                audioPlayerProvider.togglePlayPause();
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
                 );
               },
             ),

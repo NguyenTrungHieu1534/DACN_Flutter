@@ -44,12 +44,11 @@ class _HomeScreenState extends State<HomeScreen> {
           gradient: isDark
               ? const LinearGradient(
                   begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
+                  end: Alignment.bottomRight,
                   colors: [
-                    Color(0xFF0D1117),
-                    Color(0xFF161B22),
+                    Color(0xFF1A2332), // Xanh navy đậm
+                    Color(0xFF1F1A33), // Tím than
                   ],
-                  stops: [0.0, 1.0],
                 )
               : const LinearGradient(
                   begin: Alignment.topCenter,
@@ -169,7 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       height: 42,
                       child: ListView(
                         scrollDirection: Axis.horizontal,
-                      children: const [
+                        children: const [
                           _QuickChip(
                               label: 'Liked Songs', icon: Icons.favorite),
                           SizedBox(width: 8),

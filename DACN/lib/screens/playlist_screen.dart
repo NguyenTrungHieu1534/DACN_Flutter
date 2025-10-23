@@ -45,9 +45,10 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
         decoration: BoxDecoration(
           gradient: Theme.of(context).brightness == Brightness.dark
               ? const LinearGradient(
+                  // Đồng bộ gradient với HomeScreen
                   begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFF0D1117), Color(0xFF161B22)],
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF1A2332), Color(0xFF1F1A33)],
                 )
               : const LinearGradient(
                   begin: Alignment.topCenter,
@@ -86,7 +87,8 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
               itemCount: playlists.length,
               itemBuilder: (context, index) {
                 final playlist = playlists[index];
-                final color = Colors.primaries[index % Colors.primaries.length].shade200;
+                final color =
+                    Colors.primaries[index % Colors.primaries.length].shade200;
 
                 return Container(
                   margin: const EdgeInsets.only(bottom: 12),
@@ -102,7 +104,8 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
                     ],
                   ),
                   child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     title: Text(
                       playlist.name,
                       style: TextStyle(
@@ -114,7 +117,10 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
                     subtitle: Text(
                       "${playlist.songs.length} bài hát",
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.7),
                       ),
                     ),
                     trailing: Icon(

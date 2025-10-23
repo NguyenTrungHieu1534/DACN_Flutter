@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/album.dart';
 import '../screens/album_detail_screen.dart';
 import 'shimmer_widgets.dart';
+import '../navigation/custom_page_route.dart'; // Import custom page routes
 
 class TrendingAlbum extends StatelessWidget {
   final String title;
@@ -30,10 +31,13 @@ class TrendingAlbum extends StatelessWidget {
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
-                      children: List.generate(4, (index) => Padding(
-                        padding: const EdgeInsets.only(right: 280),
-                        child: ShimmerWidgets.trendingAlbumCardShimmer(),
-                      )),
+                      children: List.generate(
+                          4,
+                          (index) => Padding(
+                                padding: const EdgeInsets.only(right: 280),
+                                child:
+                                    ShimmerWidgets.trendingAlbumCardShimmer(),
+                              )),
                     ),
                   )
                 : SingleChildScrollView(
@@ -52,7 +56,8 @@ class TrendingAlbum extends StatelessWidget {
                           stackedAlbums.add(
                             Positioned(
                               left: i * spacing,
-                              child: _buildAlbumCard(context, itemsAlbum[i], i + 1),
+                              child: _buildAlbumCard(
+                                  context, itemsAlbum[i], i + 1),
                             ),
                           );
                         }
@@ -126,14 +131,11 @@ class TrendingAlbum extends StatelessWidget {
           borderRadius: BorderRadius.circular(22),
           onTap: () {
             Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => AlbumDetailScreen(
-                  albumName: album.name,
-                  albumImage: album.url, // ✅ Truyền thêm ảnh album
-                ),
-              ),
-            );
+                context, // Sử dụng hiệu ứng ScaleFadePageRoute
+                ScaleFadePageRoute(
+                  child: AlbumDetailScreen(
+                      albumName: album.name, albumImage: album.url),
+                ));
           },
           child: Container(
             width: 240,
@@ -207,7 +209,10 @@ class TrendingAlbum extends StatelessWidget {
                     style: TextStyle(
                       fontFamily: 'PressStart2P',
                       fontSize: 10,
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withOpacity(0.7),
                       height: 1.6,
                     ),
                     textAlign: TextAlign.center,
