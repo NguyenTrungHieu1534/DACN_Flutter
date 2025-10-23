@@ -28,4 +28,39 @@ class SongService {
       throw Exception('Lỗi server!');
     }
   }
+  Future<Map<String, dynamic>?> fetchLyrics({
+  required String songId,
+  required String artist,
+  required String title,
+}) async {
+  final url = Uri.parse("http://<YOUR_SERVER_IP>:<PORT>/api/lyrics");
+
+  try {
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        "_id": songId,
+        "artist": artist,
+        "title": title,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      return {
+        "id": data["_id"],
+        "title": data["title"],
+        "artist": data["artist"],
+        "lyrics": data["lyrics"],
+        "cached": data["cached"] ?? false,
+      };
+    } else {
+      return null;
+    }
+  } catch (e) {
+    return null;
+  }
+}
 }
