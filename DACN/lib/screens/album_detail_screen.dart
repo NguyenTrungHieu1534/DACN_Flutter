@@ -71,7 +71,13 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: const Text('Thêm vào Playlist'),
+            backgroundColor: Theme.of(context).dialogBackgroundColor,
+            title: Text(
+              'Thêm vào Playlist',
+              style: TextStyle(
+                color: Theme.of(context).textTheme.titleLarge?.color
+              ),
+            ),
             content: SizedBox(
               width: double.maxFinite,
               child: Column(
@@ -137,10 +143,34 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
     final newPlaylistName = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Tạo Playlist Mới'),
+        backgroundColor: Theme.of(context).dialogBackgroundColor,
+        title: Text(
+          'Tạo Playlist Mới',
+          style: TextStyle(
+            color: Theme.of(context).textTheme.titleLarge?.color
+          ),
+        ),
         content: TextField(
           controller: nameController,
-          decoration: const InputDecoration(hintText: "Tên playlist"),
+          decoration: InputDecoration(
+            hintText: "Tên playlist",
+            hintStyle: TextStyle(
+              color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6)
+            ),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(
+                color: Theme.of(context).dividerColor
+              ),
+            ),
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(
+                color: Theme.of(context).primaryColor
+              ),
+            ),
+          ),
+          style: TextStyle(
+            color: Theme.of(context).textTheme.bodyLarge?.color
+          ),
         ),
         actions: [
           TextButton(
@@ -176,7 +206,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.mist,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
           NestedScrollView(
@@ -185,7 +215,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                 automaticallyImplyLeading: false,
                 expandedHeight: 300,
                 pinned: true,
-                backgroundColor: AppColors.mist,
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                 elevation: 0,
                 flexibleSpace: LayoutBuilder(
                   builder: (context, constraints) {
@@ -198,8 +228,10 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                         duration: const Duration(milliseconds: 200),
                         child: Text(
                           widget.albumName,
-                          style: const TextStyle(
-                            color: Colors.black87,
+                          style: TextStyle(
+                            color: Theme.of(context).brightness == Brightness.dark 
+                              ? Colors.white 
+                              : Colors.black87,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
@@ -217,10 +249,15 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                               gradient: LinearGradient(
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.black.withOpacity(0.2),
-                                  Colors.black.withOpacity(0.5),
-                                ],
+                                colors: Theme.of(context).brightness == Brightness.dark 
+                                  ? [
+                                      Colors.black.withOpacity(0.5),
+                                      Colors.black.withOpacity(0.8),
+                                    ]
+                                  : [
+                                      Colors.black.withOpacity(0.2),
+                                      Colors.black.withOpacity(0.5),
+                                    ],
                               ),
                             ),
                           ),
@@ -340,15 +377,17 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                   return Center(
                     child: Text(
                       'Lỗi: ${snapshot.error}',
-                      style: const TextStyle(color: Colors.redAccent),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error
+                      ),
                     ),
                   );
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: Text(
                       'Không có bài hát trong album này 😢',
                       style: TextStyle(
-                        color: Colors.grey,
+                        color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6),
                         fontSize: 16,
                       ),
                     ),
@@ -367,11 +406,15 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                       duration: const Duration(milliseconds: 300),
                       margin: const EdgeInsets.only(bottom: 14),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.8),
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Theme.of(context).cardColor.withOpacity(0.9)
+                            : Colors.white.withOpacity(0.8),
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.oceanBlue.withOpacity(0.08),
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.black.withOpacity(0.2)
+                                : AppColors.oceanBlue.withOpacity(0.08),
                             blurRadius: 8,
                             offset: const Offset(0, 3),
                           ),
@@ -421,10 +464,12 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                     children: [
                                       Text(
                                         song.title,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
-                                          color: AppColors.oceanDeep,
+                                          color: Theme.of(context).brightness == Brightness.dark
+                                              ? Theme.of(context).textTheme.titleLarge?.color
+                                              : AppColors.oceanDeep,
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
@@ -441,9 +486,11 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                         },
                                         child: Text(
                                           song.artist,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 13,
-                                            color: AppColors.skyBlue,
+                                            color: Theme.of(context).brightness == Brightness.dark
+                                                ? Theme.of(context).primaryColor
+                                                : AppColors.skyBlue,
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
@@ -455,10 +502,14 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(16),
                                   ),
-                                  color: Colors.white,
-                                  icon: const Icon(
+                                  color: Theme.of(context).brightness == Brightness.dark
+                                      ? Theme.of(context).cardColor
+                                      : Colors.white,
+                                  icon: Icon(
                                     Icons.more_vert_rounded,
-                                    color: AppColors.skyBlue,
+                                    color: Theme.of(context).brightness == Brightness.dark
+                                        ? Theme.of(context).primaryColor
+                                        : AppColors.skyBlue,
                                   ),
                                   onSelected: (value) async {
                                     final prefs =
@@ -500,25 +551,37 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                     }
                                   },
                                   itemBuilder: (context) => [
-                                    const PopupMenuItem(
+                                    PopupMenuItem(
                                       value: 'favorite',
                                       child: Row(
                                         children: [
-                                          Icon(Icons.favorite_border,
+                                          const Icon(Icons.favorite_border,
                                               color: Colors.redAccent),
-                                          SizedBox(width: 10),
-                                          Text('Thêm vào yêu thích'),
+                                          const SizedBox(width: 10),
+                                          Text(
+                                            'Thêm vào yêu thích',
+                                            style: TextStyle(
+                                              color: Theme.of(context).textTheme.bodyLarge?.color
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
-                                    const PopupMenuItem(
+                                    PopupMenuItem(
                                       value: 'playlist',
                                       child: Row(
                                         children: [
                                           Icon(Icons.playlist_add,
-                                              color: AppColors.oceanBlue),
-                                          SizedBox(width: 10),
-                                          Text('Thêm vào playlist khác'),
+                                              color: Theme.of(context).brightness == Brightness.dark
+                                                  ? Theme.of(context).primaryColor
+                                                  : AppColors.oceanBlue),
+                                          const SizedBox(width: 10),
+                                          Text(
+                                            'Thêm vào playlist khác',
+                                            style: TextStyle(
+                                              color: Theme.of(context).textTheme.bodyLarge?.color
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -557,13 +620,20 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.35),
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.black.withOpacity(0.5)
+                              : Colors.white.withOpacity(0.35),
                           borderRadius: BorderRadius.circular(30),
-                          border:
-                              Border.all(color: Colors.white.withOpacity(0.3)),
+                          border: Border.all(
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white.withOpacity(0.1)
+                                : Colors.white.withOpacity(0.3)
+                          ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.25),
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.black.withOpacity(0.3)
+                                  : Colors.black.withOpacity(0.25),
                               blurRadius: 8,
                               offset: const Offset(0, 3),
                             ),
@@ -599,9 +669,12 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                         MediaQuery.of(context).size.width * 0.5,
                                     child: autoTextScroller(
                                       currentPlaying.title,
-                                      const TextStyle(
+                                      TextStyle(
                                           fontSize: 16,
-                                          fontWeight: FontWeight.bold),
+                                          fontWeight: FontWeight.bold,
+                                          color: Theme.of(context).brightness == Brightness.dark
+                                              ? Colors.white
+                                              : Colors.black87),
                                     ),
                                   ),
                                 ],
@@ -612,7 +685,9 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                 isPlaying
                                     ? Icons.pause_rounded
                                     : Icons.play_arrow_rounded,
-                                color: Colors.black87,
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white
+                                    : Colors.black87,
                               ),
                               onPressed: () {
                                 audioPlayerProvider.togglePlayPause();
