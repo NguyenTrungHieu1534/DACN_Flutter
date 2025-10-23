@@ -6,6 +6,7 @@ class Songs {
   final String url;
   String thumbnail;
   final String mp3Url;
+  final String lyric;
 
   Songs({
     required this.id,
@@ -15,6 +16,7 @@ class Songs {
     required this.url,
     required this.thumbnail,
     required this.mp3Url,
+    this.lyric = '',
   });
 
   factory Songs.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class Songs {
       url: json['url'] ?? '',
       thumbnail: json['thumbnail'] ?? '',
       mp3Url: json['mp3Url'] ?? '',
+      lyric: json['lyric'] ?? 'Nah lyric',
     );
   }
   // @override
