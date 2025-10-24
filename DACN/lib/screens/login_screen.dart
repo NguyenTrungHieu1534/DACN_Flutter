@@ -13,7 +13,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _identifierController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final UserService _api = UserService();
 
@@ -29,7 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _identifierController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -41,7 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
       _errorMessage = null;
     });
     try {
-      final identifier = _emailController.text.trim();
+      final identifier = _identifierController.text.trim();
       final password = _passwordController.text;
       await _api.login(identifier: identifier, password: password);
       if (!mounted) return;
@@ -187,15 +187,22 @@ class _LoginScreenState extends State<LoginScreen> {
                                 .textTheme
                                 .headlineMedium
                                 ?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurface,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                   fontWeight: FontWeight.w800,
                                 ),
                           ),
                           const SizedBox(height: 6),
                           Text(
                             'Please sign in to continue.',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withOpacity(0.7),
                                   fontWeight: FontWeight.w500,
                                 ),
                           ),
@@ -207,7 +214,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     Card(
                       color: Theme.of(context).colorScheme.surface,
                       elevation: 6,
-                      shadowColor: const Color.fromARGB(255, 112, 150, 193).withOpacity(0.25),
+                      shadowColor: const Color.fromARGB(255, 112, 150, 193)
+                          .withOpacity(0.25),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20)),
                       child: Padding(
@@ -217,20 +225,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Column(
                             children: [
                               TextFormField(
-                                controller: _emailController,
-                                keyboardType: TextInputType.emailAddress,
+                                controller: _identifierController,
                                 decoration: const InputDecoration(
-                                  labelText: 'Email',
-                                  prefixIcon: Icon(Icons.email_outlined),
+                                  labelText: 'Email or Username',
+                                  prefixIcon: Icon(Icons.person_outline),
                                 ),
                                 validator: (value) {
                                   if (value == null || value.trim().isEmpty) {
-                                    return 'Enter your email';
-                                  }
-                                  final email =
-                                      RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
-                                  if (!email.hasMatch(value.trim())) {
-                                    return 'Invalid email';
+                                    return 'Nhập email hoặc username';
                                   }
                                   return null;
                                 },
