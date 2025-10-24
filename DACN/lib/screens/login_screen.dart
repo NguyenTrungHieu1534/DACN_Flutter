@@ -45,7 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final password = _passwordController.text;
       await _api.login(identifier: identifier, password: password);
       if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushNamedAndRemoveUntil(context, '/home',(Route<dynamic> route) => false,);
     } catch (e) {
       if (!mounted) return;
       setState(() {

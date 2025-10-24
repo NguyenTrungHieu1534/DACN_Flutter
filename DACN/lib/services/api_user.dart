@@ -9,6 +9,11 @@ class UserService {
   final http.Client _client;
   static const String baseApiUrl = 'https://backend-dacn-9l4w.onrender.com';
   // static const String baseHealthUrl =
+
+  Future<String?> _getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('token');
+  }
   //     'https://backend-dacn-9l4w.onrender.com/health';
 
   // // ------------------------- HEALTH CHECK -------------------------
@@ -61,7 +66,6 @@ class UserService {
     }
   }
 
-  // ------------------------- LOGIN -------------------------
   Future<LoginResponse> login({
     required String identifier,
     required String password,
@@ -96,7 +100,6 @@ class UserService {
     throw Exception(errorMessage);
   }
 
-  // ------------------------- FORGOT PASSWORD -------------------------
   Future<Map<String, dynamic>> sendForgotPasswordOtp({
     required String username,
     required String email,
@@ -194,6 +197,100 @@ class UserService {
       }
     } catch (e) {
       return {"error": "Exception", "details": e.toString()};
+    }
+  }
+
+  Future<void> updatePassword(
+      String email, String newPassword, String oldPassword) async {
+    if (newPassword.toLowerCase().toString() ==
+        oldPassword.toLowerCase().toString()) {
+      return;
+    }
+    final uri = Uri.parse('$baseApiUrl/api/update-password');
+    final response = await http.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email, 'password': newPassword}),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      print(data['message']);
+    } else {
+      throw Exception(jsonDecode(response.body)['message'] ??
+          'Không thể cập nhật mật khẩu');
+    }
+  }
+
+  Future<Map<String, dynamic>> updateUsername({
+    required String userId,
+    required String newUsername,
+  }) async {
+    final uri = Uri.parse('$baseApiUrl/api/update-username');
+    final token = await _getToken();
+
+    if (token == null) {
+      return {'success': false, 'message': 'Bạn chưa đăng nhập.'};
+    }
+
+    try {
+      final response = await http.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'userId': userId,
+          'newUsername': newUsername,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'message': data['message'] ?? 'Cập nhật tên người dùng thành công!'};
+      } else {
+        final data = jsonDecode(response.body);
+        return {'success': false, 'message': data['message'] ?? 'Cập nhật tên người dùng thất bại.'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Lỗi kết nối: $e'};
+    }
+  }
+
+  Future<Map<String, dynamic>> updateEmail({
+    required String userId,
+    required String newEmail,
+  }) async {
+    final uri = Uri.parse('$baseApiUrl/api/update-email');
+    final token = await _getToken();
+
+    if (token == null) {
+      return {'success': false, 'message': 'Bạn chưa đăng nhập.'};
+    }
+
+    try {
+      final response = await http.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'userId': userId,
+          'newEmail': newEmail,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'message': data['message'] ?? 'Cập nhật email thành công!'};
+      } else {
+        final data = jsonDecode(response.body);
+        return {'success': false, 'message': data['message'] ?? 'Cập nhật email thất bại.'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Lỗi kết nối: $e'};
     }
   }
 }
