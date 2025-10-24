@@ -411,6 +411,63 @@ class _PlayerScreenState extends State<PlayerScreen>
   Future<void> _initWebController(String url) async {
     _webController = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setBackgroundColor(Colors.transparent)
+      ..enableZoom(true)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageFinished: (String _) async {
+            await _webController?.runJavaScript('''
+            // Ẩn các phần không cần thiết của Genius
+            document.querySelectorAll('header, footer, .Header, .Footer, .RightSidebar, .ad_unit').forEach(e => e.remove());
+            
+            // Style nền và chữ
+            document.body.style.backgroundColor = '#000000';
+            document.body.style.color = '#ffffff';
+            document.body.style.fontSize = '16px';
+            document.body.style.lineHeight = '1.6';
+            document.body.style.padding = '16px';
+            document.body.style.margin = '0';
+            document.body.style.overflowX = 'hidden';
+
+            // Luôn hiển thị thanh cuộn
+            document.body.style.overflowY = 'scroll';
+            document.body.style.scrollbarColor = '#888 #000'; // thanh xám trên nền đen
+            document.body.style.scrollbarWidth = 'thin'; // cho Firefox
+            
+            // Custom scrollbar cho Chrome / Edge
+            const style = document.createElement('style');
+            style.innerHTML = \`
+              ::-webkit-scrollbar {
+                width: 10px;
+              }
+              ::-webkit-scrollbar-thumb {
+                background: #666;
+                border-radius: 5px;
+              }
+              ::-webkit-scrollbar-thumb:hover {
+                background: #aaa;
+              }
+              ::-webkit-scrollbar-track {
+                background: #111;
+              }
+            \`;
+            document.head.appendChild(style);
+          ''');
+
+            if (mounted) {
+              setState(() => _isLoadingLyrics = false);
+            }
+          },
+          onWebResourceError: (error) {
+            if (mounted) {
+              setState(() {
+                _lyricsError = "Không thể tải lời bài hát.";
+                _isLoadingLyrics = false;
+              });
+            }
+          },
+        ),
+      )
       ..loadRequest(Uri.parse(url));
   }
 
@@ -419,12 +476,10 @@ class _PlayerScreenState extends State<PlayerScreen>
       return const Center(
           child: CircularProgressIndicator(color: Colors.white70));
     } else if (_lyricsUrl != null && _webController != null) {
-      return Expanded(
-        child: SingleChildScrollView(
-          child: SizedBox(
-            height: MediaQuery.of(context).size.height * 0.8,
-            child: WebViewWidget(controller: _webController!),
-          ),
+      return SizedBox(
+        height: 400,
+        child: WebViewWidget(
+          controller: _webController!,
         ),
       );
     } else if (_lyricsError != null) {
