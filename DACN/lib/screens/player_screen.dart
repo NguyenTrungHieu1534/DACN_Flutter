@@ -62,35 +62,45 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   Future<void> _loadLyrics(LyricsService lyricsService) async {
-    setState(() => _isLoadingLyrics = true);
+    setState(() {
+      _isLoadingLyrics = true;
+      _lyricsError = null;
+    });
 
     try {
       int attempts = 0;
       const maxAttempts = 10;
       const delaySeconds = 3;
+
       Map<String, dynamic>? data;
+
       while (attempts < maxAttempts) {
         data = await lyricsService.fetchLyrics(
           songId: widget.song?.id ?? '',
           artist: widget.song?.artist ?? '',
           title: widget.song?.title ?? '',
         );
+
         if (!mounted) return;
-        if (data != null &&
-            data["lyrics"] != null &&
-            data["lyrics"].trim().isNotEmpty) {
+
+        final lyrics = data?["lyrics"]?.toString().trim();
+
+        if (lyrics != null && lyrics.isNotEmpty && lyrics.length > 20) {
           setState(() {
-            _lyrics = data!["lyrics"];
+            _lyrics = lyrics;
           });
           break;
-        } else if (data != null && data["processing"] == true) {
-          await Future.delayed(Duration(seconds: delaySeconds));
+        }
+
+        if (data?["processing"] == true) {
+          await Future.delayed(const Duration(seconds: delaySeconds));
           attempts++;
         } else {
           break;
         }
       }
-      if (_lyrics == null) {
+
+      if (_lyrics == null || _lyrics!.trim().length <= 20 || data == false) {
         final urlData = await lyricsService.fetchLyricsURL(
           artist: widget.song?.artist ?? '',
           title: widget.song?.title ?? '',
@@ -127,7 +137,6 @@ class _PlayerScreenState extends State<PlayerScreen>
     return Scaffold(
       body: Stack(
         children: [
-          // 🔹 Nền blur từ ảnh bìa
           Positioned.fill(
             child: (displayImage != null && displayImage.isNotEmpty)
                 ? Image.network(
@@ -155,15 +164,12 @@ class _PlayerScreenState extends State<PlayerScreen>
               ),
             ),
           ),
-
           SafeArea(
-            // 🔹 Toàn bộ nội dung có thể cuộn được
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // 🔹 Thanh trên cùng
                   Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -183,10 +189,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 10),
-
-                  // 🔹 Ảnh bìa album lớn
                   if (displayImage != null && displayImage.isNotEmpty)
                     Hero(
                       tag: widget.song?.id ?? widget.heroTag ?? displayImage,
@@ -219,10 +222,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                       child: const Icon(Icons.album,
                           size: 80, color: Colors.white54),
                     ),
-
                   const SizedBox(height: 30),
-
-                  // 🔹 Tiêu đề và nghệ sĩ
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
@@ -266,8 +266,6 @@ class _PlayerScreenState extends State<PlayerScreen>
                           ),
                         ),
                         const SizedBox(height: 24),
-
-                        // 🔹 Thanh tiến trình dạng sóng
                         Column(
                           children: [
                             WaveformProgressBar(
@@ -394,16 +392,12 @@ class _PlayerScreenState extends State<PlayerScreen>
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 25),
-
-                  // 🔹 Hiển thị lyric bên dưới (cuộn cùng toàn trang)
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 20, vertical: 16),
                     child: _buildLyricsWidget(),
                   ),
-
                   const SizedBox(height: 60),
                 ],
               ),
@@ -425,10 +419,13 @@ class _PlayerScreenState extends State<PlayerScreen>
       return const Center(
           child: CircularProgressIndicator(color: Colors.white70));
     } else if (_lyricsUrl != null && _webController != null) {
-      return SizedBox(
-        height: 400,
-        child:
-            WebViewWidget(controller: _webController!), // đã chắc chắn non-null
+      return Expanded(
+        child: SingleChildScrollView(
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.8,
+            child: WebViewWidget(controller: _webController!),
+          ),
+        ),
       );
     } else if (_lyricsError != null) {
       return Text(
