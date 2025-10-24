@@ -9,6 +9,8 @@ import '../widgets/waveform_progress_bar.dart';
 import '../services/api_lyrics.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'dart:io';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/foundation.dart';
 
 class PlayerScreen extends StatefulWidget {
   const PlayerScreen({
@@ -415,44 +417,51 @@ class _PlayerScreenState extends State<PlayerScreen>
       ..enableZoom(true)
       ..setNavigationDelegate(
         NavigationDelegate(
-          onPageFinished: (String _) async {
-            await _webController?.runJavaScript('''
-            // Ẩn các phần không cần thiết của Genius
-            document.querySelectorAll('header, footer, .Header, .Footer, .RightSidebar, .ad_unit').forEach(e => e.remove());
-            
-            // Style nền và chữ
-            document.body.style.backgroundColor = '#000000';
-            document.body.style.color = '#ffffff';
-            document.body.style.fontSize = '16px';
-            document.body.style.lineHeight = '1.6';
-            document.body.style.padding = '16px';
-            document.body.style.margin = '0';
-            document.body.style.overflowX = 'hidden';
+          onPageFinished: (String url) async {
+            await _webController?.runJavaScript(r'''
+              // Tìm container chính chứa lời bài hát
+              const lyricsContainer = document.querySelector('[data-lyrics-container]');
 
-            // Luôn hiển thị thanh cuộn
-            document.body.style.overflowY = 'scroll';
-            document.body.style.scrollbarColor = '#888 #000'; // thanh xám trên nền đen
-            document.body.style.scrollbarWidth = 'thin'; // cho Firefox
-            
-            // Custom scrollbar cho Chrome / Edge
-            const style = document.createElement('style');
-            style.innerHTML = \`
-              ::-webkit-scrollbar {
-                width: 10px;
+              if (lyricsContainer) {
+                // Lấy nội dung HTML của container lời bài hát
+                const lyricsHtml = lyricsContainer.innerHTML;
+
+                // Thay thế toàn bộ nội dung của <body> bằng lời bài hát
+                document.body.innerHTML = lyricsHtml;
+
+                // Áp dụng style cho body để có nền đen, chữ trắng và cuộn được
+                document.body.style.backgroundColor = '#000000';
+                document.body.style.color = '#ffffff';
+                document.body.style.fontSize = '16px';
+                document.body.style.lineHeight = '1.6';
+                document.body.style.padding = '16px';
+                document.body.style.margin = '0';
+                document.body.style.overflowX = 'hidden';
+                document.body.style.overflowY = 'scroll';
+
+                // Thêm style cho thanh cuộn để dễ nhìn hơn trên nền tối
+                const style = document.createElement('style');
+                style.innerHTML = `
+                  ::-webkit-scrollbar {
+                    width: 10px;
+                  }
+                  ::-webkit-scrollbar-thumb {
+                    background: #666;
+                    border-radius: 5px;
+                  }
+                  ::-webkit-scrollbar-thumb:hover {
+                    background: #aaa;
+                  }
+                  ::-webkit-scrollbar-track {
+                    background: #111;
+                  }
+                `;
+                document.head.appendChild(style);
+              } else {
+                // Fallback: nếu không tìm thấy, ẩn các phần tử không cần thiết
+                document.querySelectorAll('header, footer, .Header, .Footer, .RightSidebar, .ad_unit').forEach(e => e.remove());
               }
-              ::-webkit-scrollbar-thumb {
-                background: #666;
-                border-radius: 5px;
-              }
-              ::-webkit-scrollbar-thumb:hover {
-                background: #aaa;
-              }
-              ::-webkit-scrollbar-track {
-                background: #111;
-              }
-            \`;
-            document.head.appendChild(style);
-          ''');
+            ''');
 
             if (mounted) {
               setState(() => _isLoadingLyrics = false);
@@ -480,6 +489,11 @@ class _PlayerScreenState extends State<PlayerScreen>
         height: 400,
         child: WebViewWidget(
           controller: _webController!,
+          gestureRecognizers: {
+            Factory<VerticalDragGestureRecognizer>(
+              () => VerticalDragGestureRecognizer(),
+            ),
+          },
         ),
       );
     } else if (_lyricsError != null) {
