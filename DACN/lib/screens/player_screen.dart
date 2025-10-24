@@ -49,43 +49,53 @@ class _PlayerScreenState extends State<PlayerScreen>
     final player = Provider.of<AudioPlayerProvider>(context, listen: false);
 
     LyricsService lyricsService = LyricsService();
-    // 🔹 Lắng nghe stream thời gian phát nhạc
     _positionSub = player.positionStream.listen((pos) {
       if (_seekIgnoreTimer?.isActive == true) return;
       if (mounted) setState(() => _currentPosition = pos);
     });
 
-    // 🔹 Lắng nghe stream tổng thời lượng bài hát
     _durationSub = player.durationStream.listen((dur) {
       if (mounted && dur != null) setState(() => _totalDuration = dur);
     });
 
-    // 🔹 Tải lyric 1 lần duy nhất khi mở màn hình
     _loadLyrics(lyricsService);
   }
 
   Future<void> _loadLyrics(LyricsService lyricsService) async {
+    setState(() => _isLoadingLyrics = true);
+
     try {
-      final data = await lyricsService.fetchLyrics(
-        songId: widget.song?.id ?? '',
-        artist: widget.song?.artist ?? '',
-        title: widget.song?.title ?? '',
-      );
-
-      if (!mounted) return;
-
-      if (data != null &&
-          data["lyrics"] != null &&
-          data["lyrics"].trim().isNotEmpty) {
-        setState(() {
-          _lyrics = data["lyrics"];
-          _isLoadingLyrics = false;
-        });
-      } else {
+      int attempts = 0;
+      const maxAttempts = 10;
+      const delaySeconds = 3;
+      Map<String, dynamic>? data;
+      while (attempts < maxAttempts) {
+        data = await lyricsService.fetchLyrics(
+          songId: widget.song?.id ?? '',
+          artist: widget.song?.artist ?? '',
+          title: widget.song?.title ?? '',
+        );
+        if (!mounted) return;
+        if (data != null &&
+            data["lyrics"] != null &&
+            data["lyrics"].trim().isNotEmpty) {
+          setState(() {
+            _lyrics = data!["lyrics"];
+          });
+          break;
+        } else if (data != null && data["processing"] == true) {
+          await Future.delayed(Duration(seconds: delaySeconds));
+          attempts++;
+        } else {
+          break;
+        }
+      }
+      if (_lyrics == null) {
         final urlData = await lyricsService.fetchLyricsURL(
           artist: widget.song?.artist ?? '',
           title: widget.song?.title ?? '',
         );
+
         if (!mounted) return;
 
         if (urlData != null && urlData["url"] != null) {
@@ -96,17 +106,15 @@ class _PlayerScreenState extends State<PlayerScreen>
             _lyricsError = "Không tìm thấy lời bài hát.";
           });
         }
-        setState(() {
-          _isLoadingLyrics = false;
-        });
       }
     } catch (error) {
       if (mounted) {
         setState(() {
           _lyricsError = "Lỗi khi tải lyric: $error";
-          _isLoadingLyrics = false;
         });
       }
+    } finally {
+      if (mounted) setState(() => _isLoadingLyrics = false);
     }
   }
 

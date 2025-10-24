@@ -23,25 +23,52 @@ class LyricsService {
         }),
       );
 
+      final data = jsonDecode(response.body);
+
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+        if (data['lyrics'] != null &&
+            data['lyrics'].toString().trim().isNotEmpty) {
+          return {
+            "id": data["_id"],
+            "title": data["title"],
+            "artist": data["artist"],
+            "lyrics": data["lyrics"],
+            "cached": data["cached"] ?? false,
+          };
+        }
+
         return {
           "id": data["_id"],
-          "title": data["title"],
-          "artist": data["artist"],
-          "lyrics": data["lyrics"],
-          "cached": data["cached"] ?? false,
+          "title": data["title"] ?? title,
+          "artist": data["artist"] ?? artist,
+          "lyrics": null,
+          "processing": true,
+          "message":
+              data["message"] ?? "Lyrics đang được lấy, vui lòng thử lại sau.",
         };
       }
-
       print("fetchLyrics failed: ${response.statusCode} ${response.body}");
-      return null;
+      return {
+        "id": data["_id"] ?? songId,
+        "title": title,
+        "artist": artist,
+        "lyrics": null,
+        "error": true,
+        "message":
+            data["message"] ?? "Không tìm thấy lyrics, fallback sang URL",
+      };
     } catch (e) {
       print("fetchLyrics error: $e");
-      return null;
+      return {
+        "id": songId,
+        "title": title,
+        "artist": artist,
+        "lyrics": null,
+        "error": true,
+        "message": "Lỗi khi gọi API lyrics",
+      };
     }
   }
-
   Future<Map<String, dynamic>?> fetchLyricsURL({
     required String artist,
     required String title,
