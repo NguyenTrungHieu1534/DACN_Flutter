@@ -106,15 +106,11 @@ class _MainNavigationState extends State<MainNavigation>
     LibraryScreen(),
     UserScreen(),
   ];
-
-  // Khai báo danh sách các widget Navigator để tái sử dụng
   late final List<Widget> _screens;
 
   @override
   void initState() {
     super.initState();
-
-    // Khởi tạo danh sách các widget Navigator một lần duy nhất
     _screens = List.generate(
       _rootScreens.length,
       (index) => Navigator(
