@@ -257,6 +257,41 @@ class UserService {
       return {'success': false, 'message': 'Lỗi kết nối: $e'};
     }
   }
+  Future<Map<String, dynamic>> updateBio({
+    required String userId,
+    required String bio,
+  }) async {
+    final uri = Uri.parse('$baseApiUrl/api/update-bio');
+    final token = await _getToken();
+
+    if (token == null) {
+      return {'success': false, 'message': 'Bạn chưa đăng nhập.'};
+    }
+
+    try {
+      final response = await http.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'userId': userId,
+          'bio': bio,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'message': data['message'] ?? 'Cập nhật bio thành công!'};
+      } else {
+        final data = jsonDecode(response.body);
+        return {'success': false, 'message': data['message'] ?? 'Cập nhật bio thất bại.'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Lỗi kết nối: $e'};
+    }
+  }
 
   Future<Map<String, dynamic>> updateEmail({
     required String userId,
