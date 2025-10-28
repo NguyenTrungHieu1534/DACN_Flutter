@@ -9,6 +9,7 @@ import 'dart:io';
 
 class ApiPlaylist {
   static const String baseUrl = "https://backend-dacn-9l4w.onrender.com";
+
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('token');
@@ -96,7 +97,7 @@ class ApiPlaylist {
         'songTitle': song.title,
         'artist': song.artist,
         'songId': song.id,
-        'album': song.albuml, 
+        'album': song.albuml,
         'url': song.url,
         'mp3url': song.mp3Url,
       }),
@@ -219,6 +220,27 @@ class ApiPlaylist {
     } catch (e) {
       print('Edit exception: $e');
       return {'error': e.toString()};
+    }
+  }
+
+  static Future<List<Playlist>> fetchSuggestedPlaylists(String? token) async {
+    final url = Uri.parse(
+        "https://backend-dacn-9l4w.onrender.com/api/suggested-playlist");
+
+    final response = await http.get(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token", // thêm token
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> playlist = jsonDecode(response.body);
+      return playlist.map((e) => Playlist.fromJson(e)).toList();
+    } else {
+      throw Exception(
+          "Failed to fetch suggested playlist: ${response.statusCode}");
     }
   }
 }

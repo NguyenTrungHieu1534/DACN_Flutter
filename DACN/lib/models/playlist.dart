@@ -20,7 +20,7 @@ class SongInPlaylist {
       artist: json['artist'] ?? 'Unknown Artist',
       filename: json['filename'] ?? '',
       album: json['album'] ?? 'Unknown Album',
-      songId: json['songId'] ?? '',
+      songId: json['songId'] ?? json['_id'] ?? '',
     );
   }
 

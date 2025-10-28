@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/album.dart';
 import '../services/api_album.dart';
 import '../models/songs.dart';
@@ -7,6 +8,10 @@ import '../widgets/TrendingAlbums.dart';
 import '../widgets/TrendingSong.dart';
 import '../widgets/shimmer_widgets.dart';
 import '../widgets/hawaii_greeting_card.dart';
+import 'dart:math';
+import '../models/playlist.dart';
+import '../services/api_playlist.dart';
+import '../widgets/suggested_playlists.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,21 +23,50 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late Future<List<Album>> _albumsFuture;
   late Future<List<Songs>> _songsFuture;
-
-  late Future<List<dynamic>> _combinedFuture;
+  // late Future<List<Playlist>> _suggestedPlaylistsFuture;
+  String _token = "";
+  Future<List<dynamic>>? _combinedFuture;
+  bool _isLoggedIn = false;
 
   @override
   void initState() {
     super.initState();
+    _loadData();
+    _checkLoginStatus();
+  }
+
+  void _checkLoginStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    _token=token.toString();
+    setState(() {
+      if(_token != null){
+          _isLoggedIn = true;
+      }else{
+        _isLoggedIn = false;
+      }
+    });
+    _loadData();
+  }
+
+  void _loadData() {
     _albumsFuture = AlbumService.fetchAlbums();
     _songsFuture = SongService.fetchSongs();
-    // Kết hợp 2 Future cùng lúc
-    _combinedFuture = Future.wait([_albumsFuture, _songsFuture]);
+    if (_isLoggedIn == true) {
+      setState(() {
+        // _combinedFuture =
+        //     Future.wait([_albumsFuture, _songsFuture, _suggestedPlaylistsFuture]);
+          // _suggestedPlaylistsFuture = ApiPlaylist.fetchSuggestedPlaylists(_token);    
+      });
+    } else {
+      setState(() {
+        _combinedFuture = Future.wait([_albumsFuture, _songsFuture]);
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // 🌴 AppTheme — gộp trực tiếp
     const retroPrimary = Color(0xFF70C1B3); // xanh ngọc retro
     // Removed unused retroAccent
     // Removed unused retroPeach, retroSand, retroWhite, retroBoxGradient, retroShadow
@@ -60,7 +94,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   stops: [0.0, 0.4],
                 ),
         ),
-        child: FutureBuilder<List<dynamic>>(
+        child: _combinedFuture == null
+            ? ShimmerWidgets.homeScreenShimmer()
+            : FutureBuilder<List<dynamic>>(
           future: _combinedFuture,
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
@@ -111,6 +147,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 .where((album) => album.url.isNotEmpty)
                 .toList();
             final songs = snapshot.data![1] as List<Songs>;
+            // final suggestedPlaylists = _isLoggedIn && snapshot.data!.length > 2
+            //     ? snapshot.data![2] as List<Playlist>
+            //     : <Playlist>[];
 
             albums.shuffle();
             songs.shuffle();
@@ -144,9 +183,7 @@ class _HomeScreenState extends State<HomeScreen> {
               strokeWidth: 3,
               onRefresh: () async {
                 setState(() {
-                  _albumsFuture = AlbumService.fetchAlbums();
-                  _songsFuture = SongService.fetchSongs();
-                  _combinedFuture = Future.wait([_albumsFuture, _songsFuture]);
+                  _loadData();
                 });
               },
               child: SingleChildScrollView(
@@ -202,6 +239,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         itemsAlbum: const [],
                         itemsSsongs: trendingSongs,
                         isLoading: false),
+                        const SizedBox(height: 28),
+                      SuggestedPlaylists(),
                   ],
                 ),
               ),
@@ -268,88 +307,3 @@ IconData _getGreetingIcon(int hour) {
   if (hour < 18) return Icons.wb_twilight_rounded;
   return Icons.nightlight_round;
 }
-
-// void _showProfileSheet(BuildContext context) {
-//   showModalBottomSheet(
-//     context: context,
-//     backgroundColor: Colors.white,
-//     shape: const RoundedRectangleBorder(
-//       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-//     ),
-//     builder: (ctx) {
-//       return SafeArea(
-//         child: Padding(
-//           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-//           child: FutureBuilder<bool>(
-//             future: () async {
-//               final prefs = await SharedPreferences.getInstance();
-//               final token = prefs.getString('auth_token');
-//               return token != null && token.isNotEmpty;
-//             }(),
-//             builder: (context, snapshot) {
-//               final bool isLoggedIn = snapshot.data == true;
-//               return Column(
-//                 mainAxisSize: MainAxisSize.min,
-//                 crossAxisAlignment: CrossAxisAlignment.start,
-//                 children: [
-//                   Row(
-//                     children: [
-//                       const CircleAvatar(
-//                         radius: 20,
-//                         child: Icon(Icons.person_outline),
-//                       ),
-//                       const SizedBox(width: 12),
-//                       Text(
-//                         'Profile',
-//                         style:
-//                             Theme.of(context).textTheme.titleMedium?.copyWith(
-//                                   fontWeight: FontWeight.w700,
-//                                 ),
-//                       ),
-//                       const Spacer(),
-//                       IconButton(
-//                         icon: const Icon(Icons.close),
-//                         onPressed: () => Navigator.pop(ctx),
-//                       )
-//                     ],
-//                   ),
-//                   const Divider(height: 20),
-//                   if (!snapshot.hasData)
-//                     const Padding(
-//                       padding: EdgeInsets.symmetric(vertical: 12),
-//                       child: Center(child: CircularProgressIndicator()),
-//                     )
-//                   else if (isLoggedIn)
-//                     ListTile(
-//                       leading:
-//                           const Icon(Icons.logout, color: Colors.redAccent),
-//                       title: const Text('Logout'),
-//                       onTap: () async {
-//                         final prefs = await SharedPreferences.getInstance();
-//                         await prefs.remove('auth_token');
-//                         if (ctx.mounted) Navigator.pop(ctx);
-//                       },
-//                     )
-//                   else
-//                     ListTile(
-//                       leading:
-//                           const Icon(Icons.login, color: Colors.blueAccent),
-//                       title: const Text('Login'),
-//                       onTap: () {
-//                         Navigator.push(
-//                           context,
-//                           MaterialPageRoute(
-//                               builder: (_) => const LoginScreen()),
-//                         );
-//                       },
-//                     ),
-//                   const SizedBox(height: 8),
-//                 ],
-//               );
-//             },
-//           ),
-//         ),
-//       );
-//     },
-//   );
-// }

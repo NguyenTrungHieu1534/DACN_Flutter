@@ -31,6 +31,7 @@ dependencies:
   just_audio_background: ^0.0.1-beta.17
   blur: ^4.0.2
   webview_flutter: ^4.13.0
+  socket_io_client: ^3.1.2
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -45,6 +46,7 @@ flutter:
     # - assets/images/logo.png
   assets:
     - default_pic/default_playlistPic.png
+    - assets/default_pic/
 flutter_icons:
   android: true
   ios: false

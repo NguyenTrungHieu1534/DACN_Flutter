@@ -1,0 +1,25 @@
+{
+  "name": "dacn_flutter",
+  "version": "1.0.0",
+  "description": "- [ ] Thiết kế **Profile**, **Favorite**, **Album**\r - [ ] Thiết kế lại **Search Page**\r - [ ] Thêm phần **Settings** trong Profile",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NguyenTrungHieu1534/DACN_Flutter.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NguyenTrungHieu1534/DACN_Flutter/issues"
+  },
+  "homepage": "https://github.com/NguyenTrungHieu1534/DACN_Flutter#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "socket.io": "^4.8.1"
+  }
+}
