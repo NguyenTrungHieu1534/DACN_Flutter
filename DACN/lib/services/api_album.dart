@@ -32,4 +32,20 @@ class AlbumService {
       throw Exception('Không thể tải danh sách bài hát của album này');
     }
   }
+  static Future<String> fetchAlbumCover(String albumName) async {
+    try {
+      final encodedName = Uri.encodeComponent(albumName.trim());
+      final response = await http.get(Uri.parse('https://backend-dacn-9l4w.onrender.com/api/albums/cover/$encodedName'));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['url'] ?? '/default-covers/no-cover.jpg';
+      } else {
+        throw Exception('Failed to load album cover');
+      }
+    } catch (e) {
+      print('❌ Lỗi khi lấy cover album: $e');
+      return '/default-covers/no-cover.jpg';
+    }
+  }
 }

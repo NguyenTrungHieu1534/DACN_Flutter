@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
-
+import '../screens/suggested_playlist_screen.dart';
 class SuggestedPlaylists extends StatelessWidget {
   const SuggestedPlaylists({super.key});
 
@@ -9,7 +9,6 @@ class SuggestedPlaylists extends StatelessWidget {
     final numbers = [1, 2, 3, 4];
     numbers.shuffle();
 
-    // Danh sách 2 playlist cố định
     final playlists = [
       {
         'title': 'Discover Mix',
@@ -25,7 +24,7 @@ class SuggestedPlaylists extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
           child: Text(
             'Suggested Playlists',
             style: Theme.of(context)
@@ -34,45 +33,99 @@ class SuggestedPlaylists extends StatelessWidget {
                 ?.copyWith(fontWeight: FontWeight.bold),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
+        SizedBox(
+          height: 180,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
             itemCount: playlists.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2, // 2 cột
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 1, // vuông
-            ),
             itemBuilder: (context, index) {
               final playlist = playlists[index];
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.asset(
-                      playlist['image']!,
-                      width: double.infinity,
-                      height: 120,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    playlist['title']!,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+              return Padding(
+                padding: EdgeInsets.only(
+                  left: 16,
+                  right: index == playlists.length - 1 ? 16 : 0,
+                ),
+                child: _PlaylistCard(
+                  title: playlist['title']!,
+                  image: playlist['image']!,
+                ),
               );
             },
           ),
         ),
       ],
+    );
+  }
+}
+
+class _PlaylistCard extends StatelessWidget {
+  final String title;
+  final String image;
+
+  const _PlaylistCard({
+    required this.title,
+    required this.image,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => SuggestedPlaylistScreen()),
+          );
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: SizedBox(
+            width: 150,
+            height: 150,
+            child: Stack(
+              children: [
+                Image.asset(
+                  image,
+                  width: double.infinity,
+                  height: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        const Color.fromARGB(48, 97, 103, 158).withOpacity(0.7),
+                        Colors.transparent,
+                      ],
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 10,
+                  left: 10,
+                  right: 10,
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -223,24 +223,17 @@ class ApiPlaylist {
     }
   }
 
-  static Future<List<Playlist>> fetchSuggestedPlaylists(String? token) async {
-    final url = Uri.parse(
-        "https://backend-dacn-9l4w.onrender.com/api/suggested-playlist");
-
+  static Future<List<Songs>> fetchSuggestedPlaylists(String? token) async {
     final response = await http.get(
-      url,
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer $token", // thêm token
-      },
+      Uri.parse('https://backend-dacn-9l4w.onrender.com/api/suggested-playlist'),
+      headers: {'Authorization': 'Bearer $token'},
     );
 
     if (response.statusCode == 200) {
-      final List<dynamic> playlist = jsonDecode(response.body);
-      return playlist.map((e) => Playlist.fromJson(e)).toList();
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.map((e) => Songs.fromJson(e)).toList();
     } else {
-      throw Exception(
-          "Failed to fetch suggested playlist: ${response.statusCode}");
+      throw Exception('Failed to load suggested songs');
     }
   }
 }
