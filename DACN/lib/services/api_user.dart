@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
+import '../services/socket_service.dart';
 
 class UserService {
   UserService({http.Client? client}) : _client = client ?? http.Client();
@@ -93,6 +95,14 @@ class UserService {
       }
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', token);
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      if (decodedToken['status'] == "blocked") {
+        return LoginResponse(
+          token: token,
+          message: "You are gayy",
+        );
+      }
+      SocketService().connect(decodedToken['_id']);
       return LoginResponse(token: token, message: message);
     }
 
@@ -248,15 +258,22 @@ class UserService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return {'success': true, 'message': data['message'] ?? 'Cập nhật tên người dùng thành công!'};
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Cập nhật tên người dùng thành công!'
+        };
       } else {
         final data = jsonDecode(response.body);
-        return {'success': false, 'message': data['message'] ?? 'Cập nhật tên người dùng thất bại.'};
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Cập nhật tên người dùng thất bại.'
+        };
       }
     } catch (e) {
       return {'success': false, 'message': 'Lỗi kết nối: $e'};
     }
   }
+
   Future<Map<String, dynamic>> updateBio({
     required String userId,
     required String bio,
@@ -283,10 +300,16 @@ class UserService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return {'success': true, 'message': data['message'] ?? 'Cập nhật bio thành công!'};
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Cập nhật bio thành công!'
+        };
       } else {
         final data = jsonDecode(response.body);
-        return {'success': false, 'message': data['message'] ?? 'Cập nhật bio thất bại.'};
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Cập nhật bio thất bại.'
+        };
       }
     } catch (e) {
       return {'success': false, 'message': 'Lỗi kết nối: $e'};
@@ -319,20 +342,21 @@ class UserService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return {'success': true, 'message': data['message'] ?? 'Cập nhật email thành công!'};
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Cập nhật email thành công!'
+        };
       } else {
         final data = jsonDecode(response.body);
-        return {'success': false, 'message': data['message'] ?? 'Cập nhật email thất bại.'};
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Cập nhật email thất bại.'
+        };
       }
     } catch (e) {
       return {'success': false, 'message': 'Lỗi kết nối: $e'};
     }
   }
-
-
-
-
-  
 }
 
 class LoginResponse {

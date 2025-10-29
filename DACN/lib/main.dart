@@ -24,6 +24,8 @@ import '../screens/login_screen.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'dart:io';
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 Future<void> main() async {
   late final AudioHandler audioHandler;
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,6 +39,7 @@ Future<void> main() async {
     ),
   );
   final session = await AudioSession.instance;
+  
   await session.configure(const AudioSessionConfiguration.music());
   runApp(
     MultiProvider(
@@ -58,6 +61,7 @@ class WaveMusicApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     return MaterialApp(
+      navigatorKey: navigatorKey, 
       debugShowCheckedModeBanner: false,
       theme: AppTheme.buildTheme(
         ThemeData(
