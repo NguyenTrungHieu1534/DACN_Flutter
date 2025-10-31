@@ -241,289 +241,298 @@ void _showPlaylistModal(BuildContext context) {
     }
   }
 
-  @override
- Widget build(BuildContext context) {
- final displayImage = widget.song?.thumbnail ?? widget.imageUrl;
- final displayTitle = widget.song?.title ?? widget.title ?? 'Unknown Title';
- final displaySubtitle = widget.song?.artist ?? widget.subtitle ?? '';
+  // PlayerScreen.dart
+// Thay thế TOÀN BỘ nội dung của hàm build hiện tại
 
-  return Scaffold(
- body: Stack(
- children: [
- Positioned.fill(
- child: (displayImage != null && displayImage.isNotEmpty)
- ? Image.network(
- displayImage,
- fit: BoxFit.cover,
- errorBuilder: (context, error, stackTrace) =>
- Container(color: Colors.black),
- )
- : Container(color: Colors.black),
-),
- Positioned.fill(
- child: BackdropFilter(
- filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
-child: Container(
-decoration: BoxDecoration(
- gradient: LinearGradient(
- begin: Alignment.topCenter,
- end: Alignment.bottomCenter,
-colors: [
- Colors.black.withOpacity(0.4),
- Colors.black.withOpacity(0.8),
- ],
-),
- ),
-),
- ),
-),
-SafeArea(
- child: SingleChildScrollView(
- physics: const BouncingScrollPhysics(),
- child: Column(
- crossAxisAlignment: CrossAxisAlignment.center,
- children: [
- Padding(
- padding:
- const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
- child: Row(
- children: [
- IconButton(
- icon: const Icon(Icons.keyboard_arrow_down_rounded,
- color: Colors.white, size: 30),
-onPressed: () => Navigator.pop(context),
- ),
- const Spacer(),
- IconButton(
- icon: const Icon(Icons.queue_music_rounded,
- color: Colors.white, size: 24),
- onPressed: () => _showPlaylistModal(context), 
-),
- IconButton(
- icon:
-const Icon(Icons.more_horiz, color: Colors.white),
- onPressed: () {},
-),
-],
-),
- ),
-const SizedBox(height: 10),
-(displayImage != null && displayImage.isNotEmpty)
-    ? Hero(
-        tag: widget.song?.id ?? widget.heroTag ?? displayImage,
-        child: Container(
-          width: MediaQuery.of(context).size.width * 0.7,
-          height: MediaQuery.of(context).size.width * 0.7,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.5),
-                blurRadius: 25,
-                spreadRadius: 5,
-              ),
-            ],
+@override
+Widget build(BuildContext context) {
+  // 🚨 BỌC TOÀN BỘ UI BẰNG CONSUMER
+  return Consumer<AudioPlayerProvider>(
+    builder: (context, player, child) {
+      // 1. LẤY DỮ LIỆU BÀI HÁT TỪ PROVIDER
+      final song = player.currentPlaying ?? widget.song;
+
+      if (song == null) {
+        return const Scaffold(
+          body: Center(
+            child: Text("Không có bài hát nào đang phát", style: TextStyle(color: Colors.white)),
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: Image.network(displayImage, fit: BoxFit.cover),
-          ),
-        ),
-      )
-    : Container(
-        width: MediaQuery.of(context).size.width * 0.7,
-        height: MediaQuery.of(context).size.width * 0.7,
-        decoration: BoxDecoration(
-            color: Colors.grey.shade800,
-            borderRadius: BorderRadius.circular(20)),
-        child: const Icon(Icons.album, size: 80, color: Colors.white54),
-      ),
-const SizedBox(height: 30),
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        );
+      }
+      
+      // 2. KHAI BÁO BIẾN HIỂN THỊ (SỬ DỤNG DỮ LIỆU TỪ 'song' MỚI)
+      final displayImage = song.thumbnail ?? widget.imageUrl;
+      final displayTitle = song.title ?? widget.title ?? 'Unknown Title';
+      final displaySubtitle = song.artist ?? widget.subtitle ?? '';
+
+      // 3. CẤU TRÚC UI
+      return Scaffold(
+        body: Stack(
           children: [
-            Text(
-              displayTitle,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    shadows: const [
-                      Shadow(
-                        offset: Offset(0, 4),
-                        blurRadius: 8,
-                        color: Colors.black45,
-                      ),
-                    ],
-                  ),
+            Positioned.fill(
+              child: (displayImage != null && displayImage.isNotEmpty)
+                  ? Image.network(
+                      displayImage,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          Container(color: Colors.black),
+                    )
+                  : Container(color: Colors.black),
             ),
-            const SizedBox(height: 8),
-            Text(
-              displaySubtitle,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Colors.white.withOpacity(0.95),
-                    fontWeight: FontWeight.w600,
-                    shadows: const [
-                      Shadow(
-                        offset: Offset(0, 3),
-                        blurRadius: 6,
-                        color: Colors.black38,
-                      ),
-                    ],
-                  ),
-            ),
-            const SizedBox(height: 24),
-
-            // Waveform + time row
-            Column(
-              children: [
-                WaveformProgressBar(
-                  progress: _currentPosition,
-                  total: _totalDuration,
-                  onSeek: (duration) async {
-                    final player =
-                        Provider.of<AudioPlayerProvider>(context, listen: false);
-                    await player.seek(duration);
-
-                    _seekIgnoreTimer?.cancel();
-                    _seekIgnoreTimer = Timer(const Duration(milliseconds: 400), () {});
-                  },
-                  waveColor: Colors.white38,
-                  progressColor: Colors.white,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(_formatTime(_currentPosition),
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600)),
-                      Text(_formatTime(_totalDuration),
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 25),
-
-            // Controls row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Consumer<AudioPlayerProvider>(builder: (context, player, _) {
-                  return IconButton(
-                    icon: Icon(
-                      Icons.shuffle,
-                      color: player.isShuffleEnabled
-                          ? Theme.of(context).colorScheme.primary
-                          : Colors.white70,
-                    ),
-                    onPressed: player.toggleShuffle,
-                  );
-                }),
-
-                IconButton(
-                  icon: const Icon(Icons.skip_previous_rounded),
-                  color: Colors.white.withOpacity(0.9),
-                  iconSize: 48,
-                  onPressed:
-                      Provider.of<AudioPlayerProvider>(context, listen: false)
-                          .previousSong,
-                ),
-
-                Container(
-                  width: 84,
-                  height: 84,
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+                child: Container(
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.95),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.white.withOpacity(0.9),
-                        blurRadius: 30,
-                        spreadRadius: 2,
-                      ),
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.25),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withOpacity(0.4),
+                        Colors.black.withOpacity(0.8),
+                      ],
+                    ),
                   ),
-                  child: Consumer<AudioPlayerProvider>(builder: (context, player, _) {
-                    final isPlaying = player.isPlaying;
-                    return IconButton(
-                      icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
-                      color: Colors.black87,
-                      iconSize: 54,
-                      onPressed: () async {
-                        await player.togglePlayPause();
-                      },
-                    );
-                  }),
                 ),
+              ),
+            ),
+            SafeArea(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                                color: Colors.white, size: 30),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                          const Spacer(),
+                          IconButton(
+                            icon: const Icon(Icons.queue_music_rounded,
+                                color: Colors.white, size: 24),
+                            onPressed: () => _showPlaylistModal(context),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.more_horiz, color: Colors.white),
+                            onPressed: () {},
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    // 🚨 Hiển thị Ảnh/Hero Art
+                    (displayImage != null && displayImage.isNotEmpty)
+                        ? Hero(
+                            tag: song.id ?? widget.heroTag ?? displayImage, // Dùng ID mới
+                            child: Container(
+                              width: MediaQuery.of(context).size.width * 0.7,
+                              height: MediaQuery.of(context).size.width * 0.7,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.5),
+                                    blurRadius: 25,
+                                    spreadRadius: 5,
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(20),
+                                child: Image.network(displayImage, fit: BoxFit.cover),
+                              ),
+                            ),
+                          )
+                        : Container(
+                            width: MediaQuery.of(context).size.width * 0.7,
+                            height: MediaQuery.of(context).size.width * 0.7,
+                            decoration: BoxDecoration(
+                                color: Colors.grey.shade800,
+                                borderRadius: BorderRadius.circular(20)),
+                            child: const Icon(Icons.album, size: 80, color: Colors.white54),
+                          ),
+                    const SizedBox(height: 30),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 🚨 Tiêu đề (Updated)
+                          Text(
+                            displayTitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                  shadows: const [
+                                    Shadow(
+                                      offset: Offset(0, 4),
+                                      blurRadius: 8,
+                                      color: Colors.black45,
+                                    ),
+                                  ],
+                                ),
+                          ),
+                          const SizedBox(height: 8),
+                          // 🚨 Nghệ sĩ (Updated)
+                          Text(
+                            displaySubtitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: Colors.white.withOpacity(0.95),
+                                  fontWeight: FontWeight.w600,
+                                  shadows: const [
+                                    Shadow(
+                                      offset: Offset(0, 3),
+                                      blurRadius: 6,
+                                      color: Colors.black38,
+                                    ),
+                                  ],
+                                ),
+                          ),
+                          const SizedBox(height: 24),
 
-                IconButton(
-                  icon: const Icon(Icons.skip_next_rounded),
-                  color: Colors.white.withOpacity(0.9),
-                  iconSize: 48,
-                  onPressed:
-                      Provider.of<AudioPlayerProvider>(context, listen: false)
-                          .nextSong,
+                          // Waveform + time row (Giữ nguyên)
+                          Column(
+                            children: [
+                              WaveformProgressBar(
+                                progress: _currentPosition,
+                                total: _totalDuration,
+                                onSeek: (duration) async {
+                                  final player = Provider.of<AudioPlayerProvider>(context, listen: false);
+                                  await player.seek(duration);
+                                  _seekIgnoreTimer?.cancel();
+                                  _seekIgnoreTimer = Timer(const Duration(milliseconds: 400), () {});
+                                },
+                                waveColor: Colors.white38,
+                                progressColor: Colors.white,
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(_formatTime(_currentPosition),
+                                        style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600)),
+                                    Text(_formatTime(_totalDuration),
+                                        style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600)),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 25),
+
+                          // Controls row (Đã được sửa lỗi và cập nhật)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              // Nút SHUFFLE
+                              IconButton(
+                                icon: Icon(
+                                  Icons.shuffle,
+                                  color: player.isShuffleEnabled
+                                      ? Theme.of(context).colorScheme.primary
+                                      : Colors.white70,
+                                ),
+                                onPressed: player.toggleShuffle,
+                              ),
+
+                              // Nút PREVIOUS
+                              IconButton(
+                                icon: const Icon(Icons.skip_previous_rounded),
+                                color: Colors.white.withOpacity(0.9),
+                                iconSize: 48,
+                                onPressed: player.previousSong,
+                              ),
+
+                              // Nút Play/Pause lớn
+                              Container(
+                                width: 84,
+                                height: 84,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white.withOpacity(0.95),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.white.withOpacity(0.9),
+                                      blurRadius: 30,
+                                      spreadRadius: 2,
+                                    ),
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.25),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 6),
+                                    ),
+                                  ],
+                                ),
+                                child: IconButton(
+                                  icon: Icon(player.isPlaying ? Icons.pause : Icons.play_arrow),
+                                  color: Colors.black87,
+                                  iconSize: 54,
+                                  onPressed: () async {
+                                    await player.togglePlayPause();
+                                  },
+                                ),
+                              ),
+
+                              // Nút NEXT
+                              IconButton(
+                                icon: const Icon(Icons.skip_next_rounded),
+                                color: Colors.white.withOpacity(0.9),
+                                iconSize: 48,
+                                onPressed: player.nextSong,
+                              ),
+
+                              // Nút REPEAT
+                              IconButton(
+                                icon: Icon(
+                                  player.repeatMode == RepeatMode.repeatSong
+                                      ? Icons.repeat_one
+                                      : Icons.repeat,
+                                  color: player.repeatMode != RepeatMode.off
+                                      ? Theme.of(context).colorScheme.primary
+                                      : Colors.white70,
+                                ),
+                                onPressed: player.toggleRepeat,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 25),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      child: _buildLyricsWidget(),
+                    ),
+                    const SizedBox(height: 60),
+                  ],
                 ),
-
-                Consumer<AudioPlayerProvider>(builder: (context, player, _) {
-                  IconData icon;
-                  Color color;
-                  if (player.repeatMode == RepeatMode.repeatSong) {
-                    icon = Icons.repeat_one;
-                    color = Theme.of(context).colorScheme.primary;
-                  } else if (player.repeatMode == RepeatMode.repeatPlaylist) {
-                    icon = Icons.repeat;
-                    color = Theme.of(context).colorScheme.primary;
-                  } else {
-                    icon = Icons.repeat;
-                    color = Colors.white70;
-                  }
-
-                  return IconButton(
-                    icon: Icon(icon, color: color),
-                    onPressed: player.toggleRepeat,
-                  );
-                }),
-              ],
+              ),
             ),
           ],
         ),
-      ),
-
-      const SizedBox(height: 25),
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        child: _buildLyricsWidget(),
-      ),
-      const SizedBox(height: 60),
-    ],
-  ),
- ),
- ),
- ],
- ),
- );
- }
+      );
+    },
+  );
+}
 
   Future<void> _initWebController(String url) async {
     _webController = WebViewController()
