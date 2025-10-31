@@ -130,7 +130,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
           borderRadius: BorderRadius.circular(24),
           onTap: () {
             final audioProvider = Provider.of<AudioPlayerProvider>(context, listen: false);
-            // Use artist photo as thumbnail if song thumbnail is missing
+
             if (song.thumbnail.isEmpty) {
               song.thumbnail = artistPhotoUrl;
             }

@@ -440,8 +440,10 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                 thumbnail: widget.albumImage,
                                 mp3Url: song.url);
 
-                            audioProvider.playSong(updatedSong);
-                          },
+                            final playlistToPlay = songs.map((s) => s.copyWith(thumbnail: widget.albumImage)).toList();
+
+                            audioProvider.setNewPlaylist(playlistToPlay, index);
+                              },
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 14, vertical: 10),
