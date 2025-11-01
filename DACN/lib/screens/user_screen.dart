@@ -8,6 +8,14 @@ import 'login_screen.dart';
 import '../screens/setting_screen.dart';
 import '../models/ThemeProvider.dart';
 import '../services/api_user.dart';
+import '../screens/playlist_detail_screen.dart';
+import '../screens/playlist_screen.dart';
+import '../navigation/custom_page_route.dart';
+import '../services/api_playlist.dart';
+import '../services/api_history.dart';
+import '../theme/app_theme.dart';
+import '../models/playlist.dart';
+import '../screens/artist_detail_screen.dart';
 
 class UserScreen extends StatefulWidget {
   const UserScreen({super.key});
@@ -16,97 +24,59 @@ class UserScreen extends StatefulWidget {
   State<UserScreen> createState() => _UserScreenState();
 }
 
-class _UserScreenState extends State<UserScreen> {
+class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateMixin {
   String? _token;
   bool _loading = true;
 
   String? _userId;
   String? _username;
   String? _email;
-  String? _role;
   String? _avatar;
   bool isUploading = false;
-  String? avatarUrl;
+
+  // Dữ liệu từ API - dùng Map và Playlist model có sẵn
+  List<Map<String, String>> _recentArtists = [];
+  List<Playlist> _userPlaylists = [];
+  bool _loadingData = false;
+
+  late AnimationController _fadeController;
+  late Animation<double> _fadeAnimation;
+
   @override
   void initState() {
-    _checkToken();
     super.initState();
-    final UserService userService = UserService();
-
-  }
-
-  Future<void> _showImagePicker(BuildContext context) async {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Chọn từ thư viện'),
-              onTap: () async {
-                Navigator.pop(context);
-                await _pickImage(ImageSource.gallery);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Chụp ảnh'),
-              onTap: () async {
-                Navigator.pop(context);
-                await _pickImage(ImageSource.camera);
-              },
-            ),
-          ],
-        ),
-      ),
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
     );
+    _fadeAnimation = CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeInOut,
+    );
+    _checkToken();
   }
 
-  Future<void> _pickImage(ImageSource source) async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: source);
-
-    if (pickedFile != null) {
-      File image = File(pickedFile.path);
-
-      setState(() => isUploading = true);
-
-      final result = await UserService().uploadAvatar(_userId.toString(), image);
-
-      setState(() => isUploading = false);
-
-      if (result['url'] != null) {
-        setState(() => avatarUrl = result['url']);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Upload thành công!")),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Lỗi: ${result['details']}")),
-        );
-      }
-    }
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    super.dispose();
   }
 
   Future<void> _checkToken() async {
     final prefs = await SharedPreferences.getInstance();
     final stored = prefs.getString('token');
 
-    // Guard: no token saved
     if (stored == null || stored.trim().isEmpty) {
       setState(() => _loading = false);
       return;
     }
 
-    // Strip optional Bearer prefix and validate basic JWT structure
     final rawToken = stored.startsWith('Bearer ')
         ? stored.substring(7).trim()
         : stored.trim();
     final looksLikeJwt = rawToken.split('.').length == 3;
 
     if (!looksLikeJwt) {
-      // Invalid format -> treat as logged out
       setState(() => _loading = false);
       return;
     }
@@ -118,138 +88,890 @@ class _UserScreenState extends State<UserScreen> {
         _userId = decoded["_id"];
         _username = decoded["username"];
         _email = decoded["email"];
-        _role = decoded["role"];
         _avatar = decoded["ava"];
         _loading = false;
       });
-      print('avatarUrl: $_avatar');
+
+      if (_userId != null) {
+        _loadUserData();
+        _fadeController.forward();
+      }
     } catch (e) {
-      // Decoding failed -> consider token invalid
       setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _loadUserData() async {
+    setState(() => _loadingData = true);
+
+    try {
+      // Load playlists - dùng Playlist model có sẵn
+      final apiPlaylist = ApiPlaylist();
+      final playlists = await apiPlaylist.getPlaylistsByUser();
+      
+      // Load recent artists - dùng Map đơn giản
+      final historyService = HistoryService();
+      final history = await historyService.getHistory();
+      
+      final Map<String, Map<String, String>> artistMap = {};
+      for (var song in history.take(20)) {
+        if (!artistMap.containsKey(song.artist)) {
+          artistMap[song.artist] = {
+            'name': song.artist,
+            'imageUrl': '', // Có thể fetch sau nếu cần
+          };
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _recentArtists = artistMap.values.take(3).toList();
+          _userPlaylists = playlists;
+          _loadingData = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading user data: $e');
+      if (mounted) {
+        setState(() => _loadingData = false);
+      }
+    }
+  }
+
+  Future<void> _showImagePicker(BuildContext context) async {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  'Change Profile Picture',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+              ),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.oceanBlue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.photo_library, color: AppColors.oceanBlue),
+                ),
+                title: const Text('Choose from library'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await _pickImage(ImageSource.gallery);
+                },
+              ),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.oceanBlue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.camera_alt, color: AppColors.oceanBlue),
+                ),
+                title: const Text('Take photo'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await _pickImage(ImageSource.camera);
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: source, imageQuality: 85);
+
+    if (pickedFile != null) {
+      File image = File(pickedFile.path);
+      setState(() => isUploading = true);
+
+      final result = await UserService().uploadAvatar(_userId.toString(), image);
+      
+      if (mounted) {
+        setState(() => isUploading = false);
+
+        if (result['url'] != null) {
+          setState(() => _avatar = result['url']);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  SizedBox(width: 12),
+                  Text("Profile picture updated!"),
+                ],
+              ),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              margin: const EdgeInsets.all(16),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.error, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text("Error: ${result['details']}")),
+                ],
+              ),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              margin: const EdgeInsets.all(16),
+            ),
+          );
+        }
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final isTablet = size.width > 600;
+    final avatarRadius = isTablet ? 80.0 : 60.0;
+
     if (_loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(color: AppColors.oceanBlue),
+              const SizedBox(height: 16),
+              Text(
+                'Loading profile...',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_token == null) {
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: Center(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(isTablet ? 48 : 24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(isTablet ? 32 : 24),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.oceanBlue.withOpacity(0.1),
+                        AppColors.skyBlue.withOpacity(0.1),
+                      ],
+                    ),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.person_outline,
+                    size: isTablet ? 120 : 80,
+                    color: AppColors.oceanBlue,
+                  ),
+                ),
+                SizedBox(height: isTablet ? 32 : 24),
+                Text(
+                  'Sign in to view your profile',
+                  style: TextStyle(
+                    fontSize: isTablet ? 24 : 18,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Access your playlists and listening history',
+                  style: TextStyle(
+                    fontSize: isTablet ? 16 : 14,
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: isTablet ? 32 : 24),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    );
+                  },
+                  icon: const Icon(Icons.login),
+                  label: const Text('Sign In'),
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isTablet ? 48 : 32,
+                      vertical: isTablet ? 20 : 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       );
     }
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
-        elevation: 0,
-        title: Text(
-          '🌤️ Wave Music',
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 22,
-            color: Theme.of(context).appBarTheme.foregroundColor,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.settings, color: Theme.of(context).appBarTheme.foregroundColor),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const SettingsScreen()),
-              );
-            },
-          ),
-        ],
-      ),
-      body: _token == null
-          ? Center(
-              child: ElevatedButton(
-                // Với AuthCheck, màn hình này sẽ không hiển thị khi chưa đăng nhập.
-                // Tuy nhiên, để an toàn, chúng ta có thể thay nút này bằng một thông báo.
-                onPressed: () {},
-                child: const Text('Đăng nhập'),
-              ),
-            )
-          : Column(
-              children: [
-                Expanded(
-                  flex: 1,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      GestureDetector(
-                        onTap: () => _showImagePicker(context),
-                        child: CircleAvatar(
-                          radius: 40,
-                          backgroundColor: Theme.of(context).colorScheme.surface.withOpacity(0.6),
-                          backgroundImage:
-                              _avatar != null ? NetworkImage(_avatar!) : null,
-                          child: _avatar == null
-                              ? Icon(Icons.person,
-                                  size: 40, color: Theme.of(context).colorScheme.onSurface)
-                              : null,
+      body: RefreshIndicator(
+        onRefresh: _loadUserData,
+        color: AppColors.oceanBlue,
+        child: CustomScrollView(
+          slivers: [
+            // Custom App Bar với avatar
+            SliverAppBar(
+              expandedHeight: isTablet ? 320 : 260,
+              pinned: true,
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              elevation: 0,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Stack(
+                  children: [
+                    // Gradient background
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: Theme.of(context).brightness == Brightness.dark
+                              ? [
+                                  const Color(0xFF1A2332),
+                                  const Color(0xFF0D1117),
+                                ]
+                              : [
+                                  AppColors.skyBlue.withOpacity(0.4),
+                                  AppColors.oceanBlue.withOpacity(0.2),
+                                ],
                         ),
                       ),
-                      const SizedBox(height: 10),
+                    ),
+                    // Decorative circles
+                    Positioned(
+                      top: -50,
+                      right: -50,
+                      child: Container(
+                        width: 200,
+                        height: 200,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.oceanBlue.withOpacity(0.1),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: -30,
+                      left: -30,
+                      child: Container(
+                        width: 150,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.skyBlue.withOpacity(0.1),
+                        ),
+                      ),
+                    ),
+                    // Content
+                    Center(
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(height: MediaQuery.of(context).padding.top + 40),
+                            // Avatar với border và shadow đẹp
+                            GestureDetector(
+                              onTap: () => _showImagePicker(context),
+                              child: Hero(
+                                tag: 'user_avatar',
+                                child: Stack(
+                                  children: [
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: AppColors.oceanBlue.withOpacity(0.3),
+                                            blurRadius: 20,
+                                            spreadRadius: 5,
+                                          ),
+                                        ],
+                                      ),
+                                      child: CircleAvatar(
+                                        radius: avatarRadius,
+                                        backgroundColor: Theme.of(context).colorScheme.surface,
+                                        backgroundImage: _avatar != null && _avatar!.isNotEmpty
+                                            ? NetworkImage(_avatar!)
+                                            : null,
+                                        child: _avatar == null || _avatar!.isEmpty
+                                            ? Icon(
+                                                Icons.person,
+                                                size: avatarRadius,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface
+                                                    .withOpacity(0.3),
+                                              )
+                                            : null,
+                                      ),
+                                    ),
+                                    Positioned(
+                                      bottom: 0,
+                                      right: 0,
+                                      child: Container(
+                                        padding: EdgeInsets.all(isTablet ? 10 : 8),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.oceanBlue,
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: Theme.of(context).scaffoldBackgroundColor,
+                                            width: 3,
+                                          ),
+                                        ),
+                                        child: Icon(
+                                          Icons.camera_alt,
+                                          size: isTablet ? 20 : 16,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                    if (isUploading)
+                                      Positioned.fill(
+                                        child: Container(
+                                          decoration: const BoxDecoration(
+                                            color: Colors.black54,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Center(
+                                            child: CircularProgressIndicator(
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: isTablet ? 20 : 16),
+                            // Username
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 24),
+                              child: Text(
+                                _username ?? 'User',
+                                style: TextStyle(
+                                  fontSize: isTablet ? 32 : 26,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                  letterSpacing: 0.5,
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            // Email
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 24),
+                              child: Text(
+                                _email ?? '',
+                                style: TextStyle(
+                                  fontSize: isTablet ? 16 : 14,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withOpacity(0.6),
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.settings_outlined),
+                  tooltip: 'Settings',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                    );
+                  },
+                ),
+              ],
+            ),
+
+            // Stats cards - Responsive grid
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(
+                isTablet ? 24 : 16,
+                isTablet ? 16 : 8,
+                isTablet ? 24 : 16,
+                isTablet ? 32 : 24,
+              ),
+              sliver: SliverGrid(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: isTablet ? 3 : 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: isTablet ? 1.5 : 1.3,
+                ),
+                delegate: SliverChildListDelegate([
+                  _buildStatCard(
+                    icon: Icons.library_music,
+                    label: 'Playlists',
+                    value: '${_userPlaylists.length}',
+                    color: AppColors.oceanBlue,
+                    isTablet: isTablet,
+                  ),
+                  _buildStatCard(
+                    icon: Icons.history,
+                    label: 'Artists Played',
+                    value: '${_recentArtists.length}',
+                    color: AppColors.skyBlue,
+                    isTablet: isTablet,
+                  ),
+                  if (isTablet)
+                    _buildStatCard(
+                      icon: Icons.music_note,
+                      label: 'Total Songs',
+                      value: '${_userPlaylists.fold<int>(0, (sum, p) => sum + p.songs.length)}',
+                      color: AppColors.oceanDeep,
+                      isTablet: isTablet,
+                    ),
+                ]),
+              ),
+            ),
+
+            // Playlists Section Header
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(
+                isTablet ? 24 : 16,
+                isTablet ? 16 : 8,
+                isTablet ? 24 : 16,
+                isTablet ? 16 : 12,
+              ),
+              sliver: SliverToBoxAdapter(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Your Playlists',
+                      style: TextStyle(
+                        fontSize: isTablet ? 26 : 22,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                    if (_userPlaylists.length > 3)
+                      TextButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            FadePageRoute(child: const PlaylistScreen()),
+                          );
+                        },
+                        icon: const Icon(Icons.arrow_forward, size: 18),
+                        label: const Text('See all'),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Playlist Items
+            if (_loadingData)
+              const SliverToBoxAdapter(
+                child: Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(32),
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+              )
+            else if (_userPlaylists.isEmpty)
+              SliverToBoxAdapter(
+                child: Container(
+                  margin: EdgeInsets.all(isTablet ? 24 : 16),
+                  padding: EdgeInsets.all(isTablet ? 48 : 32),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.playlist_add,
+                        size: isTablet ? 80 : 64,
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+                      ),
+                      SizedBox(height: isTablet ? 24 : 16),
                       Text(
-                        _username?.toUpperCase() ?? 'USER',
+                        'No playlists yet',
                         style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
+                          fontSize: isTablet ? 22 : 18,
+                          fontWeight: FontWeight.w600,
                           color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      SizedBox(height: isTablet ? 12 : 8),
+                      Text(
+                        'Create your first playlist to organize your music',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: isTablet ? 16 : 14,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withOpacity(0.6),
+                        ),
+                      ),
+                      SizedBox(height: isTablet ? 24 : 16),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            FadePageRoute(child: const PlaylistScreen()),
+                          );
+                        },
+                        icon: const Icon(Icons.add),
+                        label: const Text('Create Playlist'),
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isTablet ? 32 : 24,
+                            vertical: isTablet ? 16 : 12,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-
-                // ---------- 2/3 DƯỚI: LIST NHẠC ----------
-                Expanded(
-                  flex: 2,
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                      borderRadius:
-                          const BorderRadius.vertical(top: Radius.circular(24)),
-                    ),
-                    // child: Consumer<ThemeProvider>(
-                    //   builder: (context, themeProvider, child) {
-                    //     return Column(
-                    //       children: [
-                    //         // ListTile(
-                    //         //   leading: Icon(Icons.palette, color: Theme.of(context).colorScheme.onSurface),
-                    //         //   title: Text('Theme', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
-                    //         //   trailing: DropdownButton<bool>(
-                    //         //     value: themeProvider.isDark,
-                    //         //     dropdownColor: Theme.of(context).colorScheme.surface,
-                    //         //     style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                    //         //     items: const [
-                    //         //       DropdownMenuItem(
-                    //         //         value: false,
-                    //         //         child: Text('Light Mode'),
-                    //         //       ),
-                    //         //       DropdownMenuItem(
-                    //         //         value: true,
-                    //         //         child: Text('Dark Mode'),
-                    //         //       ),
-                    //         //     ],
-                    //         //     onChanged: (bool? value) {
-                    //         //       if (value != null) {
-                    //         //         themeProvider.setTheme(value);
-                    //         //       }
-                    //         //     },
-                    //         //   ),
-                    //         // ),
-                    //       ],
-                    //     );
-                    //   },
-                    // ),
+              )
+            else
+              SliverPadding(
+                padding: EdgeInsets.symmetric(horizontal: isTablet ? 24 : 16),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      if (index >= (_userPlaylists.length > 3 ? 3 : _userPlaylists.length)) {
+                        return const SizedBox.shrink();
+                      }
+                      final playlist = _userPlaylists[index];
+                      return _buildPlaylistItem(playlist, isTablet);
+                    },
+                    childCount: _userPlaylists.length > 3 ? 3 : _userPlaylists.length,
                   ),
                 ),
-              ],
+              ),
+
+            // Recently Played Artists Section Header
+            if (_recentArtists.isNotEmpty)
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(
+                  isTablet ? 24 : 16,
+                  isTablet ? 32 : 24,
+                  isTablet ? 24 : 16,
+                  isTablet ? 16 : 12,
+                ),
+                sliver: SliverToBoxAdapter(
+                  child: Text(
+                    'Recently Played Artists',
+                    style: TextStyle(
+                      fontSize: isTablet ? 26 : 22,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+              ),
+
+            // Artist Items
+            if (_recentArtists.isNotEmpty)
+              SliverPadding(
+                padding: EdgeInsets.symmetric(horizontal: isTablet ? 24 : 16),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final artist = _recentArtists[index];
+                      return _buildArtistItem(artist, isTablet);
+                    },
+                    childCount: _recentArtists.length,
+                  ),
+                ),
+              ),
+
+            // Bottom Spacing
+            SliverToBoxAdapter(child: SizedBox(height: isTablet ? 120 : 100)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+    required bool isTablet,
+  }) {
+    return Container(
+      padding: EdgeInsets.all(isTablet ? 20 : 16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: color.withOpacity(0.2),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: color, size: isTablet ? 36 : 28),
+          SizedBox(height: isTablet ? 12 : 8),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: isTablet ? 28 : 24,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
+          ),
+          SizedBox(height: isTablet ? 6 : 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: isTablet ? 14 : 12,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlaylistItem(Playlist playlist, bool isTablet) {
+    return Container(
+      margin: EdgeInsets.only(bottom: isTablet ? 12 : 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: isTablet ? 16 : 12,
+          vertical: isTablet ? 12 : 8,
+        ),
+        leading: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: playlist.picUrl.isNotEmpty
+              ? Image.network(
+                  playlist.picUrl,
+                  width: isTablet ? 64 : 56,
+                  height: isTablet ? 64 : 56,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    width: isTablet ? 64 : 56,
+                    height: isTablet ? 64 : 56,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.oceanBlue.withOpacity(0.2),
+                          AppColors.skyBlue.withOpacity(0.2),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(Icons.music_note, color: AppColors.oceanBlue, size: isTablet ? 32 : 28),
+                  ),
+                )
+              : Container(
+                  width: isTablet ? 64 : 56,
+                  height: isTablet ? 64 : 56,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.oceanBlue.withOpacity(0.2),
+                        AppColors.skyBlue.withOpacity(0.2),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(Icons.music_note, color: AppColors.oceanBlue, size: isTablet ? 32 : 28),
+                ),
+        ),
+        title: Text(
+          playlist.name,
+          style: TextStyle(
+            fontSize: isTablet ? 18 : 16,
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Text(
+          '${playlist.songs.length} songs',
+          style: TextStyle(
+            fontSize: isTablet ? 15 : 13,
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+          ),
+        ),
+        trailing: Icon(
+          Icons.chevron_right,
+          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+          size: isTablet ? 28 : 24,
+        ),
+        onTap: () {
+          Navigator.push(
+            context,
+            FadePageRoute(child: PlaylistDetailScreen(playlist: playlist)),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildArtistItem(Map<String, String> artist, bool isTablet) {
+    return Container(
+      margin: EdgeInsets.only(bottom: isTablet ? 12 : 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: isTablet ? 16 : 12,
+          vertical: isTablet ? 12 : 8,
+        ),
+        leading: CircleAvatar(
+          radius: isTablet ? 32 : 28,
+          backgroundColor: AppColors.skyBlue.withOpacity(0.2),
+          backgroundImage: artist['imageUrl']?.isNotEmpty == true
+              ? NetworkImage(artist['imageUrl']!)
+              : null,
+          child: artist['imageUrl']?.isEmpty ?? true
+              ? Icon(
+                  Icons.person,
+                  color: AppColors.skyBlue,
+                  size: isTablet ? 32 : 28,
+                )
+              : null,
+        ),
+        title: Text(
+          artist['name'] ?? 'Unknown Artist',
+          style: TextStyle(
+            fontSize: isTablet ? 18 : 16,
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Text(
+          'Artist',
+          style: TextStyle(
+            fontSize: isTablet ? 15 : 13,
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+          ),
+        ),
+        trailing: Icon(
+          Icons.chevron_right,
+          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+          size: isTablet ? 28 : 24,
+        ),
+        onTap: () {
+          Navigator.push(
+            context,
+            FadePageRoute(
+              child: ArtistDetailScreen(artistName: artist['name'] ?? ''),
+            ),
+          );
+        },
+      ),
     );
   }
 }
