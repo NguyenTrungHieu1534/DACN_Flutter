@@ -44,8 +44,11 @@ class _LoginScreenState extends State<LoginScreen> {
       final identifier = _identifierController.text.trim();
       final password = _passwordController.text;
       await _api.login(identifier: identifier, password: password);
-      if (!mounted) return;
-      Navigator.pushNamedAndRemoveUntil(context, '/home',(Route<dynamic> route) => false,);
+      if (mounted) { 
+        // Thay thế màn hình đăng nhập bằng màn hình chính,
+        // xóa tất cả các route trước đó khỏi stack.
+        Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {

@@ -23,6 +23,8 @@ import '../models/audio_handler.dart';
 import '../screens/login_screen.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'dart:io';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -73,7 +75,7 @@ class WaveMusicApp extends StatelessWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: themeProvider.isDark ? ThemeMode.dark : ThemeMode.light,
       title: 'Wave Music',
-      home: const MainNavigation(),
+      home: const AuthCheck(),
       routes: {
         '/home': (context) => const MainNavigation(),
         '/login': (context) => const LoginScreen(),
@@ -81,6 +83,41 @@ class WaveMusicApp extends StatelessWidget {
         '/verifyOTP': (context) => const VerifyOtpScreen(email: ''),
         '/resetPassword': (context) =>
             const ResetPasswordScreen(email: '', otp: ''),
+      },
+    );
+  }
+}
+
+class AuthCheck extends StatefulWidget {
+  const AuthCheck({super.key});
+
+  @override
+  State<AuthCheck> createState() => _AuthCheckState();
+}
+
+class _AuthCheckState extends State<AuthCheck> {
+  Future<String?> _getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('token');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<String?>(
+      future: _getToken(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
+
+        final token = snapshot.data;
+        if (token != null && token.isNotEmpty && !JwtDecoder.isExpired(token)) {
+          // Token hợp lệ, đi đến màn hình chính
+          return const MainNavigation();
+        } else {
+          // Không có token hoặc token hết hạn, đi đến màn hình đăng nhập
+          return const LoginScreen();
+        }
       },
     );
   }

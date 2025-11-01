@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/ThemeProvider.dart';
 import 'edit_account_info_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import '../screens/update_password_screen.dart';
 
@@ -100,6 +101,52 @@ class SettingsScreen extends StatelessWidget {
                     ],
                   );
                 },
+              ),
+            ),
+            const SizedBox(height: 24),
+            _buildCard(
+              context,
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: Colors.red.withOpacity(0.1),
+                  child: const Icon(Icons.logout, color: Colors.red),
+                ),
+                title: const Text("Log out", style: TextStyle(color: Colors.red)),
+                onTap: () async {
+                  final confirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Xác nhận đăng xuất'),
+                      content: const Text('Bạn có chắc chắn muốn đăng xuất không?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('Hủy'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          style: TextButton.styleFrom(foregroundColor: Colors.red),
+                          child: const Text('Đăng xuất'),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (confirmed == true) {
+                    // Xóa token
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.remove('token');
+
+                    // Điều hướng về màn hình đăng nhập và xóa tất cả các màn hình trước đó
+                    if (context.mounted) {
+                      Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
+                        '/login',
+                        (route) => false,
+                      );
+                    }
+                  }
+                },
+                hoverColor: Colors.red.withOpacity(0.05),
               ),
             ),
           ],
