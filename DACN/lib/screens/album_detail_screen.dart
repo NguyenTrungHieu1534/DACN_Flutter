@@ -1,5 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'dart:ui';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
@@ -54,8 +56,16 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
     super.dispose();
   }
 
+  void _playEntireAlbum(List<Songs> songs, BuildContext context) {
+    if (songs.isEmpty) return;
+    final audioProvider =
+        Provider.of<AudioPlayerProvider>(context, listen: false);
+    final playlistToPlay =
+        songs.map((s) => s.copyWith(thumbnail: widget.albumImage)).toList();
+    audioProvider.setNewPlaylist(playlistToPlay, 0);
+  }
+
   Future<void> _showAddToPlaylistDialog(Songs song) async {
-    // Hiển thị loading
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -63,11 +73,10 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
     );
 
     try {
-      // Lấy danh sách playlist
       final playlists = await apiPlaylist.getPlaylistsByUser();
-      Navigator.pop(context); // Tắt loading
+      if (!mounted) return;
+      Navigator.pop(context);
 
-      // Hiển thị dialog chọn playlist
       await showDialog(
         context: context,
         builder: (context) {
@@ -84,8 +93,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (playlists.isEmpty)
-                    const Text(
-                        'Bạn chưa có playlist nào. Hãy tạo một cái mới!'),
+                    const Text('Bạn chưa có playlist nào. Hãy tạo một cái mới!'),
                   ...playlists.map((p) => ListTile(
                         title: Text(p.name),
                         onTap: () async {
@@ -375,8 +383,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                   return Center(
                     child: Text(
                       'Lỗi: ${snapshot.error}',
-                      style:
-                          TextStyle(color: Theme.of(context).colorScheme.error),
+                      style: TextStyle(color: Theme.of(context).colorScheme.error),
                     ),
                   );
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -384,11 +391,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                     child: Text(
                       'Không có bài hát trong album này 😢',
                       style: TextStyle(
-                        color: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
-                            ?.color
-                            ?.withOpacity(0.6),
+                        color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6),
                         fontSize: 16,
                       ),
                     ),
@@ -396,232 +399,214 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                 }
 
                 final songs = snapshot.data!;
-
-                return ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
-                  itemCount: songs.length,
-                  itemBuilder: (context, index) {
-                    final song = songs[index];
-
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      margin: const EdgeInsets.only(bottom: 14),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Theme.of(context).cardColor.withOpacity(0.9)
-                            : Colors.white.withOpacity(0.8),
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color:
-                                Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.black.withOpacity(0.2)
-                                    : AppColors.oceanBlue.withOpacity(0.08),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          FloatingActionButton(
+                            heroTag: 'Play Album',
+                            onPressed: () => _playEntireAlbum(songs, context),
+                            shape: const CircleBorder(),
+                            child: const Icon(Icons.play_arrow_rounded, size: 28),
+                            backgroundColor: Theme.of(context).primaryColor,
+                            foregroundColor: Colors.white,
                           ),
                         ],
                       ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(24),
-                          onTap: () {
-                            final audioProvider =
-                                Provider.of<AudioPlayerProvider>(context,
-                                    listen: false);
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
+                        itemCount: songs.length,
+                        itemBuilder: (context, index) {
+                          final song = songs[index];
 
-                            final updatedSong = Songs(
-                                id: song.id,
-                                title: song.title,
-                                artist: song.artist,
-                                albuml: song.albuml,
-                                url: song.url,
-                                thumbnail: widget.albumImage,
-                                mp3Url: song.url);
-
-                            final playlistToPlay = songs.map((s) => s.copyWith(thumbnail: widget.albumImage)).toList();
-
-                            audioProvider.setNewPlaylist(playlistToPlay, index);
-                              },
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 10),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 60,
-                                  height: 60,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(16),
-                                    image: DecorationImage(
-                                      image: NetworkImage(widget.albumImage),
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
+                          return AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            margin: const EdgeInsets.only(bottom: 14),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Theme.of(context).cardColor.withOpacity(0.9)
+                                  : Colors.white.withOpacity(0.8),
+                              borderRadius: BorderRadius.circular(24),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.black.withOpacity(0.2)
+                                      : AppColors.oceanBlue.withOpacity(0.08),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 3),
                                 ),
-                                const SizedBox(width: 14),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                              ],
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(24),
+                                onTap: () {
+                                  final audioProvider =
+                                      Provider.of<AudioPlayerProvider>(context, listen: false);
+                                  final playlistToPlay = songs.map((s) => s.copyWith(thumbnail: widget.albumImage)).toList();
+                                  audioProvider.setNewPlaylist(playlistToPlay, index);
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                  child: Row(
                                     children: [
-                                      Text(
-                                        song.title,
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Theme.of(context).brightness ==
-                                                  Brightness.dark
-                                              ? Theme.of(context)
-                                                  .textTheme
-                                                  .titleLarge
-                                                  ?.color
-                                              : AppColors.oceanDeep,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 6),
-                                      InkWell(
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            FadePageRoute(
-                                                child: ArtistDetailScreen(
-                                                    artistName: song.artist)),
-                                          );
-                                        },
-                                        child: Text(
-                                          song.artist,
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            color: Theme.of(context)
-                                                        .brightness ==
-                                                    Brightness.dark
-                                                ? Theme.of(context).primaryColor
-                                                : AppColors.skyBlue,
-                                            fontWeight: FontWeight.w600,
+                                      Container(
+                                        width: 60,
+                                        height: 60,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(16),
+                                          image: DecorationImage(
+                                            image: NetworkImage(widget.albumImage),
+                                            fit: BoxFit.cover,
                                           ),
                                         ),
+                                      ),
+                                      const SizedBox(width: 14),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              song.title,
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: Theme.of(context).brightness == Brightness.dark
+                                                    ? Theme.of(context).textTheme.titleLarge?.color
+                                                    : AppColors.oceanDeep,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 6),
+                                            InkWell(
+                                              onTap: () {
+                                                Navigator.push(
+                                                  context,
+                                                  FadePageRoute(child: ArtistDetailScreen(artistName: song.artist)),
+                                                );
+                                              },
+                                              child: Text(
+                                                song.artist,
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  color: Theme.of(context).brightness == Brightness.dark
+                                                      ? Theme.of(context).primaryColor
+                                                      : AppColors.oceanBlue,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      PopupMenuButton<String>(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(16),
+                                        ),
+                                        color: Theme.of(context).brightness == Brightness.dark
+                                            ? Theme.of(context).cardColor
+                                            : Colors.white,
+                                        icon: Icon(
+                                          Icons.more_vert_rounded,
+                                          color: Theme.of(context).brightness == Brightness.dark
+                                              ? Theme.of(context).primaryColor
+                                              : AppColors.oceanBlue,
+                                        ),
+                                        onSelected: (value) async {
+                                          final prefs = await SharedPreferences.getInstance();
+                                          final token = prefs.getString('token');
+
+                                          // 🔹 Nếu chưa đăng nhập
+                                          if (token == null || token.isEmpty) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(
+                                                content: Text('Vui lòng đăng nhập để sử dụng tính năng này 🔒'),
+                                                duration: Duration(seconds: 2),
+                                              ),
+                                            );
+                                            Future.delayed(const Duration(seconds: 1), () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(builder: (_) => LoginScreen()),
+                                              );
+                                            });
+                                            return;
+                                          }
+
+                                          // 🔹 Nếu đã đăng nhập, xử lý bình thường
+                                          if (value == 'favorite') {
+                                            favoriteService.addFavorite(song);
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(
+                                                content: Text('Đã thêm vào yêu thích 💙'),
+                                                duration: Duration(seconds: 1),
+                                              ),
+                                            );
+                                          } else if (value == 'playlist') {
+                                            _showAddToPlaylistDialog(song);
+                                          }
+                                        },
+                                        itemBuilder: (context) => [
+                                          PopupMenuItem(
+                                            value: 'favorite',
+                                            child: Row(
+                                              children: [
+                                                const Icon(Icons.favorite_border, color: Colors.redAccent),
+                                                const SizedBox(width: 10),
+                                                Text(
+                                                  'Thêm vào yêu thích',
+                                                  style: TextStyle(
+                                                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          PopupMenuItem(
+                                            value: 'playlist',
+                                            child: Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.playlist_add,
+                                                  color: Theme.of(context).brightness == Brightness.dark
+                                                      ? Theme.of(context).primaryColor
+                                                      : AppColors.oceanBlue,
+                                                ),
+                                                const SizedBox(width: 10),
+                                                Text(
+                                                  'Thêm vào playlist khác',
+                                                  style: TextStyle(
+                                                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
                                 ),
-                                PopupMenuButton<String>(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  color: Theme.of(context).brightness ==
-                                          Brightness.dark
-                                      ? Theme.of(context).cardColor
-                                      : Colors.white,
-                                  icon: Icon(
-                                    Icons.more_vert_rounded,
-                                    color: Theme.of(context).brightness ==
-                                            Brightness.dark
-                                        ? Theme.of(context).primaryColor
-                                        : AppColors.skyBlue,
-                                  ),
-                                  onSelected: (value) async {
-                                    final prefs =
-                                        await SharedPreferences.getInstance();
-                                    final token = prefs.getString('token');
-
-                                    // 🔹 Nếu chưa đăng nhập
-                                    if (token == null || token.isEmpty) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                              'Vui lòng đăng nhập để sử dụng tính năng này 🔒'),
-                                          duration: Duration(seconds: 2),
-                                        ),
-                                      );
-                                      Future.delayed(const Duration(seconds: 1),
-                                          () {
-                                        // Navigator.pushNamed(context, '/login');
-                                        // hoặc:
-                                        Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (_) => LoginScreen()));
-                                      });
-                                      return;
-                                    }
-
-                                    // 🔹 Nếu đã đăng nhập, xử lý bình thường
-                                    if (value == 'favorite') {
-                                      favoriteService.addFavorite(song);
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        const SnackBar(
-                                          content:
-                                              Text('Đã thêm vào yêu thích 💙'),
-                                          duration: Duration(seconds: 1),
-                                        ),
-                                      );
-                                    } else if (value == 'playlist') {
-                                      _showAddToPlaylistDialog(song);
-                                    }
-                                  },
-                                  itemBuilder: (context) => [
-                                    PopupMenuItem(
-                                      value: 'favorite',
-                                      child: Row(
-                                        children: [
-                                          const Icon(Icons.favorite_border,
-                                              color: Colors.redAccent),
-                                          const SizedBox(width: 10),
-                                          Text(
-                                            'Thêm vào yêu thích',
-                                            style: TextStyle(
-                                                color: Theme.of(context)
-                                                    .textTheme
-                                                    .bodyLarge
-                                                    ?.color),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    PopupMenuItem(
-                                      value: 'playlist',
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.playlist_add,
-                                              color: Theme.of(context)
-                                                          .brightness ==
-                                                      Brightness.dark
-                                                  ? Theme.of(context)
-                                                      .primaryColor
-                                                  : AppColors.oceanBlue),
-                                          const SizedBox(width: 10),
-                                          Text(
-                                            'Thêm vào playlist khác',
-                                            style: TextStyle(
-                                                color: Theme.of(context)
-                                                    .textTheme
-                                                    .bodyLarge
-                                                    ?.color),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                );
+                              ), // <-- ĐÃ ĐÓNG InkWell
+                            ), // <-- ĐÃ ĐÓNG Material
+                          ); // <-- ĐÃ ĐÓNG AnimatedContainer
+                        },
+                      ), // <-- ĐÃ ĐÓNG ListView.builder
+                    ), // <-- ĐÃ ĐÓNG Expanded
+                  ],
+                ); // <-- ĐÃ ĐÓNG Column
               },
-            ),
+            ), // <-- ĐÃ ĐÓNG FutureBuilder
           ),
         ],
       ),
     );
-  }
-}
+  }}
