@@ -134,8 +134,10 @@ class TrendingSong extends StatelessWidget {
       );
     }
   }
-
-  // Widget hiển thị danh sách Albums
+void _playAndNavigate(BuildContext context, Songs song) {
+  final audioProvider = Provider.of<AudioPlayerProvider>(context, listen: false);
+  audioProvider.setNewPlaylist([song], 0);
+}
   Widget _buildAlbumsList(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return SizedBox(
@@ -407,13 +409,9 @@ class TrendingSong extends StatelessWidget {
               color: Colors.transparent,
               borderRadius: BorderRadius.circular(24),
               child: InkWell(
-                // Thêm onTap để mở PlayerScreen
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    ModalSlideUpPageRoute(child: PlayerScreen(song: song)),
-                  );
-                },
+                  _playAndNavigate(context, song); 
+                          },
                 borderRadius: BorderRadius.circular(24),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -560,8 +558,9 @@ class TrendingSong extends StatelessWidget {
                       ),
                       TextButton(
                         onPressed: () {
-                          audioProvider.playSong(song);
-                          debugPrint("Container được bấm!------${song.title}");
+                          audioProvider.setNewPlaylist([song], 0); // Đảm bảo nó là bài đang phát
+                          audioProvider.togglePlayPause();
+                          debugPrint("Nút Play nhỏ được bấm!------${song.title}");
                         },
                         child: Container(
                           width: 54,
