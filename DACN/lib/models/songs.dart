@@ -18,7 +18,27 @@ class Songs {
     required this.mp3Url,
     this.lyric = '',
   });
-
+Songs copyWith({
+    String? id,
+    String? title,
+    String? artist,
+    String? albuml,
+    String? url,
+    String? thumbnail,
+    String? mp3Url,
+    String? lyric,
+  }) {
+    return Songs(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      artist: artist ?? this.artist,
+      albuml: albuml ?? this.albuml,
+      url: url ?? this.url,
+      thumbnail: thumbnail ?? this.thumbnail,
+      mp3Url: mp3Url ?? this.mp3Url,
+      lyric: lyric ?? this.lyric,
+    );
+  }
   factory Songs.fromJson(Map<String, dynamic> json) {
     return Songs(
       id: (json['id'] ?? json['_id'])?.toString() ?? '',

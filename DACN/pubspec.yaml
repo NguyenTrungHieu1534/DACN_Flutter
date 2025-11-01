@@ -47,6 +47,7 @@ flutter:
   assets:
     - default_pic/default_playlistPic.png
     - assets/default_pic/
+    - default_pic/
 flutter_icons:
   android: true
   ios: false

@@ -5,9 +5,9 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:provider/provider.dart';
 import 'login_screen.dart';
-import '../services/api_user.dart';
 import '../screens/setting_screen.dart';
 import '../models/ThemeProvider.dart';
+import '../services/api_user.dart';
 
 class UserScreen extends StatefulWidget {
   const UserScreen({super.key});
@@ -25,13 +25,14 @@ class _UserScreenState extends State<UserScreen> {
   String? _email;
   String? _role;
   String? _avatar;
-  final UserService userService = UserService();
   bool isUploading = false;
   String? avatarUrl;
   @override
   void initState() {
     _checkToken();
     super.initState();
+    final UserService userService = UserService();
+
   }
 
   Future<void> _showImagePicker(BuildContext context) async {
@@ -71,7 +72,7 @@ class _UserScreenState extends State<UserScreen> {
 
       setState(() => isUploading = true);
 
-      final result = await userService.uploadAvatar(_userId.toString(), image);
+      final result = await UserService().uploadAvatar(_userId.toString(), image);
 
       setState(() => isUploading = false);
 
@@ -128,17 +129,6 @@ class _UserScreenState extends State<UserScreen> {
     }
   }
 
-  Future<void> _logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('token');
-
-    Navigator.pushNamedAndRemoveUntil( // Khi đăng xuất, xóa toàn bộ stack và về màn hình đăng nhập
-      context,
-      '/login',
-      (route) => false,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -152,45 +142,32 @@ class _UserScreenState extends State<UserScreen> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
-        title: Row(
-          children: [
-            Text(
-              '🌤️ Wave Music',
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 22,
-                color: Theme.of(context).appBarTheme.foregroundColor,
-              ),
-            ),
-            IconButton(
-              icon: Icon(Icons.settings, color: Theme.of(context).appBarTheme.foregroundColor),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                );
-              },
-            ),
-          ],
+        title: Text(
+          '🌤️ Wave Music',
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 22,
+            color: Theme.of(context).appBarTheme.foregroundColor,
+          ),
         ),
-        centerTitle: true,
-        actions: _token != null
-            ? [
-                IconButton(
-                  icon: Icon(Icons.logout, color: Theme.of(context).appBarTheme.foregroundColor),
-                  onPressed: _logout,
-                ),
-              ]
-            : null,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.settings, color: Theme.of(context).appBarTheme.foregroundColor),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              );
+            },
+          ),
+        ],
       ),
       body: _token == null
           ? Center(
               child: ElevatedButton(
-                onPressed: () { // Khi chưa đăng nhập, nhấn nút "Đăng nhập" sẽ đẩy LoginScreen lên
-                  Navigator.push(
-                    context, MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  );
-                },
+                // Với AuthCheck, màn hình này sẽ không hiển thị khi chưa đăng nhập.
+                // Tuy nhiên, để an toàn, chúng ta có thể thay nút này bằng một thông báo.
+                onPressed: () {},
                 child: const Text('Đăng nhập'),
               ),
             )
