@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/album.dart';
+import '../screens/album_detail_screen.dart';
 import '../models/songs.dart';
 import 'package:provider/provider.dart';
 import '../models/AudioPlayerProvider.dart';
@@ -189,19 +190,15 @@ class TrendingSong extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.only(right: 20, top: 10, bottom: 10),
             child: GestureDetector(
-              // onTap: () {
-              //   Navigator.push(
-              //     context,
-              //     MaterialPageRoute(
-              //       builder: (_) => PlayerScreen(
-              //         title: album.name,
-              //         subtitle: album.artist,
-              //         imageUrl: album.url,
-              //         heroTag: heroTag,
-              //       ),
-              //     ),
-              //   );
-              // },
+              onTap: () {
+                Navigator.push(
+                  context,
+                  ScaleFadePageRoute(
+                    child: AlbumDetailScreen(
+                        albumName: album.name, albumImage: album.url),
+                  ),
+                );
+              },
               child: Container(
                 width: 190,
                 decoration: BoxDecoration(
