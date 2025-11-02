@@ -3,12 +3,12 @@ import '../theme/app_theme.dart';
 
 class LibrarySectionHeader extends StatelessWidget {
   final String title;
-  final VoidCallback onSeeAll;
+  final VoidCallback? onSeeAll;
 
   const LibrarySectionHeader({
     super.key,
     required this.title,
-    required this.onSeeAll,
+    this.onSeeAll,
   });
 
   @override
@@ -26,11 +26,11 @@ class LibrarySectionHeader extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
-          // TextButton(
-          //   onPressed: onSeeAll,
-          //   child: const Text('See all',
-          //       style: TextStyle(color: AppColors.oceanBlue, fontWeight: FontWeight.w600)),
-          // ),
+          TextButton(
+            onPressed: onSeeAll,
+            child: const Text('See all',
+                style: TextStyle(color: AppColors.oceanBlue, fontWeight: FontWeight.w600)),
+          ),
         ],
       ),
     );

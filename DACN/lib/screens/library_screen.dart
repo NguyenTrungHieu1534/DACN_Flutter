@@ -58,8 +58,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   Future<void> _handleRefresh() async {
     // Tải lại tất cả dữ liệu song song để tối ưu tốc độ
-    await Future.wait(
-        [_loadPlaylists(), _loadFavorites(), _loadHistory()]);
+    await Future.wait([_loadPlaylists(), _loadFavorites(), _loadHistory()]);
   }
 
   Future<void> _loadHistory() async {
@@ -116,7 +115,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
           IconButton(
             tooltip: 'Chuyển đổi layout',
             onPressed: () async {
-              // Cập nhật trạng thái giao diện
               setState(() => _showAsGrid = !_showAsGrid);
               // Lưu lựa chọn mới vào SharedPreferences
               final prefs = await SharedPreferences.getInstance();
@@ -145,8 +143,14 @@ class _LibraryScreenState extends State<LibraryScreen> {
                         hintText: 'Search in your library',
                         prefixIcon: Icon(Icons.search,
                             color: Theme.of(context).iconTheme.color),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () =>
+                                    setState(() => _searchController.clear()))
+                            : null,
                       ),
-                      onSubmitted: (_) => setState(() {}),
+                      onChanged: (_) => setState(() {}),
                     ),
                     const SizedBox(height: 12),
                     // SingleChildScrollView(
@@ -304,18 +308,36 @@ class _LibraryScreenState extends State<LibraryScreen> {
       return LibraryEmptyState(onCreatePlaylist: _showCreatePlaylistDialog);
     }
 
+    final searchQuery = _searchController.text.toLowerCase().trim();
+    final filteredPlaylists = _playlists
+        .where((p) => p.name.toLowerCase().contains(searchQuery))
+        .toList();
+    final filteredFavorites = _favorites
+        .where((f) => f.title.toLowerCase().contains(searchQuery))
+        .toList();
+    final filteredHistory = _history
+        .where((h) =>
+            h.title.toLowerCase().contains(searchQuery) ||
+            h.artist.toLowerCase().contains(searchQuery))
+        .toList();
+
     final List<Widget> content = [];
 
     // Playlists Section
     if (_activeFilter == 'All' || _activeFilter == 'Playlists') {
       content.addAll([
-        LibrarySectionHeader(title: 'Playlists 🎵', onSeeAll: () {
-          Navigator.push(context, FadePageRoute(child: const PlaylistScreen()));
-        }),
-        if (_playlists.isNotEmpty)
+        const Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'Your playlists 🎶',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+          ),
+        ),
+        const SizedBox(height: 12),
+        if (filteredPlaylists.isNotEmpty)
           _showAsGrid
               ? PlaylistPreviewGrid(
-                  _playlists.toList(),
+                  filteredPlaylists,
                   buildPlaylistMenu: (playlist) =>
                       _buildPlaylistMenu(playlist, useDarkIcon: true),
                   onTapPlaylist: (playlist) {
@@ -327,7 +349,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   },
                 )
               : PlaylistPreviewList(
-                  _playlists.take(4).toList(),
+                  filteredPlaylists.take(4).toList(),
                   buildPlaylistMenu: (playlist) =>
                       _buildPlaylistMenu(playlist, useDarkIcon: false),
                   onTapPlaylist: (playlist) {
@@ -346,18 +368,21 @@ class _LibraryScreenState extends State<LibraryScreen> {
     if (_activeFilter == 'All' || _activeFilter == 'Liked') {
       content.addAll([
         LibrarySectionHeader(
-            title: 'Bài hát yêu thích ❤️',
-            onSeeAll: () =>
-                Navigator.push(context, FadePageRoute(child: const FavScreen()))),
+            title: 'Favorites Songs❤️',
+            onSeeAll: () => Navigator.push(
+                context, FadePageRoute(child: const FavScreen()))),
         FavoritesPreviewList(
-          favorites: _favorites.take(3).toList(),
+          favorites: filteredFavorites.take(3).toList(),
           onDelete: (song) async {
-            final result = await _favService.deleteFavoriteById(song.id.toString());
+            final result =
+                await _favService.deleteFavoriteById(song.id.toString());
             if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)));
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(SnackBar(content: Text(result)));
             }
             _loadFavorites();
-          },),
+          },
+        ),
         if (_activeFilter == 'All') const SizedBox(height: 1),
       ]);
     }
@@ -365,12 +390,16 @@ class _LibraryScreenState extends State<LibraryScreen> {
     // History Section
     if (_activeFilter == 'All' || _activeFilter == 'History') {
       content.addAll([
-        LibrarySectionHeader(
-            title: 'Lịch sử nghe gần đây 🕒',
-            onSeeAll: () => Navigator.push(
-                context, FadePageRoute(child: const HistoryScreen()))),
+        const Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'History ⏰',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+          ),
+        ),
+        const SizedBox(height: 12),
         HistoryPreviewList(
-            history: _history.take(3).toList(), formatDate: _formatDate),
+            history: filteredHistory.take(3).toList(), formatDate: _formatDate),
       ]);
     }
 

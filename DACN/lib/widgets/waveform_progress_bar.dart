@@ -114,7 +114,6 @@ class _WaveformPainter extends CustomPainter {
         : (progress.inMilliseconds / total.inMilliseconds).clamp(0.0, 1.0);
     final progressWidth = size.width * progressRatio;
 
-    // Clip the canvas to draw the progress part
     canvas.save();
     canvas.clipRect(Rect.fromLTWH(0, 0, progressWidth, size.height));
 
@@ -129,7 +128,6 @@ class _WaveformPainter extends CustomPainter {
 
     canvas.restore();
 
-    // Draw the progress handle
     final handleX = progressWidth;
     final handlePaint = Paint()
       ..color = progressColor

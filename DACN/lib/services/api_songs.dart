@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/songs.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SongService {
   static Future<List<Songs>> fetchSongs() async {
@@ -28,6 +29,29 @@ class SongService {
       throw Exception(jsonDecode(response.body)['message']);
     } else {
       throw Exception('Lỗi server!');
+    }
+  }
+
+  static Future<String> fetchSongUrl(String songId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    final url =
+        Uri.parse('https://backend-dacn-9l4w.onrender.com/api/play/$songId');
+
+    final response = await http.get(
+      url,
+      headers: {
+        if (token != null) "Authorization": "Bearer $token",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['url'] as String;
+    } else {
+      final errorData = jsonDecode(response.body);
+      throw Exception(errorData['error'] ?? 'Không thể lấy URL bài hát');
     }
   }
 //   Future<Map<String, dynamic>?> fetchLyrics({

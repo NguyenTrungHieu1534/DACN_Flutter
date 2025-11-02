@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:audio_service/audio_service.dart';
 import '../models/songs.dart';
 import '../services/api_history.dart';
+import '../services/api_songs.dart';
 import '../models/audio_handler.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -124,8 +125,19 @@ class AudioPlayerProvider extends ChangeNotifier {
     await _playCurrentSong();
   }
   Future<void> _playCurrentSong() async {
-    final selectedSong = currentPlaying;
-    if (selectedSong == null || selectedSong.url.isEmpty) return;
+    var selectedSong = currentPlaying;
+    if (selectedSong == null) return;
+    if (selectedSong.url.isEmpty && selectedSong.mp3Url.isEmpty) {
+      try {
+        final songUrl = await SongService.fetchSongUrl(selectedSong.id);
+        selectedSong = selectedSong.copyWith(url: songUrl);
+        _currentPlaylist[_currentIndex] = selectedSong;
+        notifyListeners();
+      } catch (e) {
+        debugPrint('Lỗi khi lấy URL bài hát: $e');
+        return;
+      }
+    }
 
     final mediaItem = _createMediaItem(selectedSong);
 

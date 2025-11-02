@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/favSongs.dart';
+import '../models/songs.dart';
+import '../models/AudioPlayerProvider.dart';
 import '../services/api_favsongs.dart';
-import '../widgets/FavoriteSongList.dart';
+import '../services/api_album.dart';
+import '../theme/app_theme.dart';
 
 class FavScreen extends StatefulWidget {
   const FavScreen({super.key});
@@ -11,75 +15,260 @@ class FavScreen extends StatefulWidget {
 }
 
 class _FavScreenState extends State<FavScreen> {
-  late FavoriteService _favService;
-  late Future<List<FavoriteSong>> _favoritesFuture = Future.value([]);
+  final FavoriteService _favService = FavoriteService();
+  late Future<List<FavoriteSong>> _favoritesFuture;
 
   @override
   void initState() {
     super.initState();
-    _favService = FavoriteService();
     _loadFavorites();
   }
 
   void _loadFavorites() {
-    _favService.getFavorites().then((favorites) {
-      setState(() {
-        _favoritesFuture = Future.value(favorites);
-      });
-      print("fav data: $favorites");
-    }).catchError((err) {
-      print("Error loading favorites: $err");
+    setState(() {
+      _favoritesFuture = _favService.getFavorites();
     });
+  }
+
+  void _playAll(List<FavoriteSong> favSongs, {bool shuffle = false}) async {
+    if (favSongs.isEmpty) return;
+
+    final audioProvider = Provider.of<AudioPlayerProvider>(context, listen: false);
+
+    // Sử dụng Future.wait để lấy tất cả ảnh bìa một cách song song
+    final songsToPlay = await Future.wait(favSongs.map((fav) async {
+      String thumbnailUrl = '';
+      if (fav.album.isNotEmpty) {
+        try {
+          thumbnailUrl = await AlbumService.fetchAlbumCover(fav.album);
+        } catch (e) {
+          // Bỏ qua lỗi nếu không lấy được ảnh, thumbnail sẽ là chuỗi rỗng
+        }
+      }
+      return Songs(
+        id: fav.songId,
+        title: fav.title,
+        artist: fav.artist,
+        album: fav.album,
+        thumbnail: thumbnailUrl,
+        url: '',
+        mp3Url: '',
+      );
+    }).toList());
+
+    if (shuffle) {
+      songsToPlay.shuffle();
+    }
+
+    audioProvider.setNewPlaylist(songsToPlay, 0);
   }
 
   @override
   Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      title: const Text("Yêu Thích"),
-      centerTitle: true,
-      backgroundColor: const Color.fromARGB(255, 112, 150, 193),
-      elevation: 0,
-    ),
-    backgroundColor: Colors.transparent,
-     
-    body: Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color.fromARGB(255, 112, 150, 193), // xanh ngọc retro
-            Color(0xFFFFFFFF), // trắng pastel
-          ],
-          stops: [0.0, 0.4],
-        ),
-      ),
-      child: FutureBuilder<List<FavoriteSong>>(
+    return Scaffold(
+      body: FutureBuilder<List<FavoriteSong>>(
         future: _favoritesFuture,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
-            return const Center(child: Text("Lỗi tải dữ liệu 😢"));
+            return Center(child: Text("Lỗi tải dữ liệu: ${snapshot.error}"));
           }
 
           final favorites = snapshot.data ?? [];
 
-          return FavoriteSongList(
-            songs: favorites,
-            onDelete: (song) async {
-              await _favService.deleteFavoriteById(song.id.toString());
-              _loadFavorites();
-            },
-            onTap: (song) {},
+          return CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                expandedHeight: 120.0,
+                pinned: true,
+                elevation: 0,
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                flexibleSpace: FlexibleSpaceBar(
+                  titlePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  centerTitle: false,
+                  title: Text(
+                    'Yêu Thích',
+                    style: TextStyle(
+                      color: Theme.of(context).textTheme.titleLarge?.color,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              if (favorites.isNotEmpty)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () => _playAll(favorites),
+                            icon: const Icon(Icons.play_arrow),
+                            label: const Text('Phát'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.oceanBlue,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => _playAll(favorites, shuffle: true),
+                            icon: const Icon(Icons.shuffle),
+                            label: const Text('Trộn bài'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.oceanBlue,
+                              side: const BorderSide(color: AppColors.oceanBlue),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              if (favorites.isEmpty)
+                SliverFillRemaining(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.favorite_border, size: 64, color: Colors.grey),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Chưa có bài hát yêu thích',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Nhấn ❤️ trên bài hát để thêm vào đây.',
+                          style: TextStyle(color: Colors.grey.shade600),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final favSong = favorites[index];
+                      return _FavoriteSongTile(
+                        favoriteSong: favSong,
+                        index: index + 1,
+                        onRemoved: () {
+                          setState(() {
+                            favorites.removeAt(index);
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Đã xóa khỏi Yêu thích'), duration: Duration(seconds: 1)),
+                          );
+                        },
+                      );
+                    },
+                    childCount: favorites.length,
+                  ),
+                ),
+            ],
           );
         },
       ),
-    ),
-  );
+    );
+  }
 }
 
+class _FavoriteSongTile extends StatefulWidget {
+  final FavoriteSong favoriteSong;
+  final int index;
+  final VoidCallback onRemoved;
+
+  const _FavoriteSongTile({
+    required this.favoriteSong,
+    required this.index,
+    required this.onRemoved,
+  });
+
+  @override
+  State<_FavoriteSongTile> createState() => _FavoriteSongTileState();
+}
+
+class _FavoriteSongTileState extends State<_FavoriteSongTile> {
+  String? _thumbnailUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchThumbnail();
+  }
+
+  Future<void> _fetchThumbnail() async {
+    if (widget.favoriteSong.album.isNotEmpty) {
+      try {
+        final url = await AlbumService.fetchAlbumCover(widget.favoriteSong.album);
+        if (mounted) {
+          setState(() {
+            _thumbnailUrl = url;
+          });
+        }
+      } catch (e) {
+           // Handle error if needed
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final audioProvider = Provider.of<AudioPlayerProvider>(context, listen: false);
+    final songToPlay = Songs(
+      id: widget.favoriteSong.songId,
+      title: widget.favoriteSong.title,
+      artist: widget.favoriteSong.artist,
+      album: widget.favoriteSong.album,
+      url: '',
+      mp3Url: '',
+      thumbnail: _thumbnailUrl ?? '',
+    );
+
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      leading: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 24, 
+            child: Text(
+              '${widget.index}',
+              style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodySmall?.color),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(width: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: _thumbnailUrl != null
+                ? Image.network(_thumbnailUrl!, width: 40, height: 40, fit: BoxFit.cover)
+                : Container(width: 40, height: 40, color: Colors.grey.shade300, child: const Icon(Icons.music_note, color: Colors.white)),
+          ),
+        ],
+      ),
+      title: Text(widget.favoriteSong.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+      subtitle: Text(widget.favoriteSong.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
+      onTap: () {
+        audioProvider.playSong(songToPlay);
+      },
+      trailing: IconButton(
+        icon: const Icon(Icons.more_horiz),
+        onPressed: () async {
+          await FavoriteService().deleteFavoriteById(widget.favoriteSong.id.toString());
+          widget.onRemoved();
+        },
+      ),
+    );
+  }
 }
