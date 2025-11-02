@@ -101,7 +101,7 @@ class _SearchPageState extends State<SearchScreen> {
     final seen = <String>{};
     final List<Map<String, dynamic>> derived = [];
     for (final s in songs) {
-      final albumName = (s.albuml).trim();
+      final albumName = (s.album).trim();
       if (albumName.isEmpty) continue;
       final key = albumName.toLowerCase();
       if (seen.add(key)) {

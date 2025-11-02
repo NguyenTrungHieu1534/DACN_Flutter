@@ -97,7 +97,7 @@ class ApiPlaylist {
         'songTitle': song.title,
         'artist': song.artist,
         'songId': song.id,
-        'album': song.albuml,
+        'album': song.album,
         'url': song.url,
         'mp3url': song.mp3Url,
       }),

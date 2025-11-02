@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../navigation/custom_page_route.dart';
+import '../screens/fav_screen.dart';
+import '../screens/history_screen.dart';
+import '../screens/suggested_playlist_screen.dart';
 import '../models/album.dart';
 import '../services/api_album.dart';
 import '../models/songs.dart';
@@ -164,7 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             for (var song in songs) {
               final album = albums.firstWhere(
-                (a) => a.name == song.albuml,
+                (a) => a.name == song.album,
                 orElse: () => albums.first,
               );
               song.thumbnail = album.url;
@@ -199,24 +203,43 @@ class _HomeScreenState extends State<HomeScreen> {
                           _getGreetingIcon(hour), // truyền hàm icon của bạn
                     ),
                     const SizedBox(height: 24),
-
-                    // 🌴 Quick Chips retro
                     SizedBox(
                       height: 42,
                       child: ListView(
                         scrollDirection: Axis.horizontal,
-                        children: const [
+                        children: [
                           _QuickChip(
-                              label: 'Liked Songs', icon: Icons.favorite),
-                          SizedBox(width: 8),
+                            label: 'Liked Songs',
+                            icon: Icons.favorite,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                FadePageRoute(child: const FavScreen()),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 8),
                           _QuickChip(
-                              label: 'Recently Played', icon: Icons.history),
-                          SizedBox(width: 8),
+                            label: 'Recently Played',
+                            icon: Icons.history,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                FadePageRoute(child: const HistoryScreen()),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 8),
                           _QuickChip(
-                              label: 'For You', icon: Icons.auto_awesome),
-                          SizedBox(width: 8),
-                          _QuickChip(
-                              label: 'Trending', icon: Icons.trending_up),
+                            label: 'For You',
+                            icon: Icons.auto_awesome,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                FadePageRoute(child: const SuggestedPlaylistScreen()),
+                              );
+                            },
+                          ),
                         ],
                       ),
                     ),
@@ -256,10 +279,12 @@ class _QuickChip extends StatelessWidget {
   const _QuickChip({
     required this.label,
     required this.icon,
+    this.onTap,
   });
 
   final String label;
   final IconData icon;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -271,7 +296,7 @@ class _QuickChip extends StatelessWidget {
       color: Theme.of(context).colorScheme.surface.withOpacity(0.95),
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
-        onTap: () {},
+        onTap: onTap,
         borderRadius: BorderRadius.circular(20),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),

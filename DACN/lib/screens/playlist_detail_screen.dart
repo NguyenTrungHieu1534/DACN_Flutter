@@ -11,6 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import 'artist_detail_screen.dart';
 import '../navigation/custom_page_route.dart';
 import 'dart:io';
+import '../services/api_album.dart';
 
 class PlaylistDetailScreen extends StatefulWidget {
   final Playlist playlist;
@@ -27,6 +28,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
   String _currentPlaylistName = '';
   String _currentPlaylistDesc = '';
   bool _isUploading = false;
+  String? _songPicUrl;
 
   @override
   void initState() {
@@ -100,23 +102,31 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
         _currentPicUrl = null;
         return [];
       }
-
       final decoded = JwtDecoder.decode(token);
       final username = decoded['username'] as String? ?? '';
-
       final songsFuture =
           _api.fetchPlaylistSong(username, widget.playlist.name, token);
       final picUrlFuture =
           _api.fetchPlaylistPicUrl(username, widget.playlist.name, token);
-
       final results = await Future.wait([songsFuture, picUrlFuture]);
-
       final songs = results[0] as List<Songs>;
-      final picUrl = results[1] as String?;
+      String? songspicUrl = results[1] as String?;
+      
+        final albumName = songs.isNotEmpty
+            ? (songs.first.album ?? 'Unknown')
+            : widget.playlist.name;
 
-      setState(() => _currentPicUrl = picUrl);
+        songspicUrl = await AlbumService.fetchAlbumCover(albumName);
+      
+      setState(() => _songPicUrl = songspicUrl);
+      final updatedSongs = songs.map((s) {
+        if (s.thumbnail.isEmpty && songspicUrl != null) {
+          return s.copyWith(thumbnail: songspicUrl);
+        }
+        return s;
+      }).toList();
 
-      return songs;
+      return updatedSongs;
     } catch (e) {
       throw Exception('Failed to load songs: $e');
     }
@@ -202,8 +212,9 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
         backgroundColor: Colors.transparent,
         body: RefreshIndicator(
           onRefresh: () async {
-            // Khi refresh, gán lại Future để FutureBuilder rebuild
-            setState(() => _songsFuture = _loadSongs());
+            await _loadSongs();
+            if (!mounted) return;
+            setState(() {});
           },
           child: CustomScrollView(
             slivers: [
@@ -378,122 +389,155 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                         );
                       }
 
-                      return ListView.separated(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 20),
-                        itemCount: songs.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          final song = songs[index];
-                          return Dismissible(
-                            key: ValueKey(song.id),
-                            direction: DismissDirection.endToStart,
-                            onDismissed: (direction) async {
-                              final prefs =
-                                  await SharedPreferences.getInstance();
-                              final token = prefs.getString('token');
-                              if (token == null) return;
-
-                              final success =
-                                  await ApiPlaylist.removeSongFromPlaylist(
-                                token,
-                                widget.playlist.id,
-                                song.id,
-                              );
-
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(success
-                                        ? 'Đã xóa bài hát khỏi playlist'
-                                        : 'Xóa bài hát thất bại'),
-                                    backgroundColor:
-                                        success ? Colors.green : Colors.red,
-                                  ),
-                                );
-                                if (success) {
-                                  setState(() {
-                                    songs.removeAt(index);
-                                  });
-                                }
-                              }
-                            },
-                            background: Container(
-                              margin: const EdgeInsets.symmetric(vertical: 4),
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 20),
-                              decoration: BoxDecoration(
-                                color: Colors.redAccent,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: const Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  Icon(Icons.delete, color: Colors.white),
-                                  SizedBox(width: 8),
-                                  Text('Xóa',
-                                      style: TextStyle(color: Colors.white)),
-                                ],
-                              ),
+                      return Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16.0, vertical: 10),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                // FloatingActionButton(
+                                //   heroTag: 'Play Playlist',
+                                //   onPressed: () =>
+                                //       _playEntirePlaylist(songs, context),
+                                //   shape: const CircleBorder(),
+                                //   child: const Icon(Icons.play_arrow_rounded,
+                                //       size: 28),
+                                //   backgroundColor:
+                                //       Theme.of(context).primaryColor,
+                                //   foregroundColor: Colors.white,
+                                // ),
+                              ],
                             ),
-                            child: Material(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              elevation: 2,
-                              shadowColor: Colors.blue.withOpacity(0.1),
-                              child: ListTile(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                leading: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: song.thumbnail.isNotEmpty
-                                      ? Image.network(
-                                          song.thumbnail,
-                                          width: 55,
-                                          height: 55,
-                                          fit: BoxFit.cover,
-                                        )
-                                      : Container(
-                                          width: 55,
-                                          height: 55,
-                                          color: Colors.grey.shade200,
-                                          child: const Icon(Icons.music_note,
-                                              color: Colors.grey),
-                                        ),
-                                ),
-                                title: Text(
-                                  song.title,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: Colors.black87,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                subtitle: InkWell(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      FadePageRoute(child: ArtistDetailScreen(artistName: song.artist)),
+                          ),
+                          ListView.separated(
+                            shrinkWrap: true, // Important for Column
+                            physics:
+                                const NeverScrollableScrollPhysics(), // Important for Column
+                            padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
+                            itemCount: songs.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 12),
+                            itemBuilder: (context, index) {
+                              final song = songs[index];
+                              return Dismissible(
+                                key: ValueKey(song.id),
+                                direction: DismissDirection.endToStart,
+                                onDismissed: (direction) async {
+                                  final prefs =
+                                      await SharedPreferences.getInstance();
+                                  final token = prefs.getString('token');
+                                  if (token == null) return;
+
+                                  final success =
+                                      await ApiPlaylist.removeSongFromPlaylist(
+                                    token,
+                                    widget.playlist.id,
+                                    song.id,
+                                  );
+
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(success
+                                            ? 'Đã xóa bài hát khỏi playlist'
+                                            : 'Xóa bài hát thất bại'),
+                                        backgroundColor:
+                                            success ? Colors.green : Colors.red,
+                                      ),
                                     );
-                                  },
-                                  child: Text(
-                                    song.artist,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(color: Colors.black54),
+                                    if (success) {
+                                      setState(() {
+                                        songs.removeAt(index);
+                                      });
+                                    }
+                                  }
+                                },
+                                background: Container(
+                                  margin:
+                                      const EdgeInsets.symmetric(vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20),
+                                  decoration: BoxDecoration(
+                                    color: Colors.redAccent,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: const Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      Icon(Icons.delete, color: Colors.white),
+                                      SizedBox(width: 8),
+                                      Text('Xóa',
+                                          style:
+                                              TextStyle(color: Colors.white)),
+                                    ],
                                   ),
                                 ),
-                                trailing: const Icon(Icons.play_arrow_rounded,
-                                    color: Colors.blueAccent, size: 30),
-                                onTap: () => audioProvider.playSong(song),
-                              ),
-                            ),
-                          );
-                        },
+                                child: Material(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16),
+                                  elevation: 2,
+                                  shadowColor: Colors.blue.withOpacity(0.1),
+                                  child: ListTile(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    leading: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: song.thumbnail.isNotEmpty
+                                          ? Image.network(
+                                              song.thumbnail,
+                                              width: 55,
+                                              height: 55,
+                                              fit: BoxFit.cover,
+                                            )
+                                          : Container(
+                                              width: 55,
+                                              height: 55,
+                                              color: Colors.grey.shade200,
+                                              child: const Icon(
+                                                  Icons.music_note,
+                                                  color: Colors.grey),
+                                            ),
+                                    ),
+                                    title: Text(
+                                      song.title,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    subtitle: InkWell(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          FadePageRoute(
+                                              child: ArtistDetailScreen(
+                                                  artistName: song.artist)),
+                                        );
+                                      },
+                                      child: Text(
+                                        song.artist,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                            color: Colors.black54),
+                                      ),
+                                    ),
+                                    trailing: const Icon(
+                                        Icons.play_arrow_rounded,
+                                        color: Colors.blueAccent,
+                                        size: 30),
+                                    onTap: () => audioProvider.playSong(song),
+                                  ),
+                                ),
+                              );
+                            },
+                          )
+                        ],
                       );
                     },
                   ),

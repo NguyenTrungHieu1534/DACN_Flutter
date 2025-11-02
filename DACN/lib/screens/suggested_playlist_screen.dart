@@ -87,8 +87,8 @@ class _SongListItemState extends State<SongListItem> {
     try {
       // Assuming song.album is a non-nullable String.
       // If song.album can be null, you should handle that case.
-      if (widget.song.albuml != null) {
-        final url = await AlbumService.fetchAlbumCover(widget.song.albuml!);
+      if (widget.song.album != null) {
+        final url = await AlbumService.fetchAlbumCover(widget.song.album!);
         if (mounted) {
           setState(() {
             _albumCoverUrl = url;

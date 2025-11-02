@@ -44,7 +44,7 @@ class AlbumService {
         throw Exception('Failed to load album cover');
       }
     } catch (e) {
-      print('❌ Lỗi khi lấy cover album: $e');
+      print('Lỗi khi lấy cover album: $e');
       return '/default-covers/no-cover.jpg';
     }
   }

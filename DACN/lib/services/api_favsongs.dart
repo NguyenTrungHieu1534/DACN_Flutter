@@ -68,7 +68,7 @@ class FavoriteService {
         body: jsonEncode({
           "title": song.title,
           "artist": song.artist,
-          "album": song.albuml,
+          "album": song.album,
           "songId": song.id,
         }),
       );

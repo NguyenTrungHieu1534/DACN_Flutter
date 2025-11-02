@@ -66,67 +66,79 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
   }
 
   Future<void> _showAddToPlaylistDialog(Songs song) async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
+  if (!mounted) return;
+  final localContext = context;
+
+  showDialog(
+    context: localContext,
+    barrierDismissible: false,
+    builder: (_) => const Center(child: CircularProgressIndicator()),
+  );
+
+  try {
+    final playlists = await apiPlaylist.getPlaylistsByUser();
+
+    if (!mounted) return;
+    Navigator.of(localContext, rootNavigator: true).pop(); // đóng loading an toàn
+
+    if (!mounted) return;
+
+    final result = await showDialog<String>(
+      context: localContext,
+      builder: (_) {
+        return AlertDialog(
+          backgroundColor: Theme.of(localContext).dialogBackgroundColor,
+          title: Text(
+            'Thêm vào Playlist',
+            style: TextStyle(
+              color: Theme.of(localContext).textTheme.titleLarge?.color,
+            ),
+          ),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (playlists.isEmpty)
+                  const Text('Bạn chưa có playlist nào. Hãy tạo một cái mới!'),
+                ...playlists.map((p) => ListTile(
+                      title: Text(p.name),
+                      onTap: () async {
+                        Navigator.of(localContext, rootNavigator: true).pop();
+                        await _addSongToExistingPlaylist(song, p.id);
+                      },
+                    )),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(localContext, rootNavigator: true).pop(),
+              child: const Text('Hủy'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(localContext, rootNavigator: true).pop('new_playlist'),
+              child: const Text('Tạo Playlist Mới'),
+            ),
+          ],
+        );
+      },
     );
 
-    try {
-      final playlists = await apiPlaylist.getPlaylistsByUser();
-      if (!mounted) return;
-      Navigator.pop(context);
-
-      await showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            backgroundColor: Theme.of(context).dialogBackgroundColor,
-            title: Text(
-              'Thêm vào Playlist',
-              style: TextStyle(
-                  color: Theme.of(context).textTheme.titleLarge?.color),
-            ),
-            content: SizedBox(
-              width: double.maxFinite,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (playlists.isEmpty)
-                    const Text('Bạn chưa có playlist nào. Hãy tạo một cái mới!'),
-                  ...playlists.map((p) => ListTile(
-                        title: Text(p.name),
-                        onTap: () async {
-                          Navigator.pop(context);
-                          await _addSongToExistingPlaylist(song, p.id);
-                        },
-                      )),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Hủy'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  Navigator.pop(context);
-                  await _createNewPlaylistAndAddSong(song);
-                },
-                child: const Text('Tạo Playlist Mới'),
-              ),
-            ],
-          );
-        },
-      );
-    } catch (e) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi tải danh sách playlist: $e')),
-      );
+    if (!mounted) return;
+    if (result == 'new_playlist') {
+      await _handleCreateNewPlaylist(song);
     }
+  } catch (e) {
+    if (!mounted) return;
+    Navigator.of(localContext, rootNavigator: true).pop();
+    if (!mounted) return;
+    ScaffoldMessenger.of(localContext).showSnackBar(
+      SnackBar(content: Text('Lỗi tải danh sách playlist: $e')),
+    );
   }
+}
+
 
   Future<void> _addSongToExistingPlaylist(Songs song, String playlistId) async {
     final prefs = await SharedPreferences.getInstance();
@@ -146,7 +158,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
     }
   }
 
-  Future<void> _createNewPlaylistAndAddSong(Songs song) async {
+  Future<void> _handleCreateNewPlaylist(Songs song) async {
     final nameController = TextEditingController();
     final newPlaylistName = await showDialog<String>(
       context: context,
@@ -195,14 +207,17 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
 
       final newPlaylist =
           await ApiPlaylist.createPlaylist(token, newPlaylistName, '');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(newPlaylist != null
+                  ? 'Đã tạo playlist "$newPlaylistName"!'
+                  : 'Tạo playlist mới thất bại.')),
+        );
+      }
       if (newPlaylist != null) {
-        await _addSongToExistingPlaylist(song, newPlaylist.id);
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Tạo playlist mới thất bại.')),
-          );
-        }
+        _showAddToPlaylistDialog(song);
       }
     }
   }
@@ -383,7 +398,8 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                   return Center(
                     child: Text(
                       'Lỗi: ${snapshot.error}',
-                      style: TextStyle(color: Theme.of(context).colorScheme.error),
+                      style:
+                          TextStyle(color: Theme.of(context).colorScheme.error),
                     ),
                   );
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -391,7 +407,11 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                     child: Text(
                       'Không có bài hát trong album này 😢',
                       style: TextStyle(
-                        color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6),
+                        color: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.color
+                            ?.withOpacity(0.6),
                         fontSize: 16,
                       ),
                     ),
@@ -403,7 +423,8 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 10),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
@@ -411,7 +432,8 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                             heroTag: 'Play Album',
                             onPressed: () => _playEntireAlbum(songs, context),
                             shape: const CircleBorder(),
-                            child: const Icon(Icons.play_arrow_rounded, size: 28),
+                            child:
+                                const Icon(Icons.play_arrow_rounded, size: 28),
                             backgroundColor: Theme.of(context).primaryColor,
                             foregroundColor: Colors.white,
                           ),
@@ -429,13 +451,15 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                             duration: const Duration(milliseconds: 300),
                             margin: const EdgeInsets.only(bottom: 14),
                             decoration: BoxDecoration(
-                              color: Theme.of(context).brightness == Brightness.dark
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
                                   ? Theme.of(context).cardColor.withOpacity(0.9)
                                   : Colors.white.withOpacity(0.8),
                               borderRadius: BorderRadius.circular(24),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Theme.of(context).brightness == Brightness.dark
+                                  color: Theme.of(context).brightness ==
+                                          Brightness.dark
                                       ? Colors.black.withOpacity(0.2)
                                       : AppColors.oceanBlue.withOpacity(0.08),
                                   blurRadius: 8,
@@ -449,21 +473,29 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                 borderRadius: BorderRadius.circular(24),
                                 onTap: () {
                                   final audioProvider =
-                                      Provider.of<AudioPlayerProvider>(context, listen: false);
-                                  final playlistToPlay = songs.map((s) => s.copyWith(thumbnail: widget.albumImage)).toList();
-                                  audioProvider.setNewPlaylist(playlistToPlay, index);
+                                      Provider.of<AudioPlayerProvider>(context,
+                                          listen: false);
+                                  final playlistToPlay = songs
+                                      .map((s) => s.copyWith(
+                                          thumbnail: widget.albumImage))
+                                      .toList();
+                                  audioProvider.setNewPlaylist(
+                                      playlistToPlay, index);
                                 },
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 10),
                                   child: Row(
                                     children: [
                                       Container(
                                         width: 60,
                                         height: 60,
                                         decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(16),
+                                          borderRadius:
+                                              BorderRadius.circular(16),
                                           image: DecorationImage(
-                                            image: NetworkImage(widget.albumImage),
+                                            image:
+                                                NetworkImage(widget.albumImage),
                                             fit: BoxFit.cover,
                                           ),
                                         ),
@@ -471,15 +503,21 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                       const SizedBox(width: 14),
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               song.title,
                                               style: TextStyle(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.bold,
-                                                color: Theme.of(context).brightness == Brightness.dark
-                                                    ? Theme.of(context).textTheme.titleLarge?.color
+                                                color: Theme.of(context)
+                                                            .brightness ==
+                                                        Brightness.dark
+                                                    ? Theme.of(context)
+                                                        .textTheme
+                                                        .titleLarge
+                                                        ?.color
                                                     : AppColors.oceanDeep,
                                               ),
                                               maxLines: 1,
@@ -490,15 +528,21 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                               onTap: () {
                                                 Navigator.push(
                                                   context,
-                                                  FadePageRoute(child: ArtistDetailScreen(artistName: song.artist)),
+                                                  FadePageRoute(
+                                                      child: ArtistDetailScreen(
+                                                          artistName:
+                                                              song.artist)),
                                                 );
                                               },
                                               child: Text(
                                                 song.artist,
                                                 style: TextStyle(
                                                   fontSize: 13,
-                                                  color: Theme.of(context).brightness == Brightness.dark
-                                                      ? Theme.of(context).primaryColor
+                                                  color: Theme.of(context)
+                                                              .brightness ==
+                                                          Brightness.dark
+                                                      ? Theme.of(context)
+                                                          .primaryColor
                                                       : AppColors.oceanBlue,
                                                   fontWeight: FontWeight.w600,
                                                 ),
@@ -509,44 +553,55 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                       ),
                                       PopupMenuButton<String>(
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(16),
+                                          borderRadius:
+                                              BorderRadius.circular(16),
                                         ),
-                                        color: Theme.of(context).brightness == Brightness.dark
+                                        color: Theme.of(context).brightness ==
+                                                Brightness.dark
                                             ? Theme.of(context).cardColor
                                             : Colors.white,
                                         icon: Icon(
                                           Icons.more_vert_rounded,
-                                          color: Theme.of(context).brightness == Brightness.dark
+                                          color: Theme.of(context).brightness ==
+                                                  Brightness.dark
                                               ? Theme.of(context).primaryColor
                                               : AppColors.oceanBlue,
                                         ),
                                         onSelected: (value) async {
-                                          final prefs = await SharedPreferences.getInstance();
-                                          final token = prefs.getString('token');
+                                          final prefs = await SharedPreferences
+                                              .getInstance();
+                                          final token =
+                                              prefs.getString('token');
 
                                           // 🔹 Nếu chưa đăng nhập
                                           if (token == null || token.isEmpty) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
                                               const SnackBar(
-                                                content: Text('Vui lòng đăng nhập để sử dụng tính năng này 🔒'),
+                                                content: Text(
+                                                    'Vui lòng đăng nhập để sử dụng tính năng này 🔒'),
                                                 duration: Duration(seconds: 2),
                                               ),
                                             );
-                                            Future.delayed(const Duration(seconds: 1), () {
+                                            Future.delayed(
+                                                const Duration(seconds: 1), () {
                                               Navigator.push(
                                                 context,
-                                                MaterialPageRoute(builder: (_) => LoginScreen()),
+                                                MaterialPageRoute(
+                                                    builder: (_) =>
+                                                        LoginScreen()),
                                               );
                                             });
                                             return;
                                           }
 
-                                          // 🔹 Nếu đã đăng nhập, xử lý bình thường
                                           if (value == 'favorite') {
                                             favoriteService.addFavorite(song);
-                                            ScaffoldMessenger.of(context).showSnackBar(
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
                                               const SnackBar(
-                                                content: Text('Đã thêm vào yêu thích 💙'),
+                                                content: Text(
+                                                    'Đã thêm vào yêu thích 💙'),
                                                 duration: Duration(seconds: 1),
                                               ),
                                             );
@@ -559,12 +614,17 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                             value: 'favorite',
                                             child: Row(
                                               children: [
-                                                const Icon(Icons.favorite_border, color: Colors.redAccent),
+                                                const Icon(
+                                                    Icons.favorite_border,
+                                                    color: Colors.redAccent),
                                                 const SizedBox(width: 10),
                                                 Text(
                                                   'Thêm vào yêu thích',
                                                   style: TextStyle(
-                                                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                                                    color: Theme.of(context)
+                                                        .textTheme
+                                                        .bodyLarge
+                                                        ?.color,
                                                   ),
                                                 ),
                                               ],
@@ -576,15 +636,21 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                               children: [
                                                 Icon(
                                                   Icons.playlist_add,
-                                                  color: Theme.of(context).brightness == Brightness.dark
-                                                      ? Theme.of(context).primaryColor
+                                                  color: Theme.of(context)
+                                                              .brightness ==
+                                                          Brightness.dark
+                                                      ? Theme.of(context)
+                                                          .primaryColor
                                                       : AppColors.oceanBlue,
                                                 ),
                                                 const SizedBox(width: 10),
                                                 Text(
                                                   'Thêm vào playlist khác',
                                                   style: TextStyle(
-                                                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                                                    color: Theme.of(context)
+                                                        .textTheme
+                                                        .bodyLarge
+                                                        ?.color,
                                                   ),
                                                 ),
                                               ],
@@ -609,4 +675,5 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
         ],
       ),
     );
-  }}
+  }
+}

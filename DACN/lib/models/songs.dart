@@ -2,7 +2,7 @@ class Songs {
   final String id;
   final String title;
   final String artist;
-  final String albuml;
+  final String album;
   final String url;
   String thumbnail;
   final String mp3Url;
@@ -12,7 +12,7 @@ class Songs {
     required this.id,
     required this.title,
     required this.artist,
-    required this.albuml,
+    required this.album,
     required this.url,
     required this.thumbnail,
     required this.mp3Url,
@@ -22,7 +22,7 @@ Songs copyWith({
     String? id,
     String? title,
     String? artist,
-    String? albuml,
+    String? album,
     String? url,
     String? thumbnail,
     String? mp3Url,
@@ -32,7 +32,7 @@ Songs copyWith({
       id: id ?? this.id,
       title: title ?? this.title,
       artist: artist ?? this.artist,
-      albuml: albuml ?? this.albuml,
+      album: album ?? this.album,
       url: url ?? this.url,
       thumbnail: thumbnail ?? this.thumbnail,
       mp3Url: mp3Url ?? this.mp3Url,
@@ -43,7 +43,7 @@ Songs copyWith({
     return Songs(
       id: (json['id'] ?? json['_id'])?.toString() ?? '',
       title: json['title'] ?? '',
-      albuml: json['album'] ?? '',
+      album: json['album'] ?? '',
       artist: json['artist'] ?? '',
       url: json['url'] ?? '',
       thumbnail: json['thumbnail'] ?? '',

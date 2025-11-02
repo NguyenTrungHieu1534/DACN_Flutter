@@ -88,7 +88,7 @@ class AudioPlayerProvider extends ChangeNotifier {
       id: song.id.toString(),
       title: song.title,
       artist: song.artist,
-      album: song.albuml,
+      album: song.album,
       artUri: Uri.parse(song.thumbnail),
       extras: {
         'displayTitle': song.title,
@@ -99,7 +99,7 @@ class AudioPlayerProvider extends ChangeNotifier {
         'gradientEnd': '#2D2D2D',
         'accentColor': '#EF6C00',
         'secondaryColor': '#FF9800',
-        'displayDescription': song.albuml,
+        'displayDescription': song.album,
         'textColor': '#FAFAFA',
         'artworkRadius': '8.0',
         'elevation': '2.0',
@@ -160,7 +160,7 @@ class AudioPlayerProvider extends ChangeNotifier {
         await _historyService.addHistory(
           selectedSong.title,
           selectedSong.artist,
-          selectedSong.albuml,
+          selectedSong.album,
           selectedSong.id,
         );
       } catch (e) {
