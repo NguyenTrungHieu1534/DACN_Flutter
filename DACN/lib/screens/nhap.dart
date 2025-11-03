@@ -12,7 +12,7 @@ class _RetroHawaiiSearchPageState extends State<RetroHawaiiSearchPage> {
   final TextEditingController searchController = TextEditingController();
   String selectedFilter = 'All';
   bool isLoading = false;
-  List<String> results = []; // replace with your actual result model
+  List<String> results = []; 
   List<String> history = ['summer breeze', 'aloha nights', 'ocean eyes'];
 
   void handleSearch(String query) async {
@@ -21,7 +21,6 @@ class _RetroHawaiiSearchPageState extends State<RetroHawaiiSearchPage> {
       results = [];
     });
 
-    // simulate search
     await Future.delayed(const Duration(milliseconds: 600));
     setState(() {
       isLoading = false;
@@ -35,7 +34,6 @@ class _RetroHawaiiSearchPageState extends State<RetroHawaiiSearchPage> {
   }
 
   Widget _buildShimmerLoading() {
-    // simple placeholder for shimmer - replace with Shimmer package if you like
     return ListView.builder(
       itemCount: 6,
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -137,11 +135,9 @@ class _RetroHawaiiSearchPageState extends State<RetroHawaiiSearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Use a transparent scaffold so gradient (in body) fills whole screen
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // Background gradient and subtle texture
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -154,8 +150,6 @@ class _RetroHawaiiSearchPageState extends State<RetroHawaiiSearchPage> {
               ),
             ),
           ),
-
-          // Top wave header
           Positioned(
             top: 0,
             left: 0,
@@ -180,7 +174,6 @@ class _RetroHawaiiSearchPageState extends State<RetroHawaiiSearchPage> {
                       ),
                     ),
                   ),
-                  // Retro sun and palm silhouette
                   const Positioned(
                     top: 28,
                     left: 20,
@@ -197,16 +190,12 @@ class _RetroHawaiiSearchPageState extends State<RetroHawaiiSearchPage> {
               ),
             ),
           ),
-
-          // Main content area
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Column(
                 children: [
-                  const SizedBox(height: 120), // leave space for the wave header
-
-                  // Search bar (glassy)
+                  const SizedBox(height: 120),
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.08),
@@ -239,8 +228,6 @@ class _RetroHawaiiSearchPageState extends State<RetroHawaiiSearchPage> {
                   ),
 
                   const SizedBox(height: 12),
-
-                  // Filter chips
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
@@ -263,8 +250,6 @@ class _RetroHawaiiSearchPageState extends State<RetroHawaiiSearchPage> {
                   ),
 
                   const SizedBox(height: 16),
-
-                  // Content list
                   Expanded(
                     child: isLoading
                         ? _buildShimmerLoading()
@@ -281,8 +266,6 @@ class _RetroHawaiiSearchPageState extends State<RetroHawaiiSearchPage> {
     );
   }
 }
-
-// --- Helper classes and colors ---
 
 class WaveClipper extends CustomClipper<Path> {
   @override

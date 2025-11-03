@@ -32,7 +32,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       appBar: AppBar(
         title: const Text("Lịch sử nghe 🌺"),
         centerTitle: true,
-        backgroundColor: const Color(0xFF70A0C1), // xanh skyblue retro
+        backgroundColor: const Color(0xFF70A0C1), 
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -59,7 +59,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
             return HistoryList(
               songs: history,
               onTap: (song) {
-                // TODO: mở player hoặc detail
               },
             );
           },

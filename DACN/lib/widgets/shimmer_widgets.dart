@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
 class ShimmerWidgets {
-  // Base shimmer configuration
   static Widget baseShimmer({
     required Widget child,
     Color? baseColor,
@@ -15,8 +14,6 @@ class ShimmerWidgets {
       child: child,
     );
   }
-
-  // Shimmer for album cards
   static Widget albumCardShimmer() {
     return baseShimmer(
       child: Container(
@@ -29,7 +26,6 @@ class ShimmerWidgets {
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            // Album image placeholder
             Positioned(
               top: -10,
               left: 18,
@@ -42,7 +38,6 @@ class ShimmerWidgets {
                 ),
               ),
             ),
-            // Play button placeholder
             Positioned(
               bottom: 20,
               right: 16,
@@ -55,7 +50,6 @@ class ShimmerWidgets {
                 ),
               ),
             ),
-            // Text placeholders
             Positioned(
               bottom: 28,
               left: 16,
@@ -88,8 +82,6 @@ class ShimmerWidgets {
       ),
     );
   }
-
-  // Shimmer for song cards
   static Widget songCardShimmer() {
     return baseShimmer(
       child: Container(
@@ -103,7 +95,6 @@ class ShimmerWidgets {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              // Album art placeholder
               Container(
                 width: 100,
                 height: 100,
@@ -113,7 +104,6 @@ class ShimmerWidgets {
                 ),
               ),
               const SizedBox(width: 20),
-              // Text placeholders
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,7 +138,6 @@ class ShimmerWidgets {
                   ],
                 ),
               ),
-              // Play button placeholder
               Container(
                 width: 54,
                 height: 54,
@@ -163,8 +152,6 @@ class ShimmerWidgets {
       ),
     );
   }
-
-  // Shimmer for trending album cards (pixel style)
   static Widget trendingAlbumCardShimmer() {
     return baseShimmer(
       child: Container(
@@ -179,7 +166,6 @@ class ShimmerWidgets {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Rank badge placeholder
               Container(
                 height: 20,
                 width: 30,
@@ -189,7 +175,6 @@ class ShimmerWidgets {
                 ),
               ),
               const SizedBox(height: 16),
-              // Album image placeholder
               Container(
                 width: 160,
                 height: 160,
@@ -199,7 +184,6 @@ class ShimmerWidgets {
                 ),
               ),
               const SizedBox(height: 12),
-              // Title placeholder
               Container(
                 height: 15,
                 width: 180,
@@ -209,7 +193,6 @@ class ShimmerWidgets {
                 ),
               ),
               const SizedBox(height: 8),
-              // Artist placeholder
               Container(
                 height: 12,
                 width: 120,
@@ -224,8 +207,6 @@ class ShimmerWidgets {
       ),
     );
   }
-
-  // Shimmer for list items
   static Widget listItemShimmer() {
     return baseShimmer(
       child: Container(
@@ -270,15 +251,12 @@ class ShimmerWidgets {
       ),
     );
   }
-
-  // Shimmer for home screen loading
   static Widget homeScreenShimmer() {
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 60, 16, 96),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Greeting box shimmer
           baseShimmer(
             child: Container(
               height: 80,
@@ -289,8 +267,6 @@ class ShimmerWidgets {
             ),
           ),
           const SizedBox(height: 24),
-          
-          // Quick chips shimmer
           SizedBox(
             height: 42,
             child: ListView(
@@ -311,8 +287,6 @@ class ShimmerWidgets {
             ),
           ),
           const SizedBox(height: 28),
-          
-          // Trending albums shimmer
           SizedBox(
             height: 320,
             child: ListView(
@@ -325,12 +299,8 @@ class ShimmerWidgets {
             ),
           ),
           const SizedBox(height: 28),
-          
-          // New releases shimmer
           _buildSectionShimmer('New Releases'),
           const SizedBox(height: 28),
-          
-          // Trending songs shimmer
           _buildSectionShimmer('Trending Songs'),
         ],
       ),

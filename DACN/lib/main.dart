@@ -112,10 +112,8 @@ class _AuthCheckState extends State<AuthCheck> {
 
         final token = snapshot.data;
         if (token != null && token.isNotEmpty && !JwtDecoder.isExpired(token)) {
-          // Token hợp lệ, đi đến màn hình chính
           return const MainNavigation();
         } else {
-          // Không có token hoặc token hết hạn, đi đến màn hình đăng nhập
           return const LoginScreen();
         }
       },
@@ -191,7 +189,7 @@ class _MainNavigationState extends State<MainNavigation>
             extendBody: true,
             body: IndexedStack(
               index: _currentIndex,
-              children: _screens, // Sử dụng danh sách đã được khởi tạo
+              children: _screens,
             ),
             bottomNavigationBar: BuildNaviBot(
               currentIndex: _currentIndex,

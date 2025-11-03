@@ -49,15 +49,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
   Future<void> _loadPreferencesAndData() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      // Đọc lựa chọn layout, mặc định là grid (true) nếu chưa có
       _showAsGrid = prefs.getBool('library_screens_style') ?? true;
     });
-    // Sau khi có layout, tải dữ liệu
     await _handleRefresh();
   }
 
   Future<void> _handleRefresh() async {
-    // Tải lại tất cả dữ liệu song song để tối ưu tốc độ
     await Future.wait([_loadPlaylists(), _loadFavorites(), _loadHistory()]);
   }
 
@@ -116,7 +113,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
             tooltip: 'Chuyển đổi layout',
             onPressed: () async {
               setState(() => _showAsGrid = !_showAsGrid);
-              // Lưu lựa chọn mới vào SharedPreferences
               final prefs = await SharedPreferences.getInstance();
               await prefs.setBool('library_screens_style', _showAsGrid);
             },
@@ -322,8 +318,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
         .toList();
 
     final List<Widget> content = [];
-
-    // Playlists Section
     if (_activeFilter == 'All' || _activeFilter == 'Playlists') {
       content.addAll([
         const Align(
@@ -363,8 +357,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
         if (_activeFilter == 'All') const SizedBox(height: 1),
       ]);
     }
-
-    // Favorites Section
     if (_activeFilter == 'All' || _activeFilter == 'Liked') {
       content.addAll([
         LibrarySectionHeader(
@@ -386,8 +378,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
         if (_activeFilter == 'All') const SizedBox(height: 1),
       ]);
     }
-
-    // History Section
     if (_activeFilter == 'All' || _activeFilter == 'History') {
       content.addAll([
         const Align(

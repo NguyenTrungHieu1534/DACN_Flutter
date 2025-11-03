@@ -5,8 +5,8 @@ import '../models/songs.dart';
 import 'package:provider/provider.dart';
 import '../models/AudioPlayerProvider.dart';
 import 'shimmer_widgets.dart';
-import '../navigation/custom_page_route.dart'; // Import custom page routes
-import '../screens/player_screen.dart'; // Import PlayerScreen
+import '../navigation/custom_page_route.dart'; 
+import '../screens/player_screen.dart'; 
 
 class TrendingSong extends StatelessWidget {
   const TrendingSong(
@@ -94,8 +94,6 @@ class TrendingSong extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-
-        // Hiển thị Songs hoặc Albums hoặc shimmer loading
         if (isLoading)
           _buildShimmerList(isShowingSongs)
         else if (isShowingSongs)
@@ -105,8 +103,6 @@ class TrendingSong extends StatelessWidget {
       ],
     );
   }
-
-  // Widget hiển thị shimmer loading
   Widget _buildShimmerList(bool isShowingSongs) {
     if (isShowingSongs) {
       return SizedBox(
@@ -221,7 +217,6 @@ void _playAndNavigate(BuildContext context, Songs song) {
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    // Ảnh album nghiêng nhẹ
                     Positioned(
                       top: -10,
                       left: 18,
@@ -368,11 +363,9 @@ void _playAndNavigate(BuildContext context, Songs song) {
         separatorBuilder: (_, __) => const SizedBox(width: 20),
         itemBuilder: (context, index) {
           final song = itemsSsongs[index];
-
-          // Theme-based background colors that adapt to light/dark mode
           final themeColors = [
             Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(
-                isDark ? 0.3 : 0.8), // lighter for light, darker for dark
+                isDark ? 0.3 : 0.8),
             Theme.of(context)
                 .colorScheme
                 .secondaryContainer
@@ -558,7 +551,7 @@ void _playAndNavigate(BuildContext context, Songs song) {
                       ),
                       TextButton(
                         onPressed: () {
-                          audioProvider.setNewPlaylist([song], 0); // Đảm bảo nó là bài đang phát
+                          audioProvider.setNewPlaylist([song], 0);
                           audioProvider.togglePlayPause();
                           debugPrint("Nút Play nhỏ được bấm!------${song.title}");
                         },

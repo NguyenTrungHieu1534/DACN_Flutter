@@ -18,7 +18,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final UserService _api = UserService();
 
   bool _obscure = true;
-  // Removed unused _health
   bool _isSubmitting = false;
   String? _errorMessage;
 
@@ -45,8 +44,6 @@ class _LoginScreenState extends State<LoginScreen> {
       final password = _passwordController.text;
       await _api.login(identifier: identifier, password: password);
       if (mounted) { 
-        // Thay thế màn hình đăng nhập bằng màn hình chính,
-        // xóa tất cả các route trước đó khỏi stack.
         Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
       }
     } catch (e) {
@@ -64,7 +61,6 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Background gradient aligned with Home tone (blue -> white)
           Container(
             decoration: BoxDecoration(
               gradient: Theme.of(context).brightness == Brightness.dark
@@ -84,7 +80,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
             ),
           ),
-          // Soft decorative blobs (yellow/pink) matching Home accents
           Positioned(
             top: -20,
             right: -30,
@@ -127,7 +122,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-          // Soft decorative blobs (yellow/pink) matching Home accents
           Positioned(
             top: -20,
             right: -30,
@@ -213,7 +207,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    // Form Card
                     Card(
                       color: Theme.of(context).colorScheme.surface,
                       elevation: 6,

@@ -18,7 +18,7 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
   final UserService _userService = UserService();
 
   String? _userId;
-  bool _isLoadingUser = true; // Để theo dõi trạng thái tải thông tin người dùng
+  bool _isLoadingUser = true;
   bool _isUpdating = false;
   bool _obscureOldPassword = true;
   bool _obscureNewPassword = true;
@@ -94,14 +94,9 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('success'),
-          // backgroundColor:
-          //     result  == true ? Colors.green : Colors.red ,
         ),
       );
         Navigator.of(context).pop();
-      // if (result['success'] == true) {
-      //   Navigator.of(context).pop();
-      // }
     }
   }
 

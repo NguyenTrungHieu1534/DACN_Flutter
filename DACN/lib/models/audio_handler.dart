@@ -14,8 +14,6 @@ class MyAudioHandler extends BaseAudioHandler {
         mediaItem.add(mediaItem.value!.copyWith(duration: duration));
       }
     });
-
-    // Bổ sung lại để cập nhật thời gian phát thực tế
     _player.positionStream.listen((position) {
   final oldState = playbackState.value;
   playbackState.add(PlaybackState(
@@ -46,7 +44,6 @@ class MyAudioHandler extends BaseAudioHandler {
   @override
   Future<void> stop() async {
     await _player.stop();
-    // KHÔNG gọi super.stop(); vì nó reset playbackState về 0
     _broadcastState(_player.playerState);
   }
 

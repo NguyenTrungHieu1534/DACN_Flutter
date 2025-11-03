@@ -27,7 +27,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late Future<List<Album>> _albumsFuture;
   late Future<List<Songs>> _songsFuture;
-  // late Future<List<Playlist>> _suggestedPlaylistsFuture;
   String _token = "";
   Future<List<dynamic>>? _combinedFuture;
   bool _isLoggedIn = false;
@@ -72,9 +71,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     const retroPrimary = Color(0xFF70C1B3); // xanh ngọc retro
-    // Removed unused retroAccent
-    // Removed unused retroPeach, retroSand, retroWhite, retroBoxGradient, retroShadow
-
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       body: Container(
@@ -198,9 +194,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     HawaiiGreetingCard(
                       greeting: () =>
-                          greeting(), // truyền hàm greeting() của bạn
+                          greeting(), 
                       getGreetingIcon: (hour) =>
-                          _getGreetingIcon(hour), // truyền hàm icon của bạn
+                          _getGreetingIcon(hour),
                     ),
                     const SizedBox(height: 24),
                     SizedBox(
@@ -325,7 +321,6 @@ class _QuickChip extends StatelessWidget {
   }
 }
 
-// Removed unused _buildRetroDivider
 
 IconData _getGreetingIcon(int hour) {
   if (hour < 12) return Icons.wb_sunny_rounded;

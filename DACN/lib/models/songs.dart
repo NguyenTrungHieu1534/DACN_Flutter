@@ -51,8 +51,4 @@ Songs copyWith({
       lyric: json['lyric'] ?? 'Nah lyric',
     );
   }
-  // @override
-  // String toString() {
-  //   return 'Song(id: $id, title: $title)';
-  // }
 }

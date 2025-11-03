@@ -45,7 +45,6 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
         decoration: BoxDecoration(
           gradient: Theme.of(context).brightness == Brightness.dark
               ? const LinearGradient(
-                  // Đồng bộ gradient với HomeScreen
                   begin: Alignment.topCenter,
                   end: Alignment.bottomRight,
                   colors: [Color(0xFF1A2332), Color(0xFF1F1A33)],

@@ -78,8 +78,6 @@ class _EditAccountInfoScreenState extends State<EditAccountInfoScreen> {
     final newEmail = _emailController.text.trim();
     bool changed = false;
     String finalMessage = "Không có gì thay đổi.";
-
-    // Cập nhật username nếu có thay đổi
     if (newUsername != _initialUsername) {
       final result = await _userService.updateUsername(
         userId: _userId!,
@@ -88,9 +86,8 @@ class _EditAccountInfoScreenState extends State<EditAccountInfoScreen> {
       changed = true;
       finalMessage = result['message'];
       if (result['success'] == true) {
-        _initialUsername = newUsername; // Cập nhật giá trị ban đầu
+        _initialUsername = newUsername;
       } else {
-        // Dừng lại nếu có lỗi
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(finalMessage), backgroundColor: Colors.red),
@@ -98,8 +95,6 @@ class _EditAccountInfoScreenState extends State<EditAccountInfoScreen> {
         return;
       }
     }
-
-    // Cập nhật email nếu có thay đổi
     if (newEmail != _initialEmail) {
       final result = await _userService.updateEmail(
         userId: _userId!,
@@ -108,9 +103,9 @@ class _EditAccountInfoScreenState extends State<EditAccountInfoScreen> {
       changed = true;
       finalMessage = result['message'];
       if (result['success'] == true) {
-        _initialEmail = newEmail; // Cập nhật giá trị ban đầu
+        _initialEmail = newEmail;
       } else {
-        // Dừng lại nếu có lỗi
+
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(finalMessage), backgroundColor: Colors.red),

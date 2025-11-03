@@ -44,7 +44,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     setState(() => _isSubmitting = false);
 
     if (response['success'] == true) {
-      // Chuyển đến màn hình đăng nhập và xóa màn hình đăng ký khỏi stack
       if (context.mounted) {
         Navigator.pushReplacementNamed(context, '/login');
       }
@@ -59,7 +58,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Background gradient aligned with Home tone (blue -> white)
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -73,7 +71,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
             ),
           ),
-          // Soft decorative blobs (yellow/pink) matching Home accents
           Positioned(
             top: -20,
             right: -30,
@@ -116,7 +113,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
             ),
           ),
-          // Soft decorative blobs (yellow/pink) matching Home accents
           Positioned(
             top: -20,
             right: -30,

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_user.dart';
 
-// ignore: must_be_immutable
 class BlockedScreen extends StatefulWidget {
   final String message;
 
@@ -19,7 +18,6 @@ class _BlockedScreenState extends State<BlockedScreen> {
   @override
   void initState() {
     super.initState();
-    // Đăng xuất người dùng ngay khi màn hình này được hiển thị
     _logout(context);
   }
 
@@ -72,7 +70,7 @@ class _BlockedScreenState extends State<BlockedScreen> {
                     const SizedBox(height: 30),
                     ElevatedButton.icon(
                       onPressed: () {
-                        // Điều hướng về màn hình đăng nhập, xóa tất cả các màn hình trước đó
+                       
                         Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
                       },
                       icon: const Icon(Icons.arrow_back),

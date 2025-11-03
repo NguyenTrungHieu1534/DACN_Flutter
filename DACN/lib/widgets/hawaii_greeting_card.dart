@@ -43,7 +43,6 @@ class HawaiiGreetingCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Icon tròn kiểu mặt trời Hawaii
           Container(
             padding: const EdgeInsets.all(12),
             decoration: const BoxDecoration(

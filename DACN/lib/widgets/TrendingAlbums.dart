@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/album.dart';
 import '../screens/album_detail_screen.dart';
 import 'shimmer_widgets.dart';
-import '../navigation/custom_page_route.dart'; // Import custom page routes
+import '../navigation/custom_page_route.dart';
 
 class TrendingAlbum extends StatelessWidget {
   final String title;
@@ -131,7 +131,7 @@ class TrendingAlbum extends StatelessWidget {
           borderRadius: BorderRadius.circular(22),
           onTap: () {
             Navigator.push(
-                context, // Sử dụng hiệu ứng ScaleFadePageRoute
+                context,
                 ScaleFadePageRoute(
                   child: AlbumDetailScreen(
                       albumName: album.name, albumImage: album.url),

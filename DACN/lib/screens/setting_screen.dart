@@ -133,11 +133,8 @@ class SettingsScreen extends StatelessWidget {
                   );
 
                   if (confirmed == true) {
-                    // Xóa token
                     final prefs = await SharedPreferences.getInstance();
                     await prefs.remove('token');
-
-                    // Điều hướng về màn hình đăng nhập và xóa tất cả các màn hình trước đó
                     if (context.mounted) {
                       Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
                         '/login',

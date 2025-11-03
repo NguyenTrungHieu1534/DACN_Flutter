@@ -1,5 +1,5 @@
 class Artist {
-  final String? id; // MongoDB default _id
+  final String? id;
   final String? name;
   final String? bio;
   final String? fullbio;

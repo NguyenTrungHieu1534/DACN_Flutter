@@ -4,12 +4,12 @@ import '../models/songs.dart';
 class AudioPlayerUI extends StatelessWidget {
   final Songs song;
   final bool isPlaying;
-  final Duration position; // Change to Duration
-  final Duration duration; // Add duration
+  final Duration position; 
+  final Duration duration; 
   final VoidCallback onPlayPause;
   final VoidCallback onNext;
   final VoidCallback onPrev;
-  final ValueChanged<double> onSeek; // Add onSeek callback
+  final ValueChanged<double> onSeek; 
   final String thumbnailUrl;
 
   const AudioPlayerUI({
@@ -59,7 +59,7 @@ class AudioPlayerUI extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Song info
+          // Song
           Text(
             song.title,
             style: const TextStyle(
@@ -82,7 +82,7 @@ class AudioPlayerUI extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Album art / Disk
+          // Album art
           SizedBox(
             width: screenWidth * 0.3,
             height: screenWidth * 0.3,

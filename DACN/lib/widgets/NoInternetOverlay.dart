@@ -3,7 +3,7 @@ import 'dart:ui';
 
 class NoInternetOverlay extends StatelessWidget {
   final bool hasInternet;
-  final VoidCallback? onRetry; // Optional: hành động thử lại khi nhấn nút
+  final VoidCallback? onRetry;
 
   const NoInternetOverlay({
     super.key,
@@ -17,11 +17,10 @@ class NoInternetOverlay extends StatelessWidget {
 
     return Positioned.fill(
       child: ClipRect(
-        // Đưa ra ngoài Container
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
           child: Container(
-            color: Colors.black.withOpacity(0.7), // Chỉ màu
+            color: Colors.black.withOpacity(0.7),
             child: Center(
               child: Container(
                 padding:

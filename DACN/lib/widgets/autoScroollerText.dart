@@ -13,7 +13,6 @@ Widget autoTextScroller(String text, TextStyle style) {
       final isOverflowing = textPainter.didExceedMaxLines;
 
       if (isOverflowing) {
-        // Nếu quá dài -> Marquee
         return Marquee(
           text: text,
           style: style,
@@ -22,7 +21,6 @@ Widget autoTextScroller(String text, TextStyle style) {
           velocity: 30.0,
         );
       } else {
-        // Nếu ngắn -> Text bình thường
         return Text(
           text,
           style: style,

@@ -33,8 +33,6 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
   String? _email;
   String? _avatar;
   bool isUploading = false;
-
-  // Dữ liệu từ API - dùng Map và Playlist model có sẵn
   List<Map<String, String>> _recentArtists = [];
   List<Playlist> _userPlaylists = [];
   bool _loadingData = false;
@@ -105,11 +103,8 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
     setState(() => _loadingData = true);
 
     try {
-      // Load playlists - dùng Playlist model có sẵn
       final apiPlaylist = ApiPlaylist();
       final playlists = await apiPlaylist.getPlaylistsByUser();
-      
-      // Load recent artists - dùng Map đơn giản
       final historyService = HistoryService();
       final history = await historyService.getHistory();
       
@@ -118,7 +113,7 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
         if (!artistMap.containsKey(song.artist)) {
           artistMap[song.artist] = {
             'name': song.artist,
-            'imageUrl': '', // Có thể fetch sau nếu cần
+            'imageUrl': '',
           };
         }
       }
@@ -375,7 +370,6 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
               flexibleSpace: FlexibleSpaceBar(
                 background: Stack(
                   children: [
-                    // Gradient background
                     Container(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
@@ -393,7 +387,6 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                         ),
                       ),
                     ),
-                    // Decorative circles
                     Positioned(
                       top: -50,
                       right: -50,
@@ -418,7 +411,6 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                         ),
                       ),
                     ),
-                    // Content
                     Center(
                       child: FadeTransition(
                         opacity: _fadeAnimation,
@@ -426,7 +418,6 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             SizedBox(height: MediaQuery.of(context).padding.top + 40),
-                            // Avatar với border và shadow đẹp
                             GestureDetector(
                               onTap: () => _showImagePicker(context),
                               child: Hero(
@@ -555,8 +546,6 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                 ),
               ],
             ),
-
-            // Stats cards - Responsive grid
             SliverPadding(
               padding: EdgeInsets.fromLTRB(
                 isTablet ? 24 : 16,
@@ -597,8 +586,6 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                 ]),
               ),
             ),
-
-            // Playlists Section Header
             SliverPadding(
               padding: EdgeInsets.fromLTRB(
                 isTablet ? 24 : 16,
@@ -633,8 +620,6 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                 ),
               ),
             ),
-
-            // Playlist Items
             if (_loadingData)
               const SliverToBoxAdapter(
                 child: Center(
@@ -721,8 +706,6 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                   ),
                 ),
               ),
-
-            // Recently Played Artists Section Header
             if (_recentArtists.isNotEmpty)
               SliverPadding(
                 padding: EdgeInsets.fromLTRB(
@@ -742,8 +725,6 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                   ),
                 ),
               ),
-
-            // Artist Items
             if (_recentArtists.isNotEmpty)
               SliverPadding(
                 padding: EdgeInsets.symmetric(horizontal: isTablet ? 24 : 16),
@@ -757,8 +738,6 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                   ),
                 ),
               ),
-
-            // Bottom Spacing
             SliverToBoxAdapter(child: SizedBox(height: isTablet ? 120 : 100)),
           ],
         ),

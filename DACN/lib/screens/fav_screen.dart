@@ -35,14 +35,12 @@ class _FavScreenState extends State<FavScreen> {
 
     final audioProvider = Provider.of<AudioPlayerProvider>(context, listen: false);
 
-    // Sử dụng Future.wait để lấy tất cả ảnh bìa một cách song song
     final songsToPlay = await Future.wait(favSongs.map((fav) async {
       String thumbnailUrl = '';
       if (fav.album.isNotEmpty) {
         try {
           thumbnailUrl = await AlbumService.fetchAlbumCover(fav.album);
         } catch (e) {
-          // Bỏ qua lỗi nếu không lấy được ảnh, thumbnail sẽ là chuỗi rỗng
         }
       }
       return Songs(
@@ -217,7 +215,6 @@ class _FavoriteSongTileState extends State<_FavoriteSongTile> {
           });
         }
       } catch (e) {
-           // Handle error if needed
       }
     }
   }

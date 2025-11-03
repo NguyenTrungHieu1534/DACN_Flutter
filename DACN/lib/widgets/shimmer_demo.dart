@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'shimmer_widgets.dart';
-
-/// Demo widget to showcase different shimmer loading states
-/// This can be used for testing or as a reference
 class ShimmerDemo extends StatelessWidget {
   const ShimmerDemo({super.key});
 

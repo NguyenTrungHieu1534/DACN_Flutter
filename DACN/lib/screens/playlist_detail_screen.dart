@@ -258,11 +258,11 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                         imageFilter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
                         child: FadeInImage.assetNetwork(
                           placeholder:
-                              'default_pic/default_playlistPic.png', // Corrected path
+                              'default_pic/default_playlistPic.png',
                           image: _currentPicUrl ?? '',
                           fit: BoxFit.cover,
                           imageErrorBuilder: (_, __, ___) => Image.asset(
-                            'default_pic/default_playlistPic.png', // Corrected path
+                            'default_pic/default_playlistPic.png',
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -299,12 +299,12 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                                     children: [
                                       FadeInImage.assetNetwork(
                                         placeholder:
-                                            'default_pic/default_playlistPic.png', // Corrected path
+                                            'default_pic/default_playlistPic.png', 
                                         image: _currentPicUrl ?? '',
                                         fit: BoxFit.cover,
                                         imageErrorBuilder: (_, __, ___) =>
                                             Image.asset(
-                                          'default_pic/default_playlistPic.png', // Corrected path
+                                          'default_pic/default_playlistPic.png', 
                                           fit: BoxFit.cover,
                                         ),
                                       ),
@@ -412,9 +412,9 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                             ),
                           ),
                           ListView.separated(
-                            shrinkWrap: true, // Important for Column
+                            shrinkWrap: true, 
                             physics:
-                                const NeverScrollableScrollPhysics(), // Important for Column
+                                const NeverScrollableScrollPhysics(), 
                             padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
                             itemCount: songs.length,
                             separatorBuilder: (_, __) =>

@@ -83,7 +83,7 @@ class FavoritesPreviewList extends StatelessWidget {
                     color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7)),
               ),
               trailing: Icon(Icons.chevron_right, color: Theme.of(context).iconTheme.color),
-              onTap: () {}, // Navigate to song detail or start playing
+              onTap: () {}, 
             ),
           ),
         );

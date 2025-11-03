@@ -47,10 +47,9 @@ class _PlayerScreenState extends State<PlayerScreen>
 void _showPlaylistModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // Cho phép modal Sheet tràn màn hình
-      backgroundColor: Colors.transparent, // Nền trong suốt để hiển thị Blur
+      isScrollControlled: true, 
+      backgroundColor: Colors.transparent, 
       builder: (context) {
-        // Sử dụng Consumer để lắng nghe cập nhật Playlist (vd: khi Next/Previous)
         return Consumer<AudioPlayerProvider>(
           builder: (context, player, _) {
             final playlist = player.currentPlaylist;
@@ -58,11 +57,11 @@ void _showPlaylistModal(BuildContext context) {
 
             return ClipRRect(
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15), // Áp dụng hiệu ứng làm mờ
+                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
                 child: Container(
-                  height: MediaQuery.of(context).size.height * 0.85, // Chiếm 85% màn hình
+                  height: MediaQuery.of(context).size.height * 0.85, 
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.7), // Màu nền tối mờ
+                    color: Colors.black.withOpacity(0.7),
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
                   ),
                   child: _buildPlaylistContent(context, player, playlist, currentIndex),
@@ -75,7 +74,7 @@ void _showPlaylistModal(BuildContext context) {
     );
   }
 
-  // === 🆕 WIDGET HIỂN THỊ NỘI DUNG PLAYLIST ===
+  // === PLAYLIST ===
   Widget _buildPlaylistContent(
     BuildContext context,
     AudioPlayerProvider player,
@@ -145,9 +144,8 @@ void _showPlaylistModal(BuildContext context) {
                 ),
                 trailing: isCurrent ? const Icon(Icons.bar_chart, color: Colors.white) : null,
                 onTap: () {
-                  // Chơi bài hát được chọn từ Playlist
                   player.setNewPlaylist(playlist, index);
-                  Navigator.pop(context); // Đóng modal
+                  Navigator.pop(context);
                 },
               );
             },
@@ -241,15 +239,10 @@ void _showPlaylistModal(BuildContext context) {
     }
   }
 
-  // PlayerScreen.dart
-// Thay thế TOÀN BỘ nội dung của hàm build hiện tại
-
 @override
 Widget build(BuildContext context) {
-  // 🚨 BỌC TOÀN BỘ UI BẰNG CONSUMER
   return Consumer<AudioPlayerProvider>(
     builder: (context, player, child) {
-      // 1. LẤY DỮ LIỆU BÀI HÁT TỪ PROVIDER
       final song = player.currentPlaying ?? widget.song;
 
       if (song == null) {
@@ -259,13 +252,9 @@ Widget build(BuildContext context) {
           ),
         );
       }
-      
-      // 2. KHAI BÁO BIẾN HIỂN THỊ (SỬ DỤNG DỮ LIỆU TỪ 'song' MỚI)
       final displayImage = song.thumbnail ?? widget.imageUrl;
       final displayTitle = song.title ?? widget.title ?? 'Unknown Title';
       final displaySubtitle = song.artist ?? widget.subtitle ?? '';
-
-      // 3. CẤU TRÚC UI
       return Scaffold(
         body: Stack(
           children: [
@@ -326,10 +315,9 @@ Widget build(BuildContext context) {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    // 🚨 Hiển thị Ảnh/Hero Art
                     (displayImage != null && displayImage.isNotEmpty)
                         ? Hero(
-                            tag: song.id ?? widget.heroTag ?? displayImage, // Dùng ID mới
+                            tag: song.id ?? widget.heroTag ?? displayImage,
                             child: Container(
                               width: MediaQuery.of(context).size.width * 0.7,
                               height: MediaQuery.of(context).size.width * 0.7,
@@ -363,7 +351,6 @@ Widget build(BuildContext context) {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // 🚨 Tiêu đề (Updated)
                           Text(
                             displayTitle,
                             maxLines: 1,
@@ -381,7 +368,6 @@ Widget build(BuildContext context) {
                                 ),
                           ),
                           const SizedBox(height: 8),
-                          // 🚨 Nghệ sĩ (Updated)
                           Text(
                             displaySubtitle,
                             maxLines: 1,
@@ -399,8 +385,6 @@ Widget build(BuildContext context) {
                                 ),
                           ),
                           const SizedBox(height: 24),
-
-                          // Waveform + time row (Giữ nguyên)
                           Column(
                             children: [
                               WaveformProgressBar(
@@ -437,12 +421,10 @@ Widget build(BuildContext context) {
                           ),
 
                           const SizedBox(height: 25),
-
-                          // Controls row (Đã được sửa lỗi và cập nhật)
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              // Nút SHUFFLE
+                              // Nút SHUF
                               IconButton(
                                 icon: Icon(
                                   Icons.shuffle,
@@ -453,7 +435,7 @@ Widget build(BuildContext context) {
                                 onPressed: player.toggleShuffle,
                               ),
 
-                              // Nút PREVIOUS
+                              // Nút PRE
                               IconButton(
                                 icon: const Icon(Icons.skip_previous_rounded),
                                 color: Colors.white.withOpacity(0.9),
@@ -461,7 +443,7 @@ Widget build(BuildContext context) {
                                 onPressed: player.previousSong,
                               ),
 
-                              // Nút Play/Pause lớn
+                              // Nút Play/Pause
                               Container(
                                 width: 84,
                                 height: 84,
@@ -486,7 +468,6 @@ Widget build(BuildContext context) {
                                   color: Colors.black87,
                                   iconSize: 54,
                                   onPressed: () async {
-                                    // Nếu đã có playlist, phát theo thứ tự từ đầu
                                     if (player.currentPlaylist.isNotEmpty) {
                                       if (!player.isPlaying || player.currentIndex != 0) {
                                         await player.setNewPlaylist(player.currentPlaylist, 0);
