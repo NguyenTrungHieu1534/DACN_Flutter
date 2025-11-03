@@ -79,7 +79,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
     final playlists = await apiPlaylist.getPlaylistsByUser();
 
     if (!mounted) return;
-    Navigator.of(localContext, rootNavigator: true).pop(); // đóng loading an toàn
+    Navigator.of(localContext, rootNavigator: true).pop();
 
     if (!mounted) return;
 
@@ -573,7 +573,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                           final token =
                                               prefs.getString('token');
 
-                                          // 🔹 Nếu chưa đăng nhập
+                                          // Chưa đăng nhập
                                           if (token == null || token.isEmpty) {
                                             ScaffoldMessenger.of(context)
                                                 .showSnackBar(
@@ -661,16 +661,16 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                     ],
                                   ),
                                 ),
-                              ), // <-- ĐÃ ĐÓNG InkWell
-                            ), // <-- ĐÃ ĐÓNG Material
-                          ); // <-- ĐÃ ĐÓNG AnimatedContainer
+                              ), 
+                            ), 
+                          ); 
                         },
-                      ), // <-- ĐÃ ĐÓNG ListView.builder
-                    ), // <-- ĐÃ ĐÓNG Expanded
+                      ), 
+                    ), 
                   ],
-                ); // <-- ĐÃ ĐÓNG Column
+                ); 
               },
-            ), // <-- ĐÃ ĐÓNG FutureBuilder
+            ), 
           ),
         ],
       ),
