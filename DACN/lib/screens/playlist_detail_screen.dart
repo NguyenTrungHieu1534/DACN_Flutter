@@ -98,40 +98,42 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
+
       if (token == null || token.isEmpty) {
         _currentPicUrl = null;
         return [];
       }
+
       final decoded = JwtDecoder.decode(token);
       final username = decoded['username'] as String? ?? '';
+
       final songsFuture =
           _api.fetchPlaylistSong(username, widget.playlist.name, token);
       final picUrlFuture =
           _api.fetchPlaylistPicUrl(username, widget.playlist.name, token);
+
       final results = await Future.wait([songsFuture, picUrlFuture]);
       final songs = results[0] as List<Songs>;
-      String? songspicUrl = results[1] as String?;
-      
-        final albumName = songs.isNotEmpty
-            ? (songs.first.album ?? 'Unknown')
-            : widget.playlist.name;
+      final playlistPicUrl = results[1] as String?;
 
-        songspicUrl = await AlbumService.fetchAlbumCover(albumName);
-      
-      setState(() => _songPicUrl = songspicUrl);
-      final updatedSongs = songs.map((s) {
-        if (s.thumbnail.isEmpty && songspicUrl != null) {
-          return s.copyWith(thumbnail: songspicUrl);
-        }
-        return s;
-      }).toList();
+      setState(() => _songPicUrl = playlistPicUrl);
+
+      final updatedSongs = await Future.wait(
+        songs.map((s) async {
+          if (s.thumbnail.isEmpty) {
+            final albumName = s.album ?? 'Unknown';
+            final albumCover = await AlbumService.fetchAlbumCover(albumName);
+            return s.copyWith(thumbnail: albumCover);
+          }
+          return s;
+        }),
+      );
 
       return updatedSongs;
     } catch (e) {
       throw Exception('Failed to load songs: $e');
     }
   }
-
   Future<void> _showRenameDialog() async {
     final nameController = TextEditingController(text: _currentPlaylistName);
     final descController = TextEditingController(text: _currentPlaylistDesc);
@@ -257,8 +259,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                       ImageFiltered(
                         imageFilter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
                         child: FadeInImage.assetNetwork(
-                          placeholder:
-                              'default_pic/default_playlistPic.png',
+                          placeholder: 'default_pic/default_playlistPic.png',
                           image: _currentPicUrl ?? '',
                           fit: BoxFit.cover,
                           imageErrorBuilder: (_, __, ___) => Image.asset(
@@ -299,12 +300,12 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                                     children: [
                                       FadeInImage.assetNetwork(
                                         placeholder:
-                                            'default_pic/default_playlistPic.png', 
+                                            'default_pic/default_playlistPic.png',
                                         image: _currentPicUrl ?? '',
                                         fit: BoxFit.cover,
                                         imageErrorBuilder: (_, __, ___) =>
                                             Image.asset(
-                                          'default_pic/default_playlistPic.png', 
+                                          'default_pic/default_playlistPic.png',
                                           fit: BoxFit.cover,
                                         ),
                                       ),
@@ -412,9 +413,8 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                             ),
                           ),
                           ListView.separated(
-                            shrinkWrap: true, 
-                            physics:
-                                const NeverScrollableScrollPhysics(), 
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
                             padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
                             itemCount: songs.length,
                             separatorBuilder: (_, __) =>

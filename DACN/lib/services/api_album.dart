@@ -4,6 +4,7 @@ import '../models/album.dart';
 import '../models/songs.dart';
 
 class AlbumService {
+  static const String _baseUrl = 'https://backend-dacn-9l4w.onrender.com';
   static Future<List<Album>> fetchAlbums() async {
     final url = Uri.parse('https://backend-dacn-9l4w.onrender.com/api/albums');
     final response = await http.get(url);
@@ -46,6 +47,33 @@ class AlbumService {
     } catch (e) {
       print('Lỗi khi lấy cover album: $e');
       return '/default-covers/no-cover.jpg';
+    }
+  }
+
+  static Future<List<Album>> fetchAlbumsByArtist(String artistName) async {
+    final encodedArtistName = Uri.encodeComponent(artistName);
+    final url = Uri.parse('$_baseUrl/api/artist/albums/$encodedArtistName');
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> albumNamesJson = jsonDecode(response.body);
+        final List<String> albumNames =
+            albumNamesJson.map((name) => name.toString()).toList();
+        final List<Album> albums = await Future.wait(
+          albumNames.map((name) async {
+            final coverUrl = await fetchAlbumCover(name);
+            return Album(id: '', name: name, artist: artistName, url: coverUrl);
+          }),
+        );
+        return albums;
+      } else {
+        throw Exception('Failed to load albums by artist');
+      }
+    } catch (e) {
+      print('Error fetching albums by artist: $e');
+      return [];
     }
   }
 }
