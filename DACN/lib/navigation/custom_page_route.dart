@@ -58,10 +58,7 @@ class ScaleFadePageRoute<T> extends PageRouteBuilder<T> {
           },
           transitionDuration: const Duration(milliseconds: 400),
         );
-}
-
-/// Một PageRoute tùy chỉnh với hiệu ứng modal: trượt từ dưới lên và màn hình cũ thu nhỏ lại.
-class ModalSlideUpPageRoute<T> extends PageRouteBuilder<T> {
+}class ModalSlideUpPageRoute<T> extends PageRouteBuilder<T> {
   final Widget child;
 
   ModalSlideUpPageRoute({required this.child, RouteSettings? settings})
@@ -71,13 +68,10 @@ class ModalSlideUpPageRoute<T> extends PageRouteBuilder<T> {
           transitionDuration: const Duration(milliseconds: 400),
           reverseTransitionDuration: const Duration(milliseconds: 400),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            // Hiệu ứng trượt lên cho màn hình mới (child)
             final slideAnimation = Tween<Offset>(
               begin: const Offset(0.0, 1.0),
               end: Offset.zero,
             ).animate(CurvedAnimation(parent: animation, curve: Curves.easeInOutCubic));
-
-            // Hiệu ứng thu nhỏ và mờ đi cho màn hình cũ (khi secondaryAnimation chạy)
             final scaleAnimation = Tween<double>(begin: 1.0, end: 0.92).animate(
                 CurvedAnimation(parent: secondaryAnimation, curve: Curves.easeOutCubic));
             final fadeAnimation = Tween<double>(begin: 1.0, end: 0.6).animate(

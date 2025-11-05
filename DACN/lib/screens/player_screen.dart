@@ -533,17 +533,11 @@ Widget build(BuildContext context) {
         NavigationDelegate(
           onPageFinished: (String url) async {
             await _webController?.runJavaScript(r'''
-              // Tìm container chính chứa lời bài hát
               const lyricsContainer = document.querySelector('[data-lyrics-container]');
 
               if (lyricsContainer) {
-                // Lấy nội dung HTML của container lời bài hát
                 const lyricsHtml = lyricsContainer.innerHTML;
-
-                // Thay thế toàn bộ nội dung của <body> bằng lời bài hát
                 document.body.innerHTML = lyricsHtml;
-
-                // Áp dụng style cho body để có nền đen, chữ trắng và cuộn được
                 document.body.style.backgroundColor = '#000000';
                 document.body.style.color = '#ffffff';
                 document.body.style.fontSize = '16px';
@@ -552,8 +546,6 @@ Widget build(BuildContext context) {
                 document.body.style.margin = '0';
                 document.body.style.overflowX = 'hidden';
                 document.body.style.overflowY = 'scroll';
-
-                // Thêm style cho thanh cuộn để dễ nhìn hơn trên nền tối
                 const style = document.createElement('style');
                 style.innerHTML = `
                   ::-webkit-scrollbar {
@@ -572,7 +564,6 @@ Widget build(BuildContext context) {
                 `;
                 document.head.appendChild(style);
               } else {
-                // Fallback: nếu không tìm thấy, ẩn các phần tử không cần thiết
                 document.querySelectorAll('header, footer, .Header, .Footer, .RightSidebar, .ad_unit').forEach(e => e.remove());
               }
             ''');
