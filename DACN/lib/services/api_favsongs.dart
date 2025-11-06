@@ -30,7 +30,6 @@ class FavoriteService {
       );
 
       if (response.statusCode == 200) {
-        // Check if response body is not empty before parsing
         if (response.body.isNotEmpty) {
           final body = jsonDecode(response.body);
           if (body is Map && body.containsKey("data")) {
@@ -77,23 +76,23 @@ class FavoriteService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return data['message'] ?? "✅ Đã thêm vào yêu thích";
+        return data['message'] ?? " Đã thêm vào yêu thích";
       } else if (response.statusCode == 400) {
         return "⚠️ Bài hát đã có trong danh sách yêu thích!";
       } else if (response.statusCode == 401) {
-        return "❌ Token không hợp lệ hoặc đã hết hạn!";
+        return "Token không hợp lệ hoặc đã hết hạn!";
       } else {
-        return "❌ Lỗi máy chủ (${response.statusCode})";
+        return "Lỗi máy chủ (${response.statusCode})";
       }
     } catch (e) {
       print("Error adding favorite: $e");
-      return "❌ Không thể kết nối server";
+      return " Không thể kết nối server";
     }
   }
   Future<String> deleteFavoriteById(String songId) async {
     try {
       final token = await _getToken();
-      print("🗑️ Gửi yêu cầu xóa bài hát $songId");
+      print(" Gửi yêu cầu xóa bài hát $songId");
 
       final response = await http.delete(
         Uri.parse("https://backend-dacn-9l4w.onrender.com/api/unfavorite"),
@@ -104,26 +103,26 @@ class FavoriteService {
         body: jsonEncode({"id": songId}),
       );
 
-      print("🔄 Response: ${response.body}");
+      print("Response: ${response.body}");
       
       if (response.statusCode == 200) {
         if (response.body.isNotEmpty) {
           final data = jsonDecode(response.body);
-          return data['message'] ?? "✅ Đã xóa khỏi yêu thích";
+          return data['message'] ?? "Đã xóa khỏi yêu thích";
         } else {
-          return "✅ Đã xóa khỏi yêu thích";
+          return "Đã xóa khỏi yêu thích";
         }
       } else {
         if (response.body.isNotEmpty) {
           final data = jsonDecode(response.body);
-          return data['message'] ?? "❌ Lỗi xóa bài hát";
+          return data['message'] ?? " Lỗi xóa bài hát";
         } else {
-          return "❌ Lỗi xóa bài hát (${response.statusCode})";
+          return "Lỗi xóa bài hát (${response.statusCode})";
         }
       }
     } catch (e) {
       print("Error deleting favorite: $e");
-      return "❌ Không thể kết nối server";
+      return "Không thể kết nối server";
     }
   }
 }

@@ -99,7 +99,7 @@ class UserService {
       if (decodedToken['status'] == "blocked") {
         return LoginResponse(
           token: token,
-          message: "You are gayy",
+          message: "You are ",
         );
       }
       SocketService().connect(decodedToken['_id']);

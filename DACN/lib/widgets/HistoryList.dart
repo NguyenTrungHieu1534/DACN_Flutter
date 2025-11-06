@@ -13,7 +13,7 @@ class HistoryList extends StatelessWidget {
     if (songs.isEmpty) {
       return const Center(
         child: Text(
-          "💔 Chưa có lịch sử nghe nào",
+          " Chưa có lịch sử nghe nào",
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -22,8 +22,6 @@ class HistoryList extends StatelessWidget {
         ),
       );
     }
-
-    // Màu ngẫu nhiên cho từng card
     final List<Color> cardColors = [
       const Color(0xFFFFF4D9), // vàng pastel
       const Color(0xFFD0F4DE), // xanh lá pastel
