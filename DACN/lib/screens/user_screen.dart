@@ -15,6 +15,7 @@ import '../services/api_playlist.dart';
 import '../services/api_history.dart';
 import '../theme/app_theme.dart';
 import '../models/playlist.dart';
+import '../services/api_follow.dart';
 import '../screens/artist_detail_screen.dart';
 
 class UserScreen extends StatefulWidget {
@@ -24,7 +25,8 @@ class UserScreen extends StatefulWidget {
   State<UserScreen> createState() => _UserScreenState();
 }
 
-class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateMixin {
+class _UserScreenState extends State<UserScreen>
+    with SingleTickerProviderStateMixin {
   String? _token;
   bool _loading = true;
 
@@ -34,7 +36,9 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
   String? _avatar;
   bool isUploading = false;
   List<Map<String, String>> _recentArtists = [];
+  List<Map<String, dynamic>> _followedArtists = [];
   List<Playlist> _userPlaylists = [];
+  final FollowService _followService = FollowService();
   bool _loadingData = false;
 
   late AnimationController _fadeController;
@@ -107,7 +111,25 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
       final playlists = await apiPlaylist.getPlaylistsByUser();
       final historyService = HistoryService();
       final history = await historyService.getHistory();
-      
+
+      // Lấy danh sách nghệ sĩ đã follow
+      final followedList = await _followService.getFollowList(_userId!);
+      final List<Map<String, dynamic>> followedArtistsDetails = [];
+      for (var followedItem in followedList) {
+        if (followedItem['targetType'] == 'artist') {
+          try {
+            final artistInfo = await _followService.getFollowInfo(
+              userId: _userId!,
+              targetType: 'artist',
+              targetId: followedItem['targetId'],
+            );
+            followedArtistsDetails.add(artistInfo);
+          } catch (e) {
+            debugPrint(
+                'Error fetching follow info for ${followedItem['targetId']}: $e');
+          }
+        }
+      }
       final Map<String, Map<String, String>> artistMap = {};
       for (var song in history.take(20)) {
         if (!artistMap.containsKey(song.artist)) {
@@ -121,6 +143,7 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
       if (mounted) {
         setState(() {
           _recentArtists = artistMap.values.take(3).toList();
+          _followedArtists = followedArtistsDetails;
           _userPlaylists = playlists;
           _loadingData = false;
         });
@@ -151,7 +174,8 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+                  color:
+                      Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -173,7 +197,8 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                     color: AppColors.oceanBlue.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.photo_library, color: AppColors.oceanBlue),
+                  child: const Icon(Icons.photo_library,
+                      color: AppColors.oceanBlue),
                 ),
                 title: const Text('Choose from library'),
                 onTap: () async {
@@ -188,7 +213,8 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                     color: AppColors.oceanBlue.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.camera_alt, color: AppColors.oceanBlue),
+                  child:
+                      const Icon(Icons.camera_alt, color: AppColors.oceanBlue),
                 ),
                 title: const Text('Take photo'),
                 onTap: () async {
@@ -212,8 +238,9 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
       File image = File(pickedFile.path);
       setState(() => isUploading = true);
 
-      final result = await UserService().uploadAvatar(_userId.toString(), image);
-      
+      final result =
+          await UserService().uploadAvatar(_userId.toString(), image);
+
       if (mounted) {
         setState(() => isUploading = false);
 
@@ -230,7 +257,8 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
               ),
               backgroundColor: Colors.green,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
               margin: const EdgeInsets.all(16),
             ),
           );
@@ -246,7 +274,8 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
               ),
               backgroundColor: Colors.red,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
               margin: const EdgeInsets.all(16),
             ),
           );
@@ -273,7 +302,8 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
               Text(
                 'Loading profile...',
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  color:
+                      Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                 ),
               ),
             ],
@@ -323,7 +353,10 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                   'Access your playlists and listening history',
                   style: TextStyle(
                     fontSize: isTablet ? 16 : 14,
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withOpacity(0.6),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -375,15 +408,16 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: Theme.of(context).brightness == Brightness.dark
-                              ? [
-                                  const Color(0xFF1A2332),
-                                  const Color(0xFF0D1117),
-                                ]
-                              : [
-                                  AppColors.skyBlue.withOpacity(0.4),
-                                  AppColors.oceanBlue.withOpacity(0.2),
-                                ],
+                          colors:
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? [
+                                      const Color(0xFF1A2332),
+                                      const Color(0xFF0D1117),
+                                    ]
+                                  : [
+                                      AppColors.skyBlue.withOpacity(0.4),
+                                      AppColors.oceanBlue.withOpacity(0.2),
+                                    ],
                         ),
                       ),
                     ),
@@ -417,7 +451,9 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            SizedBox(height: MediaQuery.of(context).padding.top + 40),
+                            SizedBox(
+                                height:
+                                    MediaQuery.of(context).padding.top + 40),
                             GestureDetector(
                               onTap: () => _showImagePicker(context),
                               child: Hero(
@@ -429,7 +465,8 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                                         shape: BoxShape.circle,
                                         boxShadow: [
                                           BoxShadow(
-                                            color: AppColors.oceanBlue.withOpacity(0.3),
+                                            color: AppColors.oceanBlue
+                                                .withOpacity(0.3),
                                             blurRadius: 20,
                                             spreadRadius: 5,
                                           ),
@@ -437,32 +474,38 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                                       ),
                                       child: CircleAvatar(
                                         radius: avatarRadius,
-                                        backgroundColor: Theme.of(context).colorScheme.surface,
-                                        backgroundImage: _avatar != null && _avatar!.isNotEmpty
+                                        backgroundColor: Theme.of(context)
+                                            .colorScheme
+                                            .surface,
+                                        backgroundImage: _avatar != null &&
+                                                _avatar!.isNotEmpty
                                             ? NetworkImage(_avatar!)
                                             : null,
-                                        child: _avatar == null || _avatar!.isEmpty
-                                            ? Icon(
-                                                Icons.person,
-                                                size: avatarRadius,
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .onSurface
-                                                    .withOpacity(0.3),
-                                              )
-                                            : null,
+                                        child:
+                                            _avatar == null || _avatar!.isEmpty
+                                                ? Icon(
+                                                    Icons.person,
+                                                    size: avatarRadius,
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .onSurface
+                                                        .withOpacity(0.3),
+                                                  )
+                                                : null,
                                       ),
                                     ),
                                     Positioned(
                                       bottom: 0,
                                       right: 0,
                                       child: Container(
-                                        padding: EdgeInsets.all(isTablet ? 10 : 8),
+                                        padding:
+                                            EdgeInsets.all(isTablet ? 10 : 8),
                                         decoration: BoxDecoration(
                                           color: AppColors.oceanBlue,
                                           shape: BoxShape.circle,
                                           border: Border.all(
-                                            color: Theme.of(context).scaffoldBackgroundColor,
+                                            color: Theme.of(context)
+                                                .scaffoldBackgroundColor,
                                             width: 3,
                                           ),
                                         ),
@@ -494,13 +537,15 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                             SizedBox(height: isTablet ? 20 : 16),
                             // Username
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 24),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 24),
                               child: Text(
                                 _username ?? 'User',
                                 style: TextStyle(
                                   fontSize: isTablet ? 32 : 26,
                                   fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).colorScheme.onSurface,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                   letterSpacing: 0.5,
                                 ),
                                 textAlign: TextAlign.center,
@@ -511,7 +556,8 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                             const SizedBox(height: 6),
                             // Email
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 24),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 24),
                               child: Text(
                                 _email ?? '',
                                 style: TextStyle(
@@ -579,13 +625,88 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                     _buildStatCard(
                       icon: Icons.music_note,
                       label: 'Total Songs',
-                      value: '${_userPlaylists.fold<int>(0, (sum, p) => sum + p.songs.length)}',
+                      value:
+                          '${_userPlaylists.fold<int>(0, (sum, p) => sum + p.songs.length)}',
                       color: AppColors.oceanDeep,
                       isTablet: isTablet,
                     ),
                 ]),
               ),
             ),
+            if (_followedArtists.isNotEmpty)
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(
+                  isTablet ? 24 : 16,
+                  isTablet ? 24 : 16,
+                  isTablet ? 24 : 16,
+                  isTablet ? 16 : 12,
+                ),
+                sliver: SliverToBoxAdapter(
+                  child: Text(
+                    'Followed Artists',
+                    style: TextStyle(
+                      fontSize: isTablet ? 26 : 22,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+              ),
+            if (_followedArtists.isNotEmpty)
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: isTablet ? 180 : 140,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding:
+                        EdgeInsets.symmetric(horizontal: isTablet ? 24 : 16),
+                    itemCount: _followedArtists.length,
+                    itemBuilder: (context, index) {
+                      final artist = _followedArtists[index];
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            FadePageRoute(
+                              child: ArtistDetailScreen(
+                                  artistName: artist['name'] ?? ''),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          width: isTablet ? 120 : 100,
+                          margin: const EdgeInsets.only(right: 16),
+                          child: Column(
+                            children: [
+                              CircleAvatar(
+                                radius: isTablet ? 50 : 40,
+                                backgroundImage: (artist['avatarUrl'] != null &&
+                                        artist['avatarUrl'].isNotEmpty)
+                                    ? NetworkImage(artist['avatarUrl'])
+                                    : (artist['photoUrl'] != null &&
+                                            artist['photoUrl'].isNotEmpty)
+                                        ? NetworkImage(artist['photoUrl'])
+                                        : null,
+                                child: (artist['avatarUrl'] == null ||
+                                            artist['avatarUrl'].isEmpty) &&
+                                        (artist['photoUrl'] == null ||
+                                            artist['photoUrl'].isEmpty)
+                                    ? const Icon(Icons.person)
+                                    : null,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(artist['name'] ?? 'N/A',
+                                  textAlign: TextAlign.center,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
             SliverPadding(
               padding: EdgeInsets.fromLTRB(
                 isTablet ? 24 : 16,
@@ -638,7 +759,10 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                     color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withOpacity(0.1),
                     ),
                   ),
                   child: Column(
@@ -646,7 +770,10 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                       Icon(
                         Icons.playlist_add,
                         size: isTablet ? 80 : 64,
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.3),
                       ),
                       SizedBox(height: isTablet ? 24 : 16),
                       Text(
@@ -696,13 +823,17 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
-                      if (index >= (_userPlaylists.length > 3 ? 3 : _userPlaylists.length)) {
+                      if (index >=
+                          (_userPlaylists.length > 3
+                              ? 3
+                              : _userPlaylists.length)) {
                         return const SizedBox.shrink();
                       }
                       final playlist = _userPlaylists[index];
                       return _buildPlaylistItem(playlist, isTablet);
                     },
-                    childCount: _userPlaylists.length > 3 ? 3 : _userPlaylists.length,
+                    childCount:
+                        _userPlaylists.length > 3 ? 3 : _userPlaylists.length,
                   ),
                 ),
               ),
@@ -837,7 +968,8 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                       ),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(Icons.music_note, color: AppColors.oceanBlue, size: isTablet ? 32 : 28),
+                    child: Icon(Icons.music_note,
+                        color: AppColors.oceanBlue, size: isTablet ? 32 : 28),
                   ),
                 )
               : Container(
@@ -852,7 +984,8 @@ class _UserScreenState extends State<UserScreen> with SingleTickerProviderStateM
                     ),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(Icons.music_note, color: AppColors.oceanBlue, size: isTablet ? 32 : 28),
+                  child: Icon(Icons.music_note,
+                      color: AppColors.oceanBlue, size: isTablet ? 32 : 28),
                 ),
         ),
         title: Text(

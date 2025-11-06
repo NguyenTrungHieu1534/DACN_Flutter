@@ -1,13 +1,21 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class FollowService {
-  final String baseUrl = "http://localhost:3000/api"; // đổi IP khi chạy thật (VD: 192.168.x.x)
+  final String baseUrl = "https://backend-dacn-9l4w.onrender.com/api";
+
+  Future<String?> _getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('token');
+  }
+
   Future<bool> addFollow({
     required String userId,
     required String targetType,
     required String targetId,
   }) async {
+    final token = await _getToken();
     final url = Uri.parse("$baseUrl/addfollow");
     final body = jsonEncode({
       "userId": userId,
@@ -17,7 +25,10 @@ class FollowService {
 
     final res = await http.post(
       url,
-      headers: {"Content-Type": "application/json"},
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': 'Bearer $token'
+      },
       body: body,
     );
 
@@ -30,22 +41,26 @@ class FollowService {
       throw Exception("Failed to follow: ${res.body}");
     }
   }
+
   Future<bool> checkFollow({
     required String userId,
     required String targetType,
     required String targetId,
   }) async {
+    final token = await _getToken();
     final url = Uri.parse("$baseUrl/follow/check");
-    final body = jsonEncode({
-      "userId": userId,
-      "targetType": targetType,
-      "targetId": targetId,
-    });
 
     final res = await http.post(
       url,
-      headers: {"Content-Type": "application/json"},
-      body: body,
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': 'Bearer $token'
+      },
+      body: jsonEncode({
+        "userId": userId,
+        "targetType": targetType,
+        "targetId": targetId,
+      }),
     );
 
     if (res.statusCode == 200) {
@@ -61,6 +76,7 @@ class FollowService {
     required String targetType,
     required String targetId,
   }) async {
+    final token = await _getToken();
     final url = Uri.parse("$baseUrl/unfollow");
     final body = jsonEncode({
       "userId": userId,
@@ -70,7 +86,10 @@ class FollowService {
 
     final res = await http.delete(
       url,
-      headers: {"Content-Type": "application/json"},
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': 'Bearer $token'
+      },
       body: body,
     );
 
@@ -82,6 +101,7 @@ class FollowService {
       throw Exception("Unfollow failed: ${res.body}");
     }
   }
+
   Future<List<dynamic>> getFollowList(String userId) async {
     final url = Uri.parse("$baseUrl/follow/$userId");
 
@@ -91,6 +111,36 @@ class FollowService {
       return data;
     } else {
       throw Exception("Get follow list failed: ${res.body}");
+    }
+  }
+
+  Future<Map<String, dynamic>> getFollowInfo({
+    required String userId,
+    required String targetType,
+    required String targetId,
+  }) async {
+    final url =
+        Uri.parse("https://backend-dacn-9l4w.onrender.com/api/follow/info");
+
+    final body = jsonEncode({
+      "userId": userId,
+      "targetType": targetType,
+      "targetId": targetId,
+    });
+
+    final res = await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: body,
+    );
+
+    if (res.statusCode == 200) {
+      final decoded = jsonDecode(res.body);
+      return decoded["data"];
+    } else {
+      throw Exception(
+        "Get follow info failed (${res.statusCode}): ${res.body}",
+      );
     }
   }
 }

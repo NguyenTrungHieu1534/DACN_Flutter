@@ -1,13 +1,17 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import '../models/album.dart';
 import '../models/songs.dart';
 import '../services/api_artist.dart';
 import '../services/api_album.dart';
+import '../services/api_follow.dart';
 import '../models/AudioPlayerProvider.dart';
 import '../widgets/shimmer_widgets.dart';
 import 'album_detail_screen.dart';
+import 'dart:convert';
 
 class ArtistDetailScreen extends StatefulWidget {
   final String artistName;
@@ -21,11 +25,43 @@ class ArtistDetailScreen extends StatefulWidget {
 class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
   late Future<Map<String, dynamic>> _artistDetailsFuture;
   final ArtistService _artistService = ArtistService();
+  final FollowService _followService = FollowService();
+  bool _isFollowing = false;
+  bool _isFollowStatusLoading = true;
+  String? _artistId;
 
   @override
   void initState() {
     super.initState();
     _artistDetailsFuture = _loadArtistData();
+  }
+
+  Future<void> _checkFollowStatus(String artistId) async {
+    setState(() => _isFollowStatusLoading = true);
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null) {
+        setState(() => _isFollowStatusLoading = false);
+        return;
+      }
+
+      final id = JwtDecoder.decode(token)['_id'];
+      final isFollow = await _followService.checkFollow(
+        userId: id,
+        targetType: "artist",
+        targetId: artistId,
+      );
+
+      setState(() {
+        _isFollowing = isFollow; // true / false
+        _isFollowStatusLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isFollowStatusLoading = false);
+    }
   }
 
   Future<Map<String, dynamic>> _loadArtistData() async {
@@ -34,11 +70,17 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
         _artistService.fetchSongsByArtist(widget.artistName),
         _artistService.fetchArtistPhotoUrl(widget.artistName),
         AlbumService.fetchAlbumsByArtist(widget.artistName),
+        _artistService.fetchArtistDetails(widget.artistName),
       ]);
 
       final songs = results[0] as List<Songs>;
       final photoUrl = results[1] as String;
       final albums = results[2] as List<Album>;
+      final artistDetails = results[3] as Map<String, dynamic>;
+      _artistId = artistDetails['id'];
+      if (_artistId != null) {
+        _checkFollowStatus(_artistId!);
+      }
       final Map<String, String?> albumCoverCache = {};
       final updatedSongs = await Future.wait(
         songs.map((song) async {
@@ -56,10 +98,47 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
         'songs': updatedSongs,
         'photoUrl': photoUrl,
         'albums': albums,
+        'artistDetails': artistDetails,
       };
     } catch (e) {
       throw Exception('Failed to load artist details: $e');
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (_artistId != null) {
+      _checkFollowStatus(_artistId!);
+    }
+  }
+
+  Future<void> _toggleFollow() async {
+    if (_artistId == null) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bạn cần đăng nhập để theo dõi.')),
+      );
+      return;
+    }
+    final userId = JwtDecoder.decode(token)['_id'];
+
+    setState(() => _isFollowStatusLoading = true);
+
+    bool success;
+    if (_isFollowing) {
+      success = await _followService.unfollow(
+          userId: userId, targetType: 'artist', targetId: _artistId!);
+    } else {
+      success = await _followService.addFollow(
+          userId: userId, targetType: 'artist', targetId: _artistId!);
+    }
+
+    if (success && mounted) _checkFollowStatus(_artistId!);
   }
 
   @override
@@ -106,13 +185,25 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                   children: [
                     Expanded(
                       child: ElevatedButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(Icons.person_add_alt_1_rounded),
-                        label: const Text('Follow'),
+                        onPressed:
+                            _isFollowStatusLoading ? null : _toggleFollow,
+                        icon: _isFollowStatusLoading
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2))
+                            : Icon(_isFollowing
+                                ? Icons.check_circle_outline
+                                : Icons.person_add_alt_1_rounded),
+                        label: Text(_isFollowing ? 'Following' : 'Follow'),
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20)),
+                          backgroundColor: _isFollowing
+                              ? Colors.green.shade600
+                              : theme.primaryColor,
                         ),
                       ),
                     ),

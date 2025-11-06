@@ -4,12 +4,14 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import '../services/socket_service.dart';
+import '../services/api_follow.dart';
 
 class UserService {
   UserService({http.Client? client}) : _client = client ?? http.Client();
 
   final http.Client _client;
   static const String baseApiUrl = 'https://backend-dacn-9l4w.onrender.com';
+  final FollowService followservice = FollowService();
   // static const String baseHealthUrl =
 
   Future<String?> _getToken() async {
@@ -94,6 +96,7 @@ class UserService {
         throw Exception('Thiếu token từ máy chủ');
       }
       final prefs = await SharedPreferences.getInstance();
+
       await prefs.setString('token', token);
       Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
       if (decodedToken['status'] == "blocked") {
@@ -103,6 +106,9 @@ class UserService {
         );
       }
       SocketService().connect(decodedToken['_id']);
+      List<dynamic> userInfor =
+          await followservice.getFollowList(decodedToken['_id']);
+      await prefs.setString('userInfor', jsonEncode(userInfor));
       return LoginResponse(token: token, message: message);
     }
 
