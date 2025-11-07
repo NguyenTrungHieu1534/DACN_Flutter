@@ -102,13 +102,22 @@ class UserService {
       if (decodedToken['status'] == "blocked") {
         return LoginResponse(
           token: token,
-          message: "You are ",
+          message: "You are nuts ",
         );
       }
       SocketService().connect(decodedToken['_id']);
       List<dynamic> userInfor =
           await followservice.getFollowList(decodedToken['_id']);
       await prefs.setString('userInfor', jsonEncode(userInfor));
+      final fcmToken = prefs.getString('fcmToken');
+      await http.post(
+        Uri.parse("https://backend-dacn-9l4w.onrender.com/api/fcmtoken"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "userId": decodedToken['_id'],
+          "fcmtoken": fcmToken,
+        }),
+      );
       return LoginResponse(token: token, message: message);
     }
 
@@ -362,6 +371,25 @@ class UserService {
     } catch (e) {
       return {'success': false, 'message': 'Lỗi kết nối: $e'};
     }
+  }
+
+  static Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('userInfor');
+    SocketService().disconnect();
+    final token = prefs.getString('token');
+    if (token == null) return;
+    Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+    final fcmToken = prefs.getString('fcmToken');
+      await http.post(
+        Uri.parse("https://backend-dacn-9l4w.onrender.com/api/remove-fcmtoken"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "userId": decodedToken['_id'],
+          "fcmtoken": fcmToken,
+        }),
+      );
+    await prefs.remove('token');
   }
 }
 

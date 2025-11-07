@@ -25,6 +25,8 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -41,7 +43,11 @@ Future<void> main() async {
     ),
   );
   final session = await AudioSession.instance;
-  
+  await Firebase.initializeApp();
+  String? FCMtoken = await FirebaseMessaging.instance.getToken();
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('fcmToken', FCMtoken.toString());
+  // print(" FCM Token: $FCMtoken");
   await session.configure(const AudioSessionConfiguration.music());
   runApp(
     MultiProvider(
@@ -63,7 +69,7 @@ class WaveMusicApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     return MaterialApp(
-      navigatorKey: navigatorKey, 
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.buildTheme(
         ThemeData(
@@ -107,7 +113,8 @@ class _AuthCheckState extends State<AuthCheck> {
       future: _getToken(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          return const Scaffold(
+              body: Center(child: CircularProgressIndicator()));
         }
 
         final token = snapshot.data;

@@ -4,6 +4,7 @@ import 'edit_account_info_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import '../screens/update_password_screen.dart';
+import '../services/api_user.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -133,14 +134,11 @@ class SettingsScreen extends StatelessWidget {
                   );
 
                   if (confirmed == true) {
-                    final prefs = await SharedPreferences.getInstance();
-                    await prefs.remove('token');
-                    if (context.mounted) {
+                    await UserService.logout();
                       Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
                         '/login',
                         (route) => false,
                       );
-                    }
                   }
                 },
                 hoverColor: Colors.red.withOpacity(0.05),

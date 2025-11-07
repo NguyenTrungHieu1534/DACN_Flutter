@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "140491875189",
+    "project_id": "thongbaodacn",
+    "storage_bucket": "thongbaodacn.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:140491875189:android:9e75fd3a14e2ffc0b5a93c",
+        "android_client_info": {
+          "package_name": "com.example.music_login"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBmvzCMqWMctPIdYi4wGQ0uVsjbtuFH8bU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
