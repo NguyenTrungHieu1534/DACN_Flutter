@@ -1,61 +1,106 @@
-import 'package:socket_io_client/socket_io_client.dart' as IO;
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:io';
-import '../services/socket_service.dart';
 import 'package:flutter/material.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../screens/block_screen.dart';
+import '../screens/album_detail_screen.dart';
+import '../widgets/notificationWG.dart';
 import '/main.dart';
+import '../screens/user_screen.dart';
+
 class SocketService {
+
   static final SocketService _instance = SocketService._internal();
   factory SocketService() => _instance;
   SocketService._internal();
 
-  IO.Socket? socket;
+  IO.Socket? _socket;
+
+  final Map<String, List<Function(dynamic)>> _eventHandlers = {};
 
   void connect(String userId) {
-    if (socket != null && socket!.connected) return;
+    // Nếu đã connect, không kết nối lại
+    if (_socket != null && _socket!.connected) return;
 
-    socket = IO.io('https://backend-dacn-9l4w.onrender.com', {
-      'transports': ['websocket'],
-      'autoConnect': false,
+    _socket = IO.io(
+      'https://backend-dacn-9l4w.onrender.com',
+      <String, dynamic>{
+        'transports': ['websocket'],
+        'autoConnect': false,
+      },
+    );
+
+    _socket!.connect();
+
+    _socket!.onConnect((_) {
+      print('Socket connected: ${_socket!.id}');
+      _socket!.emit('register', userId);
+
+      _eventHandlers.forEach((event, handlers) {
+        for (var handler in handlers) {
+          _socket!.on(event, handler);
+        }
+      });
     });
-
-    socket!.connect();
-
-    socket!.onConnect((_) {
-      print('Socket connected: ${socket!.id}');
-      socket!.emit('register', userId);
-    });
-
-    socket!.on('blocked', (data) {
-      print('🚫 Bị chặn: ${data['message']}');
-      Navigator.pushAndRemoveUntil(
-        navigatorKey.currentContext!,
-        MaterialPageRoute(
-          builder: (_) => BlockedScreen(message: data['message']),
-        ),
-        (_) => false,
-      );
-    });
-
-    socket!.onDisconnect((_) {
+    _socket!.onDisconnect((_) {
       print('Socket disconnected');
     });
+
+    _registerDefaultHandlers();
+  }
+  void _registerDefaultHandlers() {
+    // Event blocked
+    registerEventHandler('blocked', (data) {
+      print('Bị chặn: ${data['message']}');
+      final ctx = navigatorKey.currentContext;
+      if (ctx != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Navigator.pushAndRemoveUntil(
+            ctx,
+            MaterialPageRoute(
+                builder: (_) => BlockedScreen(message: data['message'])),
+            (_) => false,
+          );
+        });
+      }
+    });
+
+    // registerEventHandler('nofiNewSongAritst', (data) {
+    //   print(' Bài hát mới: ${data['message']}');
+
+    //   final ctx = navigatorKey.currentContext;
+    //   if (ctx != null && ctx.mounted) {
+    //     WidgetsBinding.instance.addPostFrameCallback((_) {
+    //       Navigator.push(
+    //         ctx,
+    //         MaterialPageRoute(
+    //           builder: (_) => UserScreen(),
+    //         ),
+    //       );
+    //     });
+    //   }
+    // });
+  }
+
+  // ================= Event Management =================
+  void registerEventHandler(String event, Function(dynamic) handler) {
+    _eventHandlers.putIfAbsent(event, () => []);
+    _eventHandlers[event]!.add(handler);
+
+    if (_socket != null && _socket!.connected) {
+      _socket!.on(event, handler);
+    }
   }
 
   void emit(String event, dynamic data) {
-    socket?.emit(event, data);
+    _socket?.emit(event, data);
   }
 
   void on(String event, Function(dynamic) handler) {
-    socket?.on(event, handler);
+    _socket?.on(event, handler);
   }
 
   void disconnect() {
-    socket?.disconnect();
-    socket = null;
+    _socket?.disconnect();
+    _socket = null;
+    _eventHandlers.clear();
   }
 }

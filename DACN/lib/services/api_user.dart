@@ -96,21 +96,18 @@ class UserService {
         throw Exception('Thiếu token từ máy chủ');
       }
       final prefs = await SharedPreferences.getInstance();
-
+      
       await prefs.setString('token', token);
       Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
       if (decodedToken['status'] == "blocked") {
-        return LoginResponse(
-          token: token,
-          message: "You are nuts ",
-        );
+        return LoginResponse(token: token, message: "Tài khoản của bạn đã bị khóa.", userStatus: "blocked");
       }
       SocketService().connect(decodedToken['_id']);
       List<dynamic> userInfor =
           await followservice.getFollowList(decodedToken['_id']);
-      await prefs.setString('userInfor', jsonEncode(userInfor));
+       prefs.setString('userInfor', jsonEncode(userInfor));
       final fcmToken = prefs.getString('fcmToken');
-      await http.post(
+      http.post(
         Uri.parse("https://backend-dacn-9l4w.onrender.com/api/fcmtoken"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
@@ -118,12 +115,14 @@ class UserService {
           "fcmtoken": fcmToken,
         }),
       );
-      return LoginResponse(token: token, message: message);
+      
+      return LoginResponse(token: token, message: message, userStatus: decodedToken['status']);
     }
 
     final errorMessage = data['message']?.toString() ?? 'Đăng nhập thất bại';
     throw Exception(errorMessage);
   }
+
 
   Future<Map<String, dynamic>> sendForgotPasswordOtp({
     required String username,
@@ -394,8 +393,9 @@ class UserService {
 }
 
 class LoginResponse {
-  const LoginResponse({required this.token, required this.message});
+  const LoginResponse({required this.token, required this.message, this.userStatus});
 
   final String token;
   final String message;
+  final String? userStatus;
 }
