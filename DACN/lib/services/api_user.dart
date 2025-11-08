@@ -96,16 +96,19 @@ class UserService {
         throw Exception('Thiếu token từ máy chủ');
       }
       final prefs = await SharedPreferences.getInstance();
-      
+
       await prefs.setString('token', token);
       Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
       if (decodedToken['status'] == "blocked") {
-        return LoginResponse(token: token, message: "Tài khoản của bạn đã bị khóa.", userStatus: "blocked");
+        return LoginResponse(
+            token: token,
+            message: "Tài khoản của bạn đã bị khóa.",
+            userStatus: "blocked");
       }
       SocketService().connect(decodedToken['_id']);
       List<dynamic> userInfor =
           await followservice.getFollowList(decodedToken['_id']);
-       prefs.setString('userInfor', jsonEncode(userInfor));
+      prefs.setString('userInfor', jsonEncode(userInfor));
       final fcmToken = prefs.getString('fcmToken');
       http.post(
         Uri.parse("https://backend-dacn-9l4w.onrender.com/api/fcmtoken"),
@@ -115,14 +118,14 @@ class UserService {
           "fcmtoken": fcmToken,
         }),
       );
-      
-      return LoginResponse(token: token, message: message, userStatus: decodedToken['status']);
+
+      return LoginResponse(
+          token: token, message: message, userStatus: decodedToken['status']);
     }
 
     final errorMessage = data['message']?.toString() ?? 'Đăng nhập thất bại';
     throw Exception(errorMessage);
   }
-
 
   Future<Map<String, dynamic>> sendForgotPasswordOtp({
     required String username,
@@ -380,20 +383,47 @@ class UserService {
     if (token == null) return;
     Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
     final fcmToken = prefs.getString('fcmToken');
-      await http.post(
-        Uri.parse("https://backend-dacn-9l4w.onrender.com/api/remove-fcmtoken"),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "userId": decodedToken['_id'],
-          "fcmtoken": fcmToken,
-        }),
-      );
+    await http.post(
+      Uri.parse("https://backend-dacn-9l4w.onrender.com/api/remove-fcmtoken"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "userId": decodedToken['_id'],
+        "fcmtoken": fcmToken,
+      }),
+    );
     await prefs.remove('token');
+  }
+
+  static Future<String> sendVerifyEmail() async {
+    final url =
+        Uri.parse("https://backend-dacn-9l4w.onrender.com/api/verify-email");
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    if (token == null) return "Bạn chưa đăng nhập.";
+    final userId = JwtDecoder.decode(token)['_id'];
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode({"userId": userId}),
+      );
+
+      if (response.statusCode == 200) {
+        return "Đã gửi email xác thực, vui lòng kiểm tra hộp thư.";
+      } else {
+        return "${response.body}";
+      }
+    } catch (err) {
+      return "Lỗi kết nối: $err";
+    }
   }
 }
 
 class LoginResponse {
-  const LoginResponse({required this.token, required this.message, this.userStatus});
+  const LoginResponse(
+      {required this.token, required this.message, this.userStatus});
 
   final String token;
   final String message;

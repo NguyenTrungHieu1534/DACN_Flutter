@@ -84,7 +84,7 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
         actions: [
           if (_notifications.isNotEmpty)
             IconButton(
-              icon: const Icon(Icons.clear_all),
+              icon: const Icon(Icons.delete_sharp),
               tooltip: 'Xóa tất cả',
               onPressed: _clearNotifications,
             ),
