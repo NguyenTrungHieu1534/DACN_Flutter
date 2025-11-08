@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -17,6 +18,8 @@ import '../theme/app_theme.dart';
 import '../models/playlist.dart';
 import '../services/api_follow.dart';
 import '../screens/artist_detail_screen.dart';
+import 'notification_list_screen.dart';
+import '../services/socket_service.dart';
 
 class UserScreen extends StatefulWidget {
   const UserScreen({super.key});
@@ -40,6 +43,7 @@ class _UserScreenState extends State<UserScreen>
   List<Playlist> _userPlaylists = [];
   final FollowService _followService = FollowService();
   bool _loadingData = false;
+  int _notificationCount = 0;
 
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
@@ -55,6 +59,7 @@ class _UserScreenState extends State<UserScreen>
       parent: _fadeController,
       curve: Curves.easeInOut,
     );
+    _setupSocketListener();
     _checkToken();
   }
 
@@ -62,6 +67,15 @@ class _UserScreenState extends State<UserScreen>
   void dispose() {
     _fadeController.dispose();
     super.dispose();
+  }
+
+  void _setupSocketListener() {
+    final socketService = SocketService();
+    socketService.registerEventHandler('nofiNewSongAritst', (data) {
+      if (mounted) {
+        setState(() => _notificationCount++);
+      }
+    });
   }
 
   Future<void> _checkToken() async {
@@ -96,6 +110,7 @@ class _UserScreenState extends State<UserScreen>
 
       if (_userId != null) {
         _loadUserData();
+        _loadNotificationCount();
         _fadeController.forward();
       }
     } catch (e) {
@@ -103,8 +118,29 @@ class _UserScreenState extends State<UserScreen>
     }
   }
 
+  Future<void> _loadNotificationCount() async {
+    if (_userId == null) return;
+    final prefs = await SharedPreferences.getInstance();
+    final savedData = prefs.getString('thongBaoList');
+    if (savedData != null && savedData.isNotEmpty) {
+      final allNotifications = jsonDecode(savedData) as Map<String, dynamic>;
+      if (allNotifications.containsKey(_userId)) {
+        final userNotifications = allNotifications[_userId] as List;
+        if (mounted) {
+          setState(() {
+            _notificationCount = userNotifications.length;
+          });
+        }
+      } else {
+        if (mounted) setState(() => _notificationCount = 0);
+      }
+    } else {
+      if (mounted) setState(() => _notificationCount = 0);
+    }
+  }
+
   Future<void> _loadUserData() async {
-    setState(() => _loadingData = true);
+    if (mounted) setState(() => _loadingData = true);
 
     try {
       final apiPlaylist = ApiPlaylist();
@@ -148,6 +184,7 @@ class _UserScreenState extends State<UserScreen>
           _loadingData = false;
         });
       }
+      _loadNotificationCount();
     } catch (e) {
       debugPrint('Error loading user data: $e');
       if (mounted) {
@@ -580,6 +617,46 @@ class _UserScreenState extends State<UserScreen>
                 ),
               ),
               actions: [
+                IconButton(
+                  icon: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      const Icon(Icons.notifications_outlined),
+                      if (_notificationCount > 0)
+                        Positioned(
+                          right: -4,
+                          top: -4,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 16,
+                              minHeight: 16,
+                            ),
+                            child: Text(
+                              '$_notificationCount',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  tooltip: 'Notifications',
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) {
+                      return NotificationListScreen(onNotificationsCleared: () {
+                        setState(() => _notificationCount = 0);
+                      });
+                    })).then((_) => _loadNotificationCount());
+                  },
+                ),
                 IconButton(
                   icon: const Icon(Icons.settings_outlined),
                   tooltip: 'Settings',

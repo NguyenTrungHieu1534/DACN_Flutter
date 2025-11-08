@@ -33,6 +33,7 @@ dependencies:
   webview_flutter: ^4.13.0
   socket_io_client: ^3.1.2
   firebase_messaging: ^16.0.4
+  timeago: ^3.7.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

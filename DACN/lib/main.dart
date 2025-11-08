@@ -27,6 +27,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'dart:convert';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -49,6 +50,7 @@ Future<void> main() async {
   await prefs.setString('fcmToken', FCMtoken.toString());
   // print(" FCM Token: $FCMtoken");
   await session.configure(const AudioSessionConfiguration.music());
+
   runApp(
     MultiProvider(
       providers: [

@@ -5,9 +5,11 @@ import '../screens/album_detail_screen.dart';
 import '../widgets/notificationWG.dart';
 import '/main.dart';
 import '../screens/user_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 class SocketService {
-
   static final SocketService _instance = SocketService._internal();
   factory SocketService() => _instance;
   SocketService._internal();
@@ -46,6 +48,7 @@ class SocketService {
 
     _registerDefaultHandlers();
   }
+
   void _registerDefaultHandlers() {
     // Event blocked
     registerEventHandler('blocked', (data) {
@@ -63,21 +66,38 @@ class SocketService {
       }
     });
 
-    // registerEventHandler('nofiNewSongAritst', (data) {
-    //   print(' Bài hát mới: ${data['message']}');
+    registerEventHandler('nofiNewSongAritst', (data) async {
+      final prefs = await SharedPreferences.getInstance();
+      Map<String, dynamic> allNotifications = {};
+      final savedData = prefs.getString('thongBaoList');
+      if (savedData != null && savedData.isNotEmpty) {
+        allNotifications = jsonDecode(savedData);
+      }
+      String? currentUserId;
+      try {
+        final token = prefs.getString('token');
+        if (token != null) {
+          final decodedToken = JwtDecoder.decode(token);
+          currentUserId = decodedToken['_id'];
+        }
+      } catch (err) {
+        print('Không lấy được token: $err');
+        return;
+      }
 
-    //   final ctx = navigatorKey.currentContext;
-    //   if (ctx != null && ctx.mounted) {
-    //     WidgetsBinding.instance.addPostFrameCallback((_) {
-    //       Navigator.push(
-    //         ctx,
-    //         MaterialPageRoute(
-    //           builder: (_) => UserScreen(),
-    //         ),
-    //       );
-    //     });
-    //   }
-    // });
+      if (currentUserId == null) return;
+      if (!allNotifications.containsKey(currentUserId)) {
+        allNotifications[currentUserId] = [];
+      }
+      allNotifications[currentUserId].add({
+        'message': data['message'],
+        'album': data['albumExist'] ?? {},
+        'time': DateTime.now().toIso8601String(),
+      });
+      await prefs.setString('thongBaoList', jsonEncode(allNotifications));
+      print(
+          'Thông báo mới được thêm cho user $currentUserId: ${data['message']}');
+    });
   }
 
   // ================= Event Management =================
