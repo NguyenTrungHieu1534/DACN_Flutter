@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import '../screens/update_password_screen.dart';
 import '../services/api_user.dart';
-
+import  '../screens/dashboard_artist_screen.dart';
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
@@ -130,6 +130,18 @@ class SettingsScreen extends StatelessWidget {
                           SnackBar(content: Text('Có lỗi xảy ra: $err')),
                         );
                       }
+                    },
+                  ),
+                  _buildSettingItem(
+                    context,
+                    icon: Icons.dashboard_outlined,
+                    title: "Dashboard Artist ",
+                    onTap: () async {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const ArtistDashboardScreen()),
+                      );
                     },
                   ),
                 ],

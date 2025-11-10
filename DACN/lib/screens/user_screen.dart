@@ -71,13 +71,15 @@ class _UserScreenState extends State<UserScreen>
 
   void _setupSocketListener() {
     final socketService = SocketService();
-    socketService.registerEventHandler('nofiNewSongAritst', (data) {
-      if (mounted) {
-        setState(() => _notificationCount++);
-      }
-    });
+    final events = ['nofiNewSongAritst', 'unartists', 'turnartists'];
+    for (final e in events) {
+      socketService.registerEventHandler(e, (data) {
+        if (mounted) {
+          setState(() => _notificationCount++);
+        }
+      });
+    }
   }
-
   Future<void> _checkToken() async {
     final prefs = await SharedPreferences.getInstance();
     final stored = prefs.getString('token');

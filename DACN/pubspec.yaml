@@ -34,6 +34,7 @@ dependencies:
   socket_io_client: ^3.1.2
   firebase_messaging: ^16.0.4
   timeago: ^3.7.1
+  fl_chart: ^0.68.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
