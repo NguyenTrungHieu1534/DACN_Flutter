@@ -419,6 +419,27 @@ class UserService {
       return "Lỗi kết nối: $err";
     }
   }
+
+  static Future<String> askForArtist() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    if (token == null) return "Bạn chưa đăng nhập.";
+    final userId = JwtDecoder.decode(token)['_id'];
+    final url =
+        Uri.parse('https://backend-dacn-9l4w.onrender.com/api/user/askforartist/$userId');
+
+    try {
+      final response = await http.get(url);
+      final data = json.decode(response.body);
+      if (response.statusCode == 200) {
+        return data['message'];
+      } else {
+        return data['message'];
+      }
+    } catch (err) {
+      return err.toString();
+    }
+  }
 }
 
 class LoginResponse {

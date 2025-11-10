@@ -100,6 +100,41 @@ class SettingsScreen extends StatelessWidget {
                 ],
               ),
             ),
+            _buildCard(
+              context,
+              child: ExpansionTile(
+                leading: CircleAvatar(
+                  backgroundColor: Colors.deepPurple.withOpacity(0.1),
+                  child: const Icon(Icons.person_outline,
+                      color: Colors.deepPurple),
+                ),
+                title: const Text(
+                  "Account",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                childrenPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                children: [
+                  _buildSettingItem(
+                    context,
+                    icon: Icons.music_note_outlined,
+                    title: "Upgrade To Artist ",
+                    onTap: () async {
+                      try {
+                        final data = await UserService.askForArtist();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(data ?? 'Có lỗi xảy ra')),
+                        );
+                      } catch (err) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Có lỗi xảy ra: $err')),
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 24),
             _buildSectionHeader(context, "About App"),
             _buildCard(
