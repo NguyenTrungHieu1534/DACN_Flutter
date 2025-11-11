@@ -1,0 +1,10 @@
+{
+    "@@locale": "vi",
+    "appName": "Wave Music",
+    "homeTitle": "Trang Chủ",
+    "searchTitle": "Tìm Kiếm",
+    "libraryTitle": "Thư Viện",
+    "userTitle": "Tài Khoản",
+    "loginButton": "ĐĂNG NHẬP",
+    "connectionLost": "Mất kết nối mạng. Vui lòng thử lại."
+}

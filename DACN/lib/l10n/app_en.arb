@@ -1,0 +1,10 @@
+{
+    "@@locale": "en",
+    "appName": "Wave Music",
+    "homeTitle": "Home",
+    "searchTitle": "Search",
+    "libraryTitle": "Library",
+    "userTitle": "Account",
+    "loginButton": "LOG IN",
+    "connectionLost": "Connection lost. Please try again."
+}

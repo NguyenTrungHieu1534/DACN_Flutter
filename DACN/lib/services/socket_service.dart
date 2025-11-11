@@ -15,7 +15,7 @@ class SocketService {
   SocketService._internal();
 
   IO.Socket? _socket;
-
+  IO.Socket? get socket => _socket;
   final Map<String, List<Function(dynamic)>> _eventHandlers = {};
 
   void connect(String userId) {
@@ -131,38 +131,6 @@ class SocketService {
           'Thông báo mới được thêm cho user $currentUserId: ${data['message']}');
     });
     registerEventHandler('unartists', (data) async {
-      final prefs = await SharedPreferences.getInstance();
-      Map<String, dynamic> allNotifications = {};
-      final savedData = prefs.getString('thongBaoList');
-      if (savedData != null && savedData.isNotEmpty) {
-        allNotifications = jsonDecode(savedData);
-      }
-      String? currentUserId;
-      try {
-        final token = prefs.getString('token');
-        if (token != null) {
-          final decodedToken = JwtDecoder.decode(token);
-          currentUserId = decodedToken['_id'];
-        }
-      } catch (err) {
-        print('Không lấy được token: $err');
-        return;
-      }
-
-      if (currentUserId == null) return;
-      if (!allNotifications.containsKey(currentUserId)) {
-        allNotifications[currentUserId] = [];
-      }
-      allNotifications[currentUserId].add({
-        'message': data['message'],
-        'album': data['albumExist'] ?? {},
-        'time': DateTime.now().toIso8601String(),
-      });
-      await prefs.setString('thongBaoList', jsonEncode(allNotifications));
-      print(
-          'Thông báo mới được thêm cho user $currentUserId: ${data['message']}');
-    });
-    registerEventHandler('newfollower', (data) async {
       final prefs = await SharedPreferences.getInstance();
       Map<String, dynamic> allNotifications = {};
       final savedData = prefs.getString('thongBaoList');

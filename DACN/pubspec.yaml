@@ -19,6 +19,9 @@ dependencies:
   convex_bottom_bar: ^3.2.0
   rounded_bottom_bar_flutter: ^0.0.1
   just_audio: ^0.9.35
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
   provider: ^6.0.5
   marquee: ^2.3.0
   audio_session: ^0.1.6
@@ -40,13 +43,10 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^4.0.0
   flutter_launcher_icons: ^0.13.1
-  # webview_flutter_platform_interface: ^4.0.4
-  # webview_flutter_wkwebview: ^4.0.0
 
 flutter:
   uses-material-design: true
-    # Put your brand assets here if you have them
-    # - assets/images/logo.png
+  generate: true
   assets:
     - default_pic/default_playlistPic.png
     - assets/default_pic/
