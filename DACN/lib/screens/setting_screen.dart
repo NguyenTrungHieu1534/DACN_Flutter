@@ -6,8 +6,82 @@ import 'package:provider/provider.dart';
 import '../screens/update_password_screen.dart';
 import '../services/api_user.dart';
 import  '../screens/dashboard_artist_screen.dart';
-class SettingsScreen extends StatelessWidget {
+import 'package:jwt_decoder/jwt_decoder.dart';
+
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  bool? _isPrivate;
+  bool _savingPrivacy = false;
+  String? _userId;
+  bool _privacyLocalMode = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPrivacy();
+  }
+
+  Future<void> _loadPrivacy() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    if (token == null) return;
+    final decoded = JwtDecoder.decode(token);
+    final userId = decoded['_id']?.toString();
+    if (userId == null) return;
+    _userId = userId;
+    final service = UserService();
+    final current = await service.getPrivacy(userId);
+    if (!mounted) return;
+    if (current == null) {
+      // Backend không hỗ trợ → dùng lưu cục bộ
+      final local = prefs.getBool('privacy_local') ?? false;
+      setState(() {
+        _privacyLocalMode = true;
+        _isPrivate = local;
+      });
+    } else {
+      setState(() {
+        _privacyLocalMode = false;
+        _isPrivate = current;
+      });
+    }
+  }
+
+  Future<void> _togglePrivacy(bool value) async {
+    if (_userId == null) return;
+    if (_privacyLocalMode) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('privacy_local', value);
+      if (!mounted) return;
+      setState(() {
+        _isPrivate = value;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Đã lưu cục bộ trạng thái Private')),
+      );
+      return;
+    }
+
+    setState(() {
+      _savingPrivacy = true;
+      _isPrivate = value;
+    });
+    final service = UserService();
+    final res = await service.updatePrivacy(userId: _userId!, isPrivate: value);
+    if (!mounted) return;
+    setState(() {
+      _savingPrivacy = false;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(res['message']?.toString() ?? 'Đã cập nhật')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +110,33 @@ class SettingsScreen extends StatelessWidget {
                 onChanged: (_) {
                   Provider.of<ThemeProvider>(context, listen: false)
                       .toggleTheme();
+                },
+              ),
+            ),
+            const SizedBox(height: 24),
+            _buildSectionHeader(context, "Privacy"),
+            _buildCard(
+              context,
+              child: SwitchListTile(
+                secondary: CircleAvatar(
+                  backgroundColor: Colors.teal.withOpacity(0.1),
+                  child: const Icon(Icons.lock_outline, color: Colors.teal),
+                ),
+                title: const Text("Private profile"),
+                subtitle: Text(
+                  _savingPrivacy
+                      ? "Saving..."
+                      : "Make your profile private to others"
+                ),
+                value: _isPrivate ?? false,
+                onChanged: (val) async {
+                  final previous = _isPrivate ?? false;
+                  await _togglePrivacy(val);
+                  // Revert switch if failed
+                  if (!mounted) return;
+                  // We infer failure if still saving false and message shown as failure;
+                  // simpler: reload from server to reflect truth
+                  await _loadPrivacy();
                 },
               ),
             ),
@@ -90,11 +191,6 @@ class SettingsScreen extends StatelessWidget {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text(msg)),
                       );
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //       builder: (context) => const UpdatePasswordScreen()),
-                      // );
                     },
                   ),
                 ],

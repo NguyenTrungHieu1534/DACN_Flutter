@@ -11,6 +11,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'dart:io';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 class PlayerScreen extends StatefulWidget {
   const PlayerScreen({
@@ -172,6 +173,23 @@ void _showPlaylistModal(BuildContext context) {
     _loadLyrics(lyricsService);
   }
 
+  Future<void> _shareCurrentSong(BuildContext context) async {
+    final player = Provider.of<AudioPlayerProvider>(context, listen: false);
+    final song = player.currentPlaying ?? widget.song;
+    if (song == null) return;
+    final songId = song.id ?? '';
+    final title = (song.title ?? 'Unknown');
+    final artist = (song.artist ?? '');
+    final uri = 'wavemusic://song?id=$songId';
+    final text = 'Listen to "$title"${artist.isNotEmpty ? ' by $artist' : ''} on Wave Music\n'
+        'Phone only — open in the Wave Music app\n$uri';
+    await Clipboard.setData(ClipboardData(text: text));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Share link copied. Phone only.')),
+    );
+  }
+
   Future<void> _loadLyrics(LyricsService lyricsService) async {
     setState(() {
       _isLoadingLyrics = true;
@@ -308,8 +326,8 @@ Widget build(BuildContext context) {
                             onPressed: () => _showPlaylistModal(context),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.more_horiz, color: Colors.white),
-                            onPressed: () {},
+                            icon: const Icon(Icons.share_rounded, color: Colors.white),
+                            onPressed: () => _shareCurrentSong(context),
                           ),
                         ],
                       ),

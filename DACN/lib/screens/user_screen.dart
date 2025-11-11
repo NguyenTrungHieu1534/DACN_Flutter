@@ -32,6 +32,7 @@ class _UserScreenState extends State<UserScreen>
     with SingleTickerProviderStateMixin {
   String? _token;
   bool _loading = true;
+  bool _isPrivateLocal = false;
 
   String? _userId;
   String? _username;
@@ -61,12 +62,22 @@ class _UserScreenState extends State<UserScreen>
     );
     _setupSocketListener();
     _checkToken();
+    _loadLocalPrivacyFlag();
   }
 
   @override
   void dispose() {
     _fadeController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadLocalPrivacyFlag() async {
+    final prefs = await SharedPreferences.getInstance();
+    final val = prefs.getBool('privacy_local') ?? false;
+    if (!mounted) return;
+    setState(() {
+      _isPrivateLocal = val;
+    });
   }
 
   void _setupSocketListener() {
@@ -435,7 +446,9 @@ class _UserScreenState extends State<UserScreen>
           slivers: [
             // Custom App Bar với avatar
             SliverAppBar(
-              expandedHeight: isTablet ? 320 : 260,
+              expandedHeight: _isPrivateLocal
+                  ? (isTablet ? 336 : 276)
+                  : (isTablet ? 320 : 260),
               pinned: true,
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               elevation: 0,
@@ -494,7 +507,9 @@ class _UserScreenState extends State<UserScreen>
                                 height:
                                     MediaQuery.of(context).padding.top + 40),
                             GestureDetector(
-                              onTap: () => _showImagePicker(context),
+                              onTap: _isPrivateLocal
+                                  ? null
+                                  : () => _showImagePicker(context),
                               child: Hero(
                                 tag: 'user_avatar',
                                 child: Stack(
@@ -516,12 +531,15 @@ class _UserScreenState extends State<UserScreen>
                                         backgroundColor: Theme.of(context)
                                             .colorScheme
                                             .surface,
-                                        backgroundImage: _avatar != null &&
-                                                _avatar!.isNotEmpty
+                                        backgroundImage: (!_isPrivateLocal &&
+                                                _avatar != null &&
+                                                _avatar!.isNotEmpty)
                                             ? NetworkImage(_avatar!)
                                             : null,
                                         child:
-                                            _avatar == null || _avatar!.isEmpty
+                                            _isPrivateLocal ||
+                                                    _avatar == null ||
+                                                    _avatar!.isEmpty
                                                 ? Icon(
                                                     Icons.person,
                                                     size: avatarRadius,
@@ -533,7 +551,8 @@ class _UserScreenState extends State<UserScreen>
                                                 : null,
                                       ),
                                     ),
-                                    Positioned(
+                                    if (!_isPrivateLocal)
+                                      Positioned(
                                       bottom: 0,
                                       right: 0,
                                       child: Container(
@@ -579,7 +598,7 @@ class _UserScreenState extends State<UserScreen>
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 24),
                               child: Text(
-                                _username ?? 'User',
+                                _isPrivateLocal ? 'Private' : (_username ?? 'User'),
                                 style: TextStyle(
                                   fontSize: isTablet ? 32 : 26,
                                   fontWeight: FontWeight.bold,
@@ -598,7 +617,7 @@ class _UserScreenState extends State<UserScreen>
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 24),
                               child: Text(
-                                _email ?? '',
+                                _isPrivateLocal ? 'Hidden' : (_email ?? ''),
                                 style: TextStyle(
                                   fontSize: isTablet ? 16 : 14,
                                   color: Theme.of(context)
@@ -611,6 +630,27 @@ class _UserScreenState extends State<UserScreen>
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
+                            if (_isPrivateLocal) ...[
+                              const SizedBox(height: 10),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.lock_outline,
+                                      size: 16, color: Colors.grey),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'This account is private',
+                                    style: TextStyle(
+                                      fontSize: isTablet ? 14 : 12,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withOpacity(0.6),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -666,12 +706,59 @@ class _UserScreenState extends State<UserScreen>
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                    );
+                    ).then((_) {
+                      if (mounted) _loadLocalPrivacyFlag();
+                    });
                   },
                 ),
               ],
             ),
-            SliverPadding(
+            if (_isPrivateLocal)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    isTablet ? 24 : 16,
+                    isTablet ? 24 : 16,
+                    isTablet ? 24 : 16,
+                    isTablet ? 32 : 24,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Icon(Icons.lock_outline,
+                          size: isTablet ? 64 : 48,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withOpacity(0.4)),
+                      const SizedBox(height: 12),
+                      Text(
+                        'This profile is private',
+                        style: TextStyle(
+                          fontSize: isTablet ? 22 : 18,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Profile sections are hidden while Private mode is on.',
+                        style: TextStyle(
+                          fontSize: isTablet ? 16 : 14,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withOpacity(0.6),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              SliverPadding(
               padding: EdgeInsets.fromLTRB(
                 isTablet ? 24 : 16,
                 isTablet ? 16 : 8,
@@ -712,7 +799,7 @@ class _UserScreenState extends State<UserScreen>
                 ]),
               ),
             ),
-            if (_followedArtists.isNotEmpty)
+            if (!_isPrivateLocal && _followedArtists.isNotEmpty)
               SliverPadding(
                 padding: EdgeInsets.fromLTRB(
                   isTablet ? 24 : 16,
@@ -731,7 +818,7 @@ class _UserScreenState extends State<UserScreen>
                   ),
                 ),
               ),
-            if (_followedArtists.isNotEmpty)
+            if (!_isPrivateLocal && _followedArtists.isNotEmpty)
               SliverToBoxAdapter(
                 child: SizedBox(
                   height: isTablet ? 180 : 140,
@@ -786,7 +873,8 @@ class _UserScreenState extends State<UserScreen>
                   ),
                 ),
               ),
-            SliverPadding(
+            if (!_isPrivateLocal)
+              SliverPadding(
               padding: EdgeInsets.fromLTRB(
                 isTablet ? 24 : 16,
                 isTablet ? 16 : 8,
@@ -820,7 +908,7 @@ class _UserScreenState extends State<UserScreen>
                 ),
               ),
             ),
-            if (_loadingData)
+            if (!_isPrivateLocal && _loadingData)
               const SliverToBoxAdapter(
                 child: Center(
                   child: Padding(
@@ -829,7 +917,7 @@ class _UserScreenState extends State<UserScreen>
                   ),
                 ),
               )
-            else if (_userPlaylists.isEmpty)
+            else if (!_isPrivateLocal && _userPlaylists.isEmpty)
               SliverToBoxAdapter(
                 child: Container(
                   margin: EdgeInsets.all(isTablet ? 24 : 16),
@@ -897,7 +985,8 @@ class _UserScreenState extends State<UserScreen>
                 ),
               )
             else
-              SliverPadding(
+              if (!_isPrivateLocal)
+                SliverPadding(
                 padding: EdgeInsets.symmetric(horizontal: isTablet ? 24 : 16),
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
@@ -916,7 +1005,7 @@ class _UserScreenState extends State<UserScreen>
                   ),
                 ),
               ),
-            if (_recentArtists.isNotEmpty)
+            if (!_isPrivateLocal && _recentArtists.isNotEmpty)
               SliverPadding(
                 padding: EdgeInsets.fromLTRB(
                   isTablet ? 24 : 16,
@@ -935,7 +1024,7 @@ class _UserScreenState extends State<UserScreen>
                   ),
                 ),
               ),
-            if (_recentArtists.isNotEmpty)
+            if (!_isPrivateLocal && _recentArtists.isNotEmpty)
               SliverPadding(
                 padding: EdgeInsets.symmetric(horizontal: isTablet ? 24 : 16),
                 sliver: SliverList(

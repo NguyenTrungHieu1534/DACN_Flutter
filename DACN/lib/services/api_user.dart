@@ -375,6 +375,107 @@ class UserService {
     }
   }
 
+  Future<bool?> getPrivacy(String userId) async {
+    final token = await _getToken();
+    if (token == null) return null;
+    final uri = Uri.parse('$baseApiUrl/api/user/privacy/$userId');
+    try {
+      final response = await http
+          .get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      )
+          .timeout(const Duration(seconds: 12));
+      if (response.statusCode == 200) {
+        if (response.body.isEmpty) return null;
+        try {
+          final dynamic parsed = jsonDecode(response.body);
+          if (parsed is Map<String, dynamic>) {
+            return parsed['isPrivate'] == true;
+          }
+          if (parsed is bool) return parsed;
+          return null;
+        } catch (_) {
+          return null;
+        }
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>> updatePrivacy({
+    required String userId,
+    required bool isPrivate,
+  }) async {
+    final uri = Uri.parse('$baseApiUrl/api/update-privacy');
+    final token = await _getToken();
+    if (token == null) {
+      return {'success': false, 'message': 'Bạn chưa đăng nhập.'};
+    }
+    try {
+      final response = await http
+          .post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'userId': userId,
+          'isPrivate': isPrivate,
+        }),
+      )
+          .timeout(const Duration(seconds: 12));
+
+      if (response.statusCode == 200) {
+        if (response.body.isEmpty) {
+          return {'success': true, 'message': 'Đã cập nhật quyền riêng tư.'};
+        }
+        try {
+          final data = jsonDecode(response.body);
+          return {
+            'success': true,
+            'message': data['message'] ?? 'Đã cập nhật quyền riêng tư.'
+          };
+        } catch (_) {
+          return {'success': true, 'message': 'Đã cập nhật quyền riêng tư.'};
+        }
+      } else {
+        if (response.body.isNotEmpty) {
+          try {
+            final data = jsonDecode(response.body);
+            return {
+              'success': false,
+              'message':
+                  data['message'] ?? 'Cập nhật quyền riêng tư thất bại.'
+            };
+          } catch (_) {
+            return {
+              'success': false,
+              'message':
+                  'Cập nhật quyền riêng tư thất bại (${response.statusCode}).'
+            };
+          }
+        }
+        return {
+          'success': false,
+          'message':
+              'Cập nhật quyền riêng tư thất bại (${response.statusCode}).'
+        };
+      }
+    } catch (_) {
+      return {
+        'success': false,
+        'message': 'Không thể kết nối máy chủ. Vui lòng thử lại.'
+      };
+    }
+  }
+
   static Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('userInfor');
