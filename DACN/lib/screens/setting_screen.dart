@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import '../screens/update_password_screen.dart';
 import '../services/api_user.dart';
+import '../screens/dashboard_artist_screen.dart';
+
 import  '../screens/dashboard_artist_screen.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 
@@ -16,14 +18,33 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+
+  String? currentRole;
+
   bool? _isPrivate;
   bool _savingPrivacy = false;
   String? _userId;
   bool _privacyLocalMode = false;
 
+
   @override
   void initState() {
     super.initState();
+
+    _loadRole();
+  }
+
+  void _loadRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token != null) {
+      final decoded = JwtDecoder.decode(token);
+      setState(() {
+        currentRole = decoded['role'];
+      });
+    }
+
     _loadPrivacy();
   }
 
@@ -113,6 +134,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
             ),
+
             const SizedBox(height: 24),
             _buildSectionHeader(context, "Privacy"),
             _buildCard(
@@ -142,6 +164,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 24),
             _buildSectionHeader(context, "Account & Security"),
+
+            // SECURITY
             _buildCard(
               context,
               child: ExpansionTile(
@@ -196,6 +220,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
             ),
+
+            // ACCOUNT
             _buildCard(
               context,
               child: ExpansionTile(
@@ -214,7 +240,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _buildSettingItem(
                     context,
                     icon: Icons.music_note_outlined,
-                    title: "Upgrade To Artist ",
+                    title: "Upgrade To Artist",
                     onTap: () async {
                       try {
                         final data = await UserService.askForArtist();
@@ -228,23 +254,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       }
                     },
                   ),
-                  _buildSettingItem(
-                    context,
-                    icon: Icons.dashboard_outlined,
-                    title: "Dashboard Artist ",
-                    onTap: () async {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const ArtistDashboardScreen()),
-                      );
-                    },
-                  ),
+                  if (currentRole == 'artist')
+                    _buildSettingItem(
+                      context,
+                      icon: Icons.dashboard_outlined,
+                      title: "Dashboard Artist",
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ArtistDashboardScreen(),
+                          ),
+                        );
+                      },
+                    ),
                 ],
               ),
             ),
+
             const SizedBox(height: 24),
             _buildSectionHeader(context, "About App"),
+
             _buildCard(
               context,
               child: ListTile(
@@ -254,8 +284,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       const Icon(Icons.info_outline, color: Colors.deepPurple),
                 ),
                 title: const Text("Information"),
-                trailing: const Icon(Icons.arrow_forward_ios,
-                    size: 16, color: Colors.grey),
+                trailing:
+                    const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
                 onTap: () {
                   showAboutDialog(
                     context: context,
@@ -270,7 +300,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
             ),
+
             const SizedBox(height: 24),
+
             _buildCard(
               context,
               child: ListTile(
@@ -278,8 +310,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   backgroundColor: Colors.red.withOpacity(0.1),
                   child: const Icon(Icons.logout, color: Colors.red),
                 ),
-                title:
-                    const Text("Log out", style: TextStyle(color: Colors.red)),
+                title: const Text("Log out", style: TextStyle(color: Colors.red)),
                 onTap: () async {
                   final confirmed = await showDialog<bool>(
                     context: context,
@@ -305,10 +336,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   if (confirmed == true) {
                     await UserService.logout();
                     Navigator.of(context, rootNavigator: true)
-                        .pushNamedAndRemoveUntil(
-                      '/login',
-                      (route) => false,
-                    );
+                        .pushNamedAndRemoveUntil('/login', (route) => false);
                   }
                 },
                 hoverColor: Colors.red.withOpacity(0.05),
@@ -345,10 +373,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildSettingItem(BuildContext context,
-      {required IconData icon,
-      required String title,
-      required VoidCallback onTap}) {
+  Widget _buildSettingItem(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       leading: CircleAvatar(
@@ -361,12 +391,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onTap: onTap,
       hoverColor: Colors.deepPurple.withOpacity(0.05),
-    );
-  }
-
-  void _showSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
     );
   }
 }
