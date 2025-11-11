@@ -19,8 +19,12 @@ class ApiPlaylist {
     final token = await _getToken();
     Map<String, dynamic> decoded = JwtDecoder.decode(token.toString());
     String username = decoded["username"];
-    final response =
-        await http.get(Uri.parse("$baseUrl/api/playlists/$username"));
+    final response = await http.get(
+      Uri.parse("$baseUrl/api/playlists/$username"),
+      headers: {
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
+    );
 
     if (response.statusCode == 200) {
       final List data = json.decode(response.body)['data'] ?? [];

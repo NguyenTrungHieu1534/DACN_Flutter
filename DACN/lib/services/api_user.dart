@@ -90,9 +90,13 @@ class UserService {
         : {};
 
     if (response.statusCode == 200) {
-      final token = data['token']?.toString();
+      // Accept multiple token field names for compatibility
+      final token = (data['token'] ?? data['accessToken'] ?? data['jwt'])?.toString();
       final message = data['message']?.toString() ?? 'Đăng nhập thành công';
       if (token == null || token.isEmpty) {
+        // Minimal debug info to help diagnose on device logs
+        // ignore: avoid_print
+        print('Login 200 but no token. Keys: ${data.keys.toList()} body: ${response.body}');
         throw Exception('Thiếu token từ máy chủ');
       }
       final prefs = await SharedPreferences.getInstance();
@@ -473,6 +477,55 @@ class UserService {
         'success': false,
         'message': 'Không thể kết nối máy chủ. Vui lòng thử lại.'
       };
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> searchUsers(String query) async {
+    final token = await _getToken();
+    final uri = Uri.parse('$baseApiUrl/api/users/search?query=${Uri.encodeQueryComponent(query)}');
+    try {
+      final response = await http.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data is List) {
+          return data.cast<Map<String, dynamic>>();
+        }
+        return [];
+      }
+      return [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<Map<String, dynamic>?> getPublicProfile(String userId) async {
+    final token = await _getToken();
+    if (token == null) return null;
+    final uri = Uri.parse('$baseApiUrl/api/user/$userId');
+    try {
+      final response = await http.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return data;
+      }
+      if (response.statusCode == 403) {
+        return {'isPrivate': true, 'masked': true};
+      }
+      return null;
+    } catch (_) {
+      return null;
     }
   }
 

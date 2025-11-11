@@ -8,6 +8,8 @@ import 'player_screen.dart';
 import 'album_detail_screen.dart';
 import 'artist_detail_screen.dart';
 import '../services/api_album.dart';
+import '../services/api_user.dart';
+import 'user_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -20,16 +22,19 @@ class _SearchPageState extends State<SearchScreen> {
   List<Songs> songResults = [];
   List<Map<String, dynamic>> artistResults = [];
   List<Map<String, dynamic>> albumResults = [];
+  List<Map<String, dynamic>> userResults = [];
   List<String> history = ["Love", "Rap", "Chill"];
   bool isLoading = false;
   String selectedFilter = "All";
   final SongService songService = SongService();
   final TextEditingController searchController = TextEditingController();
   Timer? _debounce;
+  final UserService _userService = UserService();
 
   void handleSearch(String query) async {
     if (query.trim().isEmpty) return;
 
+    if (!mounted) return;
     setState(() {
       isLoading = true;
       history.remove(query);
@@ -38,10 +43,12 @@ class _SearchPageState extends State<SearchScreen> {
 
     try {
       final data = await songService.searchSongs(query);
+      final users = await _userService.searchUsers(query);
       final List<Songs> songs = [];
       final List<Map<String, dynamic>> artists = [];
       final List<Map<String, dynamic>> albumsData = [];
 
+      if (!mounted) return;
       for (final item in data) {
         if (item is Map<String, dynamic>) {
           final type = item['type'];
@@ -81,17 +88,21 @@ class _SearchPageState extends State<SearchScreen> {
         }),
       );
 
+      if (!mounted) return;
       setState(() {
         songResults = updatedSongs;
         artistResults = artists.isNotEmpty ? artists : _deriveArtistsFromSongs(updatedSongs);
         albumResults = updatedAlbums.isNotEmpty ? updatedAlbums : _deriveAlbumsFromSongs(updatedSongs);
+        userResults = users;
         isLoading = false;
       });
     } catch (_) {
+      if (!mounted) return;
       setState(() {
         songResults = [];
         artistResults = [];
         albumResults = [];
+        userResults = [];
         isLoading = false;
       });
     }
@@ -100,13 +111,16 @@ class _SearchPageState extends State<SearchScreen> {
   void _onQueryChanged(String value) {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 250), () {
+      if (!mounted) return;
       if (value.trim().isNotEmpty) {
         handleSearch(value.trim());
       } else {
+        if (!mounted) return;
         setState(() {
           songResults = [];
           artistResults = [];
           albumResults = [];
+          userResults = [];
         });
       }
     });
@@ -184,7 +198,7 @@ class _SearchPageState extends State<SearchScreen> {
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: ["All", "Songs", "Artists", "Albums"].map((type) {
+                children: ["All", "Users", "Songs", "Artists", "Albums"].map((type) {
                   final bool selected = selectedFilter == type;
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
@@ -225,6 +239,10 @@ class _SearchPageState extends State<SearchScreen> {
 
     bool show(String section) => selectedFilter == 'All' || selectedFilter == section;
 
+    if (show('Users') && userResults.isNotEmpty) {
+      sections.add(_sectionHeader('Người dùng'));
+      sections.addAll(userResults.map((u) => _userTile(u)));
+    }
     if (show('Songs') && songResults.isNotEmpty) {
       sections.add(_sectionHeader('Bài hát'));
       sections.addAll(songResults.map((s) => _songTile(s)));
@@ -253,6 +271,46 @@ class _SearchPageState extends State<SearchScreen> {
           fontWeight: FontWeight.w800,
           fontSize: 16,
         ),
+      ),
+    );
+  }
+
+  Widget _userTile(Map<String, dynamic> user) {
+    final id = (user['id'] ?? user['_id'] ?? '').toString();
+    final name = (user['username'] ?? '').toString();
+    final ava = (user['ava'] ?? '').toString();
+    final isPrivate = user['isPrivate'] == true;
+    return Card(
+      color: Theme.of(context).cardColor,
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.only(bottom: 10),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundImage: ava.isNotEmpty ? NetworkImage(ava) : null,
+          backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.15),
+          child: ava.isEmpty ? Icon(Icons.person, color: Theme.of(context).colorScheme.primary) : null,
+        ),
+        title: Text(
+          name.isNotEmpty ? name : 'Unknown',
+          style: TextStyle(
+            color: Theme.of(context).textTheme.bodyLarge?.color,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        subtitle: isPrivate
+            ? Text('Private', style: TextStyle(color: Theme.of(context).colorScheme.error.withOpacity(0.8)))
+            : null,
+        onTap: () {
+          if (id.isEmpty) return;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const UserScreen(),
+              settings: RouteSettings(arguments: {'viewUserId': id}),
+            ),
+          );
+        },
       ),
     );
   }

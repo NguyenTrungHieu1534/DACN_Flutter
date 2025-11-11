@@ -103,9 +103,15 @@ class FollowService {
   }
 
   Future<List<dynamic>> getFollowList(String userId) async {
+    final token = await _getToken();
     final url = Uri.parse("$baseUrl/follow/$userId");
 
-    final res = await http.get(url);
+    final res = await http.get(
+      url,
+      headers: {
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
+    );
     if (res.statusCode == 200) {
       final data = jsonDecode(res.body);
       return data;
