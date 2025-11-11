@@ -71,7 +71,7 @@ class _UserScreenState extends State<UserScreen>
 
   void _setupSocketListener() {
     final socketService = SocketService();
-    final events = ['nofiNewSongAritst', 'unartists', 'turnartists'];
+    final events = ['nofiNewSongAritst', 'unartists', 'turnartists', 'newfollower'];
     for (final e in events) {
       socketService.registerEventHandler(e, (data) {
         if (mounted) {
@@ -748,7 +748,7 @@ class _UserScreenState extends State<UserScreen>
                             context,
                             FadePageRoute(
                               child: ArtistDetailScreen(
-                                  artistName: artist['name'] ?? ''),
+                                  artistName: artist['name'] ?? artist['username']?? 'N/A'),
                             ),
                           );
                         },
@@ -762,19 +762,19 @@ class _UserScreenState extends State<UserScreen>
                                 backgroundImage: (artist['avatarUrl'] != null &&
                                         artist['avatarUrl'].isNotEmpty)
                                     ? NetworkImage(artist['avatarUrl'])
-                                    : (artist['photoUrl'] != null &&
-                                            artist['photoUrl'].isNotEmpty)
-                                        ? NetworkImage(artist['photoUrl'])
+                                    : (artist['avatar'] != null &&
+                                            artist['avatar'].isNotEmpty)
+                                        ? NetworkImage(artist['avatar'])
                                         : null,
                                 child: (artist['avatarUrl'] == null ||
                                             artist['avatarUrl'].isEmpty) &&
-                                        (artist['photoUrl'] == null ||
-                                            artist['photoUrl'].isEmpty)
+                                        (artist['avatar'] == null ||
+                                            artist['avatar'].isEmpty)
                                     ? const Icon(Icons.person)
                                     : null,
                               ),
                               const SizedBox(height: 8),
-                              Text(artist['name'] ?? 'N/A',
+                              Text(artist['name'] ?? artist['username'] ?? 'N/A',
                                   textAlign: TextAlign.center,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis),

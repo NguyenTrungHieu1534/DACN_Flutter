@@ -1,9 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
-class ArtistDashboardScreen extends StatelessWidget {
+class ArtistDashboardScreen extends StatefulWidget {
   const ArtistDashboardScreen({super.key});
 
+  @override
+  State<ArtistDashboardScreen> createState() => _ArtistDashboardScreenState();
+}
+
+class _ArtistDashboardScreenState extends State<ArtistDashboardScreen> {
+  Map<String, dynamic>? decodedToken;
+  @override
+  void initState() {
+     _userIn4();
+    super.initState();
+  }
+  void _userIn4() async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+    // if(token != null) return;
+    decodedToken = JwtDecoder.decode(token!);    
+    setState(() {});
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,26 +48,27 @@ class ArtistDashboardScreen extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-        },
+        onPressed: () {},
         child: const Icon(Icons.upload),
       ),
     );
   }
 
   Widget _buildArtistHeader() {
-    return const Row(
+    final username = decodedToken?['username'].toString() ?? 'Artist Name';
+    return Row(
       children: [
         CircleAvatar(
           radius: 40,
-          backgroundImage: NetworkImage('https://via.placeholder.com/150'),
+          backgroundImage: NetworkImage(
+              'https://res.cloudinary.com/dwwdkcxjj/image/upload/v1762169154/avatarDACN/qcnokpmlgd09qkpr9yww.jpg'),
         ),
         SizedBox(width: 16),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Artist Name',
+              username,
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             Text('Welcome to your artist page.'),
@@ -72,12 +93,16 @@ class ArtistDashboardScreen extends StatelessWidget {
     return const Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('At-a-Glance', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        Text('At-a-Glance',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _KpiCard(icon: Icons.music_note, label: "Today's Streams", value: '5.6K'),
+            _KpiCard(
+                icon: Icons.music_note,
+                label: "Today's Streams",
+                value: '5.6K'),
             _KpiCard(icon: Icons.people, label: 'New Followers', value: '+250'),
             _KpiCard(icon: Icons.pending, label: 'Pending Songs', value: '2'),
           ],
@@ -90,7 +115,8 @@ class ArtistDashboardScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Analytics', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        const Text('Analytics',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
         _buildLineChart(),
         const SizedBox(height: 24),
@@ -180,7 +206,8 @@ class ArtistDashboardScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Content Management', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        const Text('Content Management',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
         Card(
           child: Column(
@@ -217,7 +244,9 @@ class _StatCard extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(value,
+                style:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             Text(label),
           ],
         ),
@@ -231,7 +260,8 @@ class _KpiCard extends StatelessWidget {
   final String label;
   final String value;
 
-  const _KpiCard({required this.icon, required this.label, required this.value});
+  const _KpiCard(
+      {required this.icon, required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
