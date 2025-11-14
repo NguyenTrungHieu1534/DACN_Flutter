@@ -1,4 +1,6 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.music_login">
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
@@ -8,11 +10,14 @@
     <application
         android:label="Wave Music"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        tools:node="merge"> <!-- This tools:node="merge" should be on a tag, but let's assume it's for the application tag -->
         <service
             android:name="com.ryanheise.audioservice.AudioService"
-            android:exported="false"
-            android:stopWithTask="false" />
+            android:foregroundServiceType="mediaPlayback"
+            android:exported="true"
+            android:stopWithTask="false"
+            tools:ignore="Instantiatable" />
 
         <!-- Firebase messaging service -->
         <service
@@ -41,6 +46,16 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+
+           <intent-filter android:autoVerify="true">
+    <action android:name="android.intent.action.VIEW" />
+    <category android:name="android.intent.category.DEFAULT" />
+    <category android:name="android.intent.category.BROWSABLE" />
+    <!-- This will match https://nguyentrunghieu1534.github.io/track/... -->
+    <data android:scheme="https"
+          android:host="nguyentrunghieu1534.github.io"
+          android:pathPrefix="/track" />
+</intent-filter>
         </activity>
 
         <meta-data

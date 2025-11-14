@@ -54,6 +54,40 @@ class SongService {
       throw Exception(errorData['error'] ?? 'Không thể lấy URL bài hát');
     }
   }
+  static Future<Songs?> fetchSongById(String songId) async {
+    if (songId.isEmpty) return null;
+
+    try {
+      final directUrl = Uri.parse(
+          'https://backend-dacn-9l4w.onrender.com/api/songs/$songId');
+      final response = await http.get(directUrl);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data is Map<String, dynamic>) {
+          return Songs.fromJson(data);
+        }
+        if (data is List && data.isNotEmpty) {
+          final first = data.first;
+          if (first is Map<String, dynamic>) {
+            return Songs.fromJson(first);
+          }
+        }
+      }
+    } catch (_) {
+      // ignore and fallback
+    }
+
+    try {
+      final songs = await fetchSongs();
+      for (final song in songs) {
+        if (song.id == songId) return song;
+      }
+    } catch (_) {
+      // ignore and return null
+    }
+
+    return null;
+  }
 //   Future<Map<String, dynamic>?> fetchLyrics({
 //   required String songId,
 //   required String artist,

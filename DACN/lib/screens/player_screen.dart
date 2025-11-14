@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/songs.dart';
 import 'package:provider/provider.dart';
 import '../models/AudioPlayerProvider.dart';
@@ -10,6 +11,8 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/foundation.dart';
 import '../widgets/comment_section.dart'; 
+import '../services/share_intent_service.dart';
+import '../constants/deep_link_config.dart';
 
 
 class PlayerScreen extends StatefulWidget {
@@ -20,6 +23,7 @@ class PlayerScreen extends StatefulWidget {
     this.subtitle,
     this.imageUrl,
     this.heroTag,
+    this.showBackButton = false,
   });
 
   final Songs? song;
@@ -27,6 +31,7 @@ class PlayerScreen extends StatefulWidget {
   final String? subtitle;
   final String? imageUrl;
   final Object? heroTag;
+  final bool showBackButton;
 
   @override
   State<PlayerScreen> createState() => _PlayerScreenState();
@@ -265,16 +270,24 @@ class _PlayerScreenState extends State<PlayerScreen>
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           child: Row(
             children: [
-              IconButton(
-                icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                    color: Colors.white, size: 30),
-                onPressed: () => Navigator.pop(context),
-              ),
+              widget.showBackButton
+                  ? IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 24),
+                      onPressed: () => Navigator.pop(context),
+                    )
+                  : IconButton(
+                      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white, size: 30),
+                      onPressed: () => Navigator.pop(context),
+                    ),
               const Spacer(),
               IconButton(
                 icon: const Icon(Icons.queue_music_rounded,
                     color: Colors.white, size: 24),
                 onPressed: () => _showPlaylistModal(context),
+              ),
+              IconButton(
+                icon: const Icon(Icons.share, color: Colors.white),
+                onPressed: () => _shareSong(song),
               ),
               IconButton(
                 icon: const Icon(Icons.more_horiz, color: Colors.white),
@@ -705,6 +718,34 @@ class _PlayerScreenState extends State<PlayerScreen>
     _durationSub.cancel();
     _seekIgnoreTimer?.cancel();
     super.dispose();
+  }
+
+  Future<void> _shareSong(Songs song) async {
+    final link = buildSongDeepLink(song.id).toString();
+    try {
+      await ShareIntentService.shareText(
+        link,
+        subject: song.title,
+      );
+    } on PlatformException catch (error) {
+      debugPrint('Share failed: $error');
+      await _fallbackCopyLink(link);
+    } catch (error) {
+      debugPrint('Unexpected share error: $error');
+      await _fallbackCopyLink(link);
+    }
+  }
+
+  Future<void> _fallbackCopyLink(String link) async {
+    if (!mounted) return;
+    await Clipboard.setData(ClipboardData(text: link));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Không mở được share sheet. Link đã copy vào clipboard.'),
+        duration: Duration(seconds: 3),
+      ),
+    );
   }
 }
 class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {

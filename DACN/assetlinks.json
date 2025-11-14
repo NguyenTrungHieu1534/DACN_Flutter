@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.example.music_login",
+      "sha256_cert_fingerprints": [
+        "11:CE:D8:D1:D8:73:35:3B:A4:C2:19:7B:D4:E8:3E:ED:30:9D:E7:52:CB:FD:3D:D0:DA:D7:D5:AC:47:1B:A6:BC"
+      ]
+    }
+  }
+]

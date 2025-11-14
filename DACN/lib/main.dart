@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -6,6 +7,7 @@ import 'package:music_login/screens/forgot_password_screen.dart';
 import 'package:music_login/screens/verify_otp_screen.dart';
 import 'package:music_login/screens/reset_password_screen.dart';
 import 'package:music_login/screens/search_screen.dart';
+import 'package:music_login/screens/player_screen.dart';
 import 'package:music_login/screens/fav_screen.dart';
 import 'package:music_login/screens/user_screen.dart';
 import 'models/AudioPlayerProvider.dart';
@@ -17,6 +19,7 @@ import 'package:internet_connection_checker/internet_connection_checker.dart';
 import '../models/ThemeProvider.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'navigation/custom_page_route.dart';
+import 'package:app_links/app_links.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:audio_service/audio_service.dart';
 import '../models/audio_handler.dart';
@@ -28,8 +31,13 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'dart:convert';
+import 'package:music_login/services/api_songs.dart';
+import 'models/songs.dart';
+import 'constants/deep_link_config.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+final GlobalKey<_MainNavigationState> mainNavigationKey =
+    GlobalKey<_MainNavigationState>();
 
 Future<void> main() async {
   late final AudioHandler audioHandler;
@@ -64,8 +72,103 @@ Future<void> main() async {
   );
 }
 
-class WaveMusicApp extends StatelessWidget {
+class WaveMusicApp extends StatefulWidget {
   const WaveMusicApp({super.key});
+
+  @override
+  State<WaveMusicApp> createState() => _WaveMusicAppState();
+}
+
+class _WaveMusicAppState extends State<WaveMusicApp> {
+  late final AppLinks _appLinks;
+  StreamSubscription<Uri>? _linkSubscription;
+  Songs? _pendingDeepLinkSong;
+
+  @override
+  void initState() {
+    super.initState();
+    _appLinks = AppLinks();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        final initialUri = await _appLinks.getInitialLink();
+        if (initialUri != null) {
+          unawaited(_handleIncomingUri(initialUri));
+        }
+      } catch (e) {
+        debugPrint('Failed to get initial link: $e');
+      }
+    });
+
+    _linkSubscription = _appLinks.uriLinkStream.listen(
+      (uri) {
+        // If the app is already running, we can navigate immediately.
+        if (mainNavigationKey.currentState != null) {
+          unawaited(_handleIncomingUri(uri));
+        }
+      },
+      onError: (err) => debugPrint('AppLinks error: $err'),
+    );
+  }
+
+  @override
+  void dispose() {
+    _linkSubscription?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _handleIncomingUri(Uri uri) async {
+    if (uri.scheme != deepLinkScheme) return;
+    if (deepLinkHost.isNotEmpty && uri.host != deepLinkHost) return;
+
+    if (trackPathSegment.isNotEmpty &&
+        uri.pathSegments.isNotEmpty &&
+        uri.pathSegments.first != trackPathSegment) {
+      return;
+    }
+
+    String? trackId = uri.queryParameters['id'];
+    if (trackId == null &&
+        uri.pathSegments.length > (trackPathSegment.isEmpty ? 0 : 1)) {
+      final index = trackPathSegment.isEmpty ? 0 : 1;
+      trackId = uri.pathSegments[index];
+    }
+    if (trackId == null || trackId.isEmpty) return;
+
+    final song = await SongService.fetchSongById(trackId);
+    if (song == null) {
+      debugPrint('No song found for deep link id: $trackId');
+      return;
+    }
+    
+    final currentTabNavigator =
+        mainNavigationKey.currentState?.currentNavigatorState;
+
+    if (currentTabNavigator != null && currentTabNavigator.mounted) {
+      // If UI is ready, navigate immediately
+      _navigateToPlayer(song, currentTabNavigator);
+    } else {
+      // If UI is not ready (app cold start), store the song to be handled later
+      setState(() {
+        _pendingDeepLinkSong = song;
+      });
+    }
+  }
+
+  void _navigateToPlayer(Songs song, NavigatorState navigator) {
+    final rootContext = navigatorKey.currentContext;
+    if (rootContext == null || !mounted) return;
+
+    final player = Provider.of<AudioPlayerProvider>(rootContext, listen: false);
+    player.setNewPlaylist([song], 0);
+
+    navigator.push(
+      FadePageRoute(child: PlayerScreen(song: song, showBackButton: true)),
+    );
+    setState(() {
+      _pendingDeepLinkSong = null; // Clear after handling
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +186,14 @@ class WaveMusicApp extends StatelessWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: themeProvider.isDark ? ThemeMode.dark : ThemeMode.light,
       title: 'Wave Music',
-      home: const AuthCheck(),
+      home: AuthCheck(
+        mainNavigationKey: mainNavigationKey,
+        onAuthenticated: () {
+          if (_pendingDeepLinkSong != null) {
+            _handleIncomingUri(buildSongDeepLink(_pendingDeepLinkSong!.id));
+          }
+        },
+      ),
       routes: {
         '/home': (context) => const MainNavigation(),
         '/login': (context) => const LoginScreen(),
@@ -97,7 +207,12 @@ class WaveMusicApp extends StatelessWidget {
 }
 
 class AuthCheck extends StatefulWidget {
-  const AuthCheck({super.key});
+  final GlobalKey<_MainNavigationState> mainNavigationKey;
+  final VoidCallback onAuthenticated;
+  const AuthCheck(
+      {super.key,
+      required this.mainNavigationKey,
+      required this.onAuthenticated});
 
   @override
   State<AuthCheck> createState() => _AuthCheckState();
@@ -121,7 +236,8 @@ class _AuthCheckState extends State<AuthCheck> {
 
         final token = snapshot.data;
         if (token != null && token.isNotEmpty && !JwtDecoder.isExpired(token)) {
-          return const MainNavigation();
+          WidgetsBinding.instance.addPostFrameCallback((_) => widget.onAuthenticated());
+          return MainNavigation(key: widget.mainNavigationKey);
         } else {
           return const LoginScreen();
         }
@@ -131,7 +247,7 @@ class _AuthCheckState extends State<AuthCheck> {
 }
 
 class MainNavigation extends StatefulWidget {
-  const MainNavigation({super.key});
+  const MainNavigation({Key? key}) : super(key: key);
 
   @override
   State<MainNavigation> createState() => _MainNavigationState();
@@ -154,6 +270,9 @@ class _MainNavigationState extends State<MainNavigation>
     LibraryScreen(),
     UserScreen(),
   ];
+
+  NavigatorState? get currentNavigatorState =>
+      _navigatorKeys[_currentIndex].currentState;
   late final List<Widget> _screens;
 
   @override
@@ -202,7 +321,7 @@ class _MainNavigationState extends State<MainNavigation>
             ),
             bottomNavigationBar: BuildNaviBot(
               currentIndex: _currentIndex,
-              hasInternet: hasInternet,
+              hasInternet: hasInternet, // This seems to be a typo in the original code, should be hasInternet
               onRetry: () async {
                 final ok = await InternetConnectionChecker().hasConnection;
                 if (!mounted) return;
