@@ -5,7 +5,8 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import '../services/api_history.dart';
 import '../services/api_songs.dart';
 import '../services/api_follow.dart';
-
+import '../services/api_comment.dart';
+import '../models/comment.dart';
 class ArtistDashboardScreen extends StatefulWidget {
   const ArtistDashboardScreen({super.key});
 
@@ -21,6 +22,7 @@ class _ArtistDashboardScreenState extends State<ArtistDashboardScreen> {
   late int totalHistory = 0;
   late int totalFollow = 0;
   late var listSongs = [];
+  late Map<String, List<dynamic>>listComments = {};
   @override
   void initState() {
     _userIn4();
@@ -34,13 +36,15 @@ class _ArtistDashboardScreenState extends State<ArtistDashboardScreen> {
     decodedToken = JwtDecoder.decode(token!);
     totalHistory = await historyService.fetchTotalHistory(decodedToken!['_id']);
     Text('Total History: ${totalHistory.toString()}');
-     totalHistory = totalHistory * 500;
+     //totalHistory = totalHistory * 500;
     totalFollow =
         await followService.fetchTotalFollow(decodedToken!['_id'].toString());
     // print('Total follow: $totalFollow');
-    totalFollow = totalFollow * 50;
+    //totalFollow = totalFollow * 50;
     listSongs = await historyService.fetchHistory(decodedToken!['username']);
     debugPrint('List songs: $listSongs');
+    listComments = await CommentService().fetchCommentsByArtist(decodedToken?['username']);
+    debugPrint('List comments: $listComments');
     setState(() {});
   }
 
@@ -259,6 +263,7 @@ class _ArtistDashboardScreenState extends State<ArtistDashboardScreen> {
   }
 
   Widget _buildContentManagement() {
+    final songsWithComments = listComments.keys.toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -278,7 +283,33 @@ class _ArtistDashboardScreenState extends State<ArtistDashboardScreen> {
                   ),
                 ),
               ),
-              ...List.generate(3, (index) => _UploadedSongItem(index: index)),
+              if (songsWithComments.isEmpty)
+                const Center(child: Text('No comments on your songs yet.'))
+              else
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: songsWithComments.length,
+                  itemBuilder: (context, index) {
+                    final songTitle = songsWithComments[index];
+                    final comments = listComments[songTitle]!;
+                    return ListTile(
+                      title: Text(songTitle),
+                      subtitle: Text('${comments.length} comments'),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => _SongCommentsScreen(
+                              songTitle: songTitle,
+                              comments: comments,
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
             ],
           ),
         ),
@@ -287,6 +318,40 @@ class _ArtistDashboardScreenState extends State<ArtistDashboardScreen> {
   }
 }
 
+class _SongCommentsScreen extends StatelessWidget {
+  final String songTitle;
+  final List<dynamic> comments;
+
+  const _SongCommentsScreen({
+    required this.songTitle,
+    required this.comments,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Comments for $songTitle'),
+      ),
+      body: ListView.builder(
+        itemCount: comments.length,
+        itemBuilder: (context, index) {
+          final comment = comments[index];
+          final user = comment.username;
+          final text = comment.content;
+          final avatarUrl = comment.avatarUrl;
+          return ListTile(
+            leading: CircleAvatar(
+              backgroundImage: NetworkImage(avatarUrl),
+            ),
+            title: Text(user),
+            subtitle: Text(text),
+          );
+        },
+      ),
+    );
+  }
+}
 class _StatCard extends StatelessWidget {
   final String label;
   final String value;
