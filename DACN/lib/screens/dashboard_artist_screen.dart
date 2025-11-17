@@ -7,6 +7,8 @@ import '../services/api_songs.dart';
 import '../services/api_follow.dart';
 import '../services/api_comment.dart';
 import '../models/comment.dart';
+import '../services/api_artist.dart';
+
 class ArtistDashboardScreen extends StatefulWidget {
   const ArtistDashboardScreen({super.key});
 
@@ -22,7 +24,7 @@ class _ArtistDashboardScreenState extends State<ArtistDashboardScreen> {
   late int totalHistory = 0;
   late int totalFollow = 0;
   late var listSongs = [];
-  late Map<String, List<dynamic>>listComments = {};
+  late Map<String, List<dynamic>> listComments = {};
   @override
   void initState() {
     _userIn4();
@@ -36,14 +38,15 @@ class _ArtistDashboardScreenState extends State<ArtistDashboardScreen> {
     decodedToken = JwtDecoder.decode(token!);
     totalHistory = await historyService.fetchTotalHistory(decodedToken!['_id']);
     Text('Total History: ${totalHistory.toString()}');
-     //totalHistory = totalHistory * 500;
+    //totalHistory = totalHistory * 500;
     totalFollow =
         await followService.fetchTotalFollow(decodedToken!['_id'].toString());
     // print('Total follow: $totalFollow');
     //totalFollow = totalFollow * 50;
     listSongs = await historyService.fetchHistory(decodedToken!['username']);
     debugPrint('List songs: $listSongs');
-    listComments = await CommentService().fetchCommentsByArtist(decodedToken?['username']);
+    listComments =
+        await CommentService().fetchCommentsByArtist(decodedToken?['username']);
     debugPrint('List comments: $listComments');
     setState(() {});
   }
@@ -79,32 +82,57 @@ class _ArtistDashboardScreenState extends State<ArtistDashboardScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        child: const Icon(Icons.upload),
-      ),
+      // bottomNavigationBar: UploadButton(userId: decodedToken?['_id']),
     );
   }
 
   Widget _buildArtistHeader() {
     final username = decodedToken?['username'].toString() ?? 'Artist Name';
     final avatarUrl = decodedToken?['ava']?.toString() ?? '';
-    return Row(
+    final userId = decodedToken?['_id'];
+    final ArtistService artistService = ArtistService();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CircleAvatar(
-          radius: 40,
-          backgroundImage: NetworkImage('$avatarUrl'),
-        ),
-        SizedBox(width: 16),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        Row(
           children: [
-            Text(
-              username,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            CircleAvatar(
+              radius: 40,
+              backgroundImage: NetworkImage('$avatarUrl'),
             ),
-            Text('Welcome to your artist page.'),
+            const SizedBox(width: 16),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  username,
+                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                const Text('Welcome to your artist page.'),
+              ],
+            ),
           ],
+        ),
+        const SizedBox(height: 16),
+        ElevatedButton.icon(
+          onPressed: () {
+            if (userId != null) {
+              artistService.openArtistDashboard(context);
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                    content: Text('Không thể lấy thông tin người dùng.')),
+              );
+            }
+          },
+          icon: const Icon(Icons.cloud_upload_outlined),
+          label: const Text('Upload songs'),
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size(double.infinity, 48), 
+            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
+          ),
         ),
       ],
     );
@@ -120,6 +148,7 @@ class _ArtistDashboardScreenState extends State<ArtistDashboardScreen> {
       ],
     );
   }
+
   Widget _buildChartsAndAnalysis() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -239,7 +268,8 @@ class _ArtistDashboardScreenState extends State<ArtistDashboardScreen> {
 
   Widget _buildTopSongs() {
     final sortedSongs = List.from(listSongs);
-    sortedSongs.sort((a, b) => (b['count'] as int).compareTo(a['count'] as int));
+    sortedSongs
+        .sort((a, b) => (b['count'] as int).compareTo(a['count'] as int));
 
     return Card(
       child: Padding(
@@ -352,6 +382,7 @@ class _SongCommentsScreen extends StatelessWidget {
     );
   }
 }
+
 class _StatCard extends StatelessWidget {
   final String label;
   final String value;
@@ -416,22 +447,6 @@ class _SongListItem extends StatelessWidget {
       leading: const Icon(Icons.music_video),
       title: Text(title),
       trailing: Text('$count plays'),
-    );
-  }
-}
-
-class _UploadedSongItem extends StatelessWidget {
-  final int index;
-  final statuses = ['Published', 'Pending', 'Rejected'];
-
-  _UploadedSongItem({required this.index});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      title: Text('Uploaded Song ${index + 1}'),
-      subtitle: Text(statuses[index % statuses.length]),
-      trailing: const Text('1.2K plays'),
     );
   }
 }
