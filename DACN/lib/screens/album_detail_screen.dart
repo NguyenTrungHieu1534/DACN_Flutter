@@ -1,12 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'dart:ui';
-import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../services/api_album.dart';
 import '../models/songs.dart';
+import '../widgets/repost_button.dart'; // Import này có thể bị loại bỏ sau khi chuyển sang logic cũ
+import '../services/api_repost.dart';
 import '../models/AudioPlayerProvider.dart';
 import '../widgets/shimmer_widgets.dart';
 import '../screens/player_screen.dart';
@@ -14,7 +14,6 @@ import '../widgets/autoScroollerText.dart';
 import '../services/api_favsongs.dart';
 import '../services/api_playlist.dart';
 import '../widgets/mini_player_widget.dart';
-import '../models/playlist.dart' as playlist_model;
 import 'artist_detail_screen.dart';
 import '../navigation/custom_page_route.dart';
 import '../screens/login_screen.dart';
@@ -39,6 +38,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
   late AnimationController _rotationController;
   final FavoriteService favoriteService = FavoriteService();
   final ApiPlaylist apiPlaylist = ApiPlaylist();
+  final RepostService repostService = RepostService();
 
   @override
   void initState() {
@@ -66,79 +66,80 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
   }
 
   Future<void> _showAddToPlaylistDialog(Songs song) async {
-  if (!mounted) return;
-  final localContext = context;
-
-  showDialog(
-    context: localContext,
-    barrierDismissible: false,
-    builder: (_) => const Center(child: CircularProgressIndicator()),
-  );
-
-  try {
-    final playlists = await apiPlaylist.getPlaylistsByUser();
-
     if (!mounted) return;
-    Navigator.of(localContext, rootNavigator: true).pop();
+    final localContext = context;
 
-    if (!mounted) return;
-
-    final result = await showDialog<String>(
+    showDialog(
       context: localContext,
-      builder: (_) {
-        return AlertDialog(
-          backgroundColor: Theme.of(localContext).dialogBackgroundColor,
-          title: Text(
-            'Thêm vào Playlist',
-            style: TextStyle(
-              color: Theme.of(localContext).textTheme.titleLarge?.color,
-            ),
-          ),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (playlists.isEmpty)
-                  const Text('Bạn chưa có playlist nào. Hãy tạo một cái mới!'),
-                ...playlists.map((p) => ListTile(
-                      title: Text(p.name),
-                      onTap: () async {
-                        Navigator.of(localContext, rootNavigator: true).pop();
-                        await _addSongToExistingPlaylist(song, p.id);
-                      },
-                    )),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(localContext, rootNavigator: true).pop(),
-              child: const Text('Hủy'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(localContext, rootNavigator: true).pop('new_playlist'),
-              child: const Text('Tạo Playlist Mới'),
-            ),
-          ],
-        );
-      },
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
     );
 
-    if (!mounted) return;
-    if (result == 'new_playlist') {
-      await _handleCreateNewPlaylist(song);
+    try {
+      final playlists = await apiPlaylist.getPlaylistsByUser();
+
+      if (!mounted) return;
+      Navigator.of(localContext, rootNavigator: true).pop();
+
+      if (!mounted) return;
+
+      final result = await showDialog<String>(
+        context: localContext,
+        builder: (_) {
+          return AlertDialog(
+            backgroundColor: Theme.of(localContext).dialogBackgroundColor,
+            title: Text(
+              'Thêm vào Playlist',
+              style: TextStyle(
+                color: Theme.of(localContext).textTheme.titleLarge?.color,
+              ),
+            ),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (playlists.isEmpty)
+                    const Text('Bạn chưa có playlist nào. Hãy tạo một cái mới!'),
+                  ...playlists.map((p) => ListTile(
+                        title: Text(p.name),
+                        onTap: () async {
+                          Navigator.of(localContext, rootNavigator: true).pop();
+                          await _addSongToExistingPlaylist(song, p.id);
+                        },
+                      )),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () =>
+                    Navigator.of(localContext, rootNavigator: true).pop(),
+                child: const Text('Hủy'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(localContext, rootNavigator: true)
+                    .pop('new_playlist'),
+                child: const Text('Tạo Playlist Mới'),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (!mounted) return;
+      if (result == 'new_playlist') {
+        await _handleCreateNewPlaylist(song);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.of(localContext, rootNavigator: true).pop();
+      if (!mounted) return;
+      ScaffoldMessenger.of(localContext).showSnackBar(
+        SnackBar(content: Text('Lỗi tải danh sách playlist: $e')),
+      );
     }
-  } catch (e) {
-    if (!mounted) return;
-    Navigator.of(localContext, rootNavigator: true).pop();
-    if (!mounted) return;
-    ScaffoldMessenger.of(localContext).showSnackBar(
-      SnackBar(content: Text('Lỗi tải danh sách playlist: $e')),
-    );
   }
-}
-
 
   Future<void> _addSongToExistingPlaylist(Songs song, String playlistId) async {
     final prefs = await SharedPreferences.getInstance();
@@ -190,8 +191,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Hủy')),
+              onPressed: () => Navigator.pop(context), child: const Text('Hủy')),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, nameController.text.trim()),
             child: const Text('Tạo'),
@@ -551,127 +551,132 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                           ],
                                         ),
                                       ),
-                                      PopupMenuButton<String>(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(16),
-                                        ),
-                                        color: Theme.of(context).brightness ==
-                                                Brightness.dark
-                                            ? Theme.of(context).cardColor
-                                            : Colors.white,
-                                        icon: Icon(
-                                          Icons.more_vert_rounded,
-                                          color: Theme.of(context).brightness ==
-                                                  Brightness.dark
-                                              ? Theme.of(context).primaryColor
-                                              : AppColors.oceanBlue,
-                                        ),
-                                        onSelected: (value) async {
-                                          final prefs = await SharedPreferences
-                                              .getInstance();
-                                          final token =
-                                              prefs.getString('token');
+                                      // BẮT ĐẦU VỊ TRÍ SỬA ĐỔI NÚT 3 CHẤM
+                                      Builder(
+                                        builder: (context) {
+                                          final songWithThumbnail = song.copyWith(
+                                              thumbnail: widget.albumImage); 
 
-                                          // Chưa đăng nhập
-                                          if (token == null || token.isEmpty) {
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              const SnackBar(
-                                                content: Text(
-                                                    'Vui lòng đăng nhập để sử dụng tính năng này 🔒'),
-                                                duration: Duration(seconds: 2),
-                                              ),
-                                            );
-                                            Future.delayed(
-                                                const Duration(seconds: 1), () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                    builder: (_) =>
-                                                        LoginScreen()),
-                                              );
-                                            });
-                                            return;
-                                          }
+                                          return PopupMenuButton<String>(
+                                            shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(16)),
+                                            color: Theme.of(context).brightness ==
+                                                    Brightness.dark
+                                                ? Theme.of(context).cardColor
+                                                : Colors.white,
+                                            icon: Icon(
+                                              Icons.more_vert_rounded,
+                                              color: Theme.of(context).brightness == Brightness.dark
+                                                  ? Theme.of(context).primaryColor
+                                                  : AppColors.oceanBlue,
+                                            ),
+                                            onSelected: (value) async {
+                                              // LOGIC KIỂM TRA ĐĂNG NHẬP (Giữ nguyên)
+                                              final prefs = await SharedPreferences.getInstance();
+                                              final token = prefs.getString('token');
 
-                                          if (value == 'favorite') {
-                                            favoriteService.addFavorite(song);
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              const SnackBar(
-                                                content: Text(
-                                                    'Đã thêm vào yêu thích 💙'),
-                                                duration: Duration(seconds: 1),
-                                              ),
-                                            );
-                                          } else if (value == 'playlist') {
-                                            _showAddToPlaylistDialog(song);
-                                          }
+                                              if (token == null || token.isEmpty) {
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                    const SnackBar(content: Text('Vui lòng đăng nhập để sử dụng tính năng này 🔒'), duration: Duration(seconds: 2)));
+                                                Future.delayed(const Duration(seconds: 1), () {
+                                                  Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+                                                });
+                                                return;
+                                              }
+                                              
+                                              // XỬ LÝ CÁC HÀNH ĐỘNG
+                                              if (value == 'favorite') {
+                                                favoriteService.addFavorite(songWithThumbnail);
+                                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã thêm vào yêu thích 💙'), duration: Duration(seconds: 1)));
+                                                
+                                              } else if (value == 'playlist') {
+                                                _showAddToPlaylistDialog(songWithThumbnail);
+                                                
+                                              } else if (value == 'repost_toggle') {
+                                                // XỬ LÝ REPOST/HỦY REPOST TRỰC TIẾP
+                                                final bool currentlyReposted = await repostService.isSongReposted(songWithThumbnail.id);
+                                                try {
+                                                  final newStatus = await repostService.toggleRepost(songWithThumbnail, currentlyReposted);
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    SnackBar(
+                                                      content: Text(newStatus ? 'Đã Repost lên Profile!' : 'Đã hủy Repost.'),
+                                                      backgroundColor: newStatus ? Colors.green : Colors.grey,
+                                                    ),
+                                                  );
+                                                  // Cần gọi setState để buộc ListViewBuilder xây dựng lại và cập nhật trạng thái Repost
+                                                  setState(() {}); 
+                                                } catch (e) {
+                                                     ScaffoldMessenger.of(context).showSnackBar(
+                                                    SnackBar(content: Text('Lỗi Repost: ${e.toString().replaceFirst('Exception: ', '')}')),
+                                                  );
+                                                }
+                                              }
+                                            },
+                                            itemBuilder: (context) {
+                                              // SỬ DỤNG FUTUREBUILDER ĐỂ LẤY TRẠNG THÁI REPOST KHI MENU MỞ
+
+                                              return [
+                                                // Thêm các mục đã có (Yêu thích, Playlist)
+                                                PopupMenuItem(
+                                                  value: 'favorite',
+                                                  // XÓA const trong Row/SizedBox
+                                                  child: Row(children: [const Icon(Icons.favorite_border, color: Colors.redAccent), const SizedBox(width: 10), Text('Thêm vào yêu thích', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color))]),
+                                                ),
+                                                PopupMenuItem(
+                                                  value: 'playlist',
+                                                  // XÓA const trong Row/SizedBox
+                                                  child: Row(children: [Icon(Icons.playlist_add, color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor : AppColors.oceanBlue), const SizedBox(width: 10), Text('Thêm vào playlist khác', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color))]),
+                                                ),
+                                                
+                                                // ⭐️ MỤC MỚI: REPOST (hiển thị trạng thái với FutureBuilder bên trong PopupMenuItem)
+                                                PopupMenuItem<String>(
+                                                  value: 'repost_toggle',
+                                                  child: FutureBuilder<bool>(
+                                                    future: repostService.isSongReposted(songWithThumbnail.id),
+                                                    builder: (context, snapshot) {
+                                                      final isReposted = snapshot.data ?? false;
+                                                      final String label = isReposted ? 'Hủy Repost' : 'Repost lên Profile';
+                                                      final Color iconColor = isReposted ? Theme.of(context).primaryColor : Colors.grey;
+                                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                                        return Row(
+                                                          children: [
+                                                            SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2.0)),
+                                                            const SizedBox(width: 10),
+                                                            Text('Đang kiểm tra Repost...', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color?.withOpacity(0.5))),
+                                                          ],
+                                                        );
+                                                      }
+                                                      return Row(
+                                                        children: [
+                                                          Icon(Icons.repeat, color: iconColor),
+                                                          const SizedBox(width: 10),
+                                                          Text(label, style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color)),
+                                                        ],
+                                                      );
+                                                    },
+                                                  ),
+                                                ),
+                                              ];
+                                            },
+                                          );
                                         },
-                                        itemBuilder: (context) => [
-                                          PopupMenuItem(
-                                            value: 'favorite',
-                                            child: Row(
-                                              children: [
-                                                const Icon(
-                                                    Icons.favorite_border,
-                                                    color: Colors.redAccent),
-                                                const SizedBox(width: 10),
-                                                Text(
-                                                  'Thêm vào yêu thích',
-                                                  style: TextStyle(
-                                                    color: Theme.of(context)
-                                                        .textTheme
-                                                        .bodyLarge
-                                                        ?.color,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          PopupMenuItem(
-                                            value: 'playlist',
-                                            child: Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.playlist_add,
-                                                  color: Theme.of(context)
-                                                              .brightness ==
-                                                          Brightness.dark
-                                                      ? Theme.of(context)
-                                                          .primaryColor
-                                                      : AppColors.oceanBlue,
-                                                ),
-                                                const SizedBox(width: 10),
-                                                Text(
-                                                  'Thêm vào playlist khác',
-                                                  style: TextStyle(
-                                                    color: Theme.of(context)
-                                                        .textTheme
-                                                        .bodyLarge
-                                                        ?.color,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
                                       ),
                                     ],
                                   ),
                                 ),
-                              ), 
-                            ), 
-                          ); 
+                              ),
+                            ),
+                          );
                         },
-                      ), 
-                    ), 
+                      ),
+                    ),
                   ],
-                ); 
+                );
               },
-            ), 
+            ),
           ),
+          const MiniPlayerWidget(),
         ],
       ),
     );
