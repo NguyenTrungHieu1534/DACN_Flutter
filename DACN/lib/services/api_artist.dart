@@ -120,7 +120,7 @@ class ArtistService {
     return prefs.getString('token');
   }
 
-   void openArtistDashboard(context) async {
+  void openArtistDashboard(context) async {
     final token = await _getToken();
     if (token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -136,6 +136,131 @@ class ArtistService {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Không thể mở trang: $url')),
       );
+    }
+  }
+
+  Future<List<dynamic>> fetchReportedSongs(String artist) async {
+    final url = Uri.parse(
+        'https://backend-dacn-9l4w.onrender.com/api/songs/reportSong/$artist');
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['songs'] ?? [];
+      } else {
+        print('Error: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('Exception: $e');
+      return [];
+    }
+  }
+
+  Future<bool> hideSong(String songId, String artistId) async {
+    final url =
+        Uri.parse('https://backend-dacn-9l4w.onrender.com/api/artist/hideSong');
+
+    final body = jsonEncode({
+      'songId': songId,
+      'artistId': artistId,
+    });
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: body,
+      );
+
+      if (response.statusCode == 200) {
+        print('Hide song success: ${jsonDecode(response.body)['message']}');
+        return true;
+      } else {
+        print('Error hide song: ${jsonDecode(response.body)['error']}');
+        return false;
+      }
+    } catch (e) {
+      print('Exception hide song: $e');
+      return false;
+    }
+  }
+
+  Future<bool> deleteSong(String songId, String artistId) async {
+    final url = Uri.parse(
+        'https://backend-dacn-9l4w.onrender.com/api/artist/deleteSong');
+
+    final body = jsonEncode({
+      'songId': songId,
+      'artistId': artistId,
+    });
+
+    try {
+      final response = await http.delete(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: body,
+      );
+
+      if (response.statusCode == 200) {
+        print('Delete song success: ${jsonDecode(response.body)['message']}');
+        return true;
+      } else {
+        print('Error delete song: ${jsonDecode(response.body)['error']}');
+        return false;
+      }
+    } catch (e) {
+      print('Exception delete song: $e');
+      return false;
+    }
+  }
+
+  Future<bool> unhideSong(String songId) async {
+    final url =
+        Uri.parse('https://backend-dacn-9l4w.onrender.com/api/admin/unhide');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'id': songId,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        print('Failed to unhide song: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error calling unhide API: $e');
+      return false;
+    }
+  }
+
+  Future<List<Songs>> getHiddenSongs(String artistId) async {
+    final url = Uri.parse(
+        'https://backend-dacn-9l4w.onrender.com/api/artist/hiddenSongs/$artistId');
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      if (data['songs'] != null) {
+        List<dynamic> songsJson = data['songs'];
+        return songsJson.map((json) => Songs.fromJson(json)).toList();
+      } else {
+        return [];
+      }
+    } else {
+      throw Exception('Failed to load hidden songs');
     }
   }
 }

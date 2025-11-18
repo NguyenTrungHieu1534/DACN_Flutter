@@ -12,6 +12,9 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/foundation.dart';
 import '../widgets/comment_section.dart'; 
 import '../services/share_intent_service.dart';
+import '../services/api_songs.dart'; // Import SongService
+import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPreferences
+import 'package:jwt_decoder/jwt_decoder.dart'; // Import JwtDecoder
 import '../constants/deep_link_config.dart';
 
 
@@ -256,16 +259,14 @@ class _PlayerScreenState extends State<PlayerScreen>
     }
   }
 
-  // HÀM MỚI: Xây dựng phần Header (Ảnh bìa, Controls) để cuộn
   Widget _buildPlayerHeader(Songs song, AudioPlayerProvider player, BuildContext context) {
     final displayImage = song.thumbnail ?? widget.imageUrl;
     final displayTitle = song.title ?? widget.title ?? 'Unknown Title';
     final displaySubtitle = song.artist ?? widget.subtitle ?? '';
-
+    final SongService songService = SongService();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // === A. TOP BAR ===
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           child: Row(
@@ -288,6 +289,10 @@ class _PlayerScreenState extends State<PlayerScreen>
               IconButton(
                 icon: const Icon(Icons.share, color: Colors.white),
                 onPressed: () => _shareSong(song),
+              ),
+              IconButton(
+                icon: const Icon(Icons.flag_outlined, color: Colors.white),
+                onPressed: () => _reportSong(song),
               ),
               IconButton(
                 icon: const Icon(Icons.more_horiz, color: Colors.white),
@@ -746,6 +751,81 @@ class _PlayerScreenState extends State<PlayerScreen>
         duration: Duration(seconds: 3),
       ),
     );
+  }
+
+  Future<void> _reportSong(Songs song) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token == null || token.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vui lòng đăng nhập để báo cáo bài hát.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    final List<String> reportReasons = [
+      'Nội dung không phù hợp',
+      'Vi phạm bản quyền',
+      'Chất lượng âm thanh kém',
+      'Thông tin bài hát sai',
+      'Lý do khác',
+    ];
+
+    if (!mounted) return;
+    final String? selectedReason = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Báo cáo bài hát'),
+          content: SizedBox(
+            width: double.minPositive,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: reportReasons.length,
+              itemBuilder: (BuildContext context, int index) {
+                return ListTile(
+                  title: Text(reportReasons[index]),
+                  onTap: () {
+                    Navigator.pop(context, reportReasons[index]);
+                  },
+                );
+              },
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Hủy'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+
+    if (selectedReason != null && selectedReason.isNotEmpty) {
+      try {
+        await SongService().reportSong(
+          songId: song.id,
+          reason: selectedReason,
+        );
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Bài hát đã được báo cáo thành công.')),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi khi báo cáo bài hát: $e')),
+        );
+      }
+    }
   }
 }
 class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {

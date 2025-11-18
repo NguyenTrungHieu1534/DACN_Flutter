@@ -7,6 +7,7 @@ import '../services/api_songs.dart';
 import '../services/api_follow.dart';
 import '../services/api_comment.dart';
 import '../models/comment.dart';
+import 'artist_song_management_screen.dart';
 import '../services/api_artist.dart';
 
 class ArtistDashboardScreen extends StatefulWidget {
@@ -74,11 +75,11 @@ class _ArtistDashboardScreenState extends State<ArtistDashboardScreen> {
           children: [
             _buildArtistHeader(),
             const SizedBox(height: 24),
+            _buildContentManagement(),
+             const SizedBox(height: 24),
             _buildQuickStats(),
             const SizedBox(height: 24),
             _buildChartsAndAnalysis(),
-            const SizedBox(height: 24),
-            _buildContentManagement(),
           ],
         ),
       ),
@@ -107,7 +108,8 @@ class _ArtistDashboardScreenState extends State<ArtistDashboardScreen> {
               children: [
                 Text(
                   username,
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const Text('Welcome to your artist page.'),
               ],
@@ -129,9 +131,11 @@ class _ArtistDashboardScreenState extends State<ArtistDashboardScreen> {
           icon: const Icon(Icons.cloud_upload_outlined),
           label: const Text('Upload songs'),
           style: ElevatedButton.styleFrom(
-            minimumSize: const Size(double.infinity, 48), 
-            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
+            minimumSize: const Size(double.infinity, 48),
+            textStyle:
+                const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30.0)),
           ),
         ),
       ],
@@ -299,6 +303,27 @@ class _ArtistDashboardScreenState extends State<ArtistDashboardScreen> {
       children: [
         const Text('Content Management',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 16),
+        ElevatedButton.icon(
+          onPressed: () {
+            if (decodedToken != null) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ArtistSongManagementScreen(
+                    artistId: decodedToken!['_id'],
+                    artistName: decodedToken!['username'],
+                  ),
+                ),
+              );
+            }
+          },
+          icon: const Icon(Icons.edit_document),
+          label: const Text('Quản lý tất cả bài hát'),
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size(double.infinity, 48),
+          ),
+        ),
         const SizedBox(height: 16),
         Card(
           child: Column(
