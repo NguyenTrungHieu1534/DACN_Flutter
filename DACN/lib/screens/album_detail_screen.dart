@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../services/api_album.dart';
 import '../models/songs.dart';
-import '../widgets/repost_button.dart'; // Import này có thể bị loại bỏ sau khi chuyển sang logic cũ
+import '../widgets/repost_button.dart';
 import '../services/api_repost.dart';
 import '../models/AudioPlayerProvider.dart';
 import '../widgets/shimmer_widgets.dart';
@@ -676,7 +676,6 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
               },
             ),
           ),
-          const MiniPlayerWidget(),
         ],
       ),
     );
