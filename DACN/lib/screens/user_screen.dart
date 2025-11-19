@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'login_screen.dart';
 import '../screens/setting_screen.dart';
 import '../models/ThemeProvider.dart';
+import '../services/api_repost.dart';
 import '../services/api_user.dart';
 import '../screens/playlist_detail_screen.dart';
 import '../screens/playlist_screen.dart';
@@ -19,6 +20,7 @@ import '../models/playlist.dart';
 import '../services/api_follow.dart';
 import '../screens/artist_detail_screen.dart';
 import 'notification_list_screen.dart';
+import 'repost_list_screen.dart';
 import '../services/socket_service.dart';
 
 class UserScreen extends StatefulWidget {
@@ -49,7 +51,7 @@ class _UserScreenState extends State<UserScreen>
   final FollowService _followService = FollowService();
   bool _loadingData = false;
   int _notificationCount = 0;
-
+  List<dynamic> _userReposts = [];
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
 
@@ -83,6 +85,14 @@ class _UserScreenState extends State<UserScreen>
     setState(() {
       _isPrivateLocal = val;
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_token != null && _viewUserId == null) {
+      _loadUserData(); 
+    }
   }
 
   Future<void> _loadRemotePrivacyFlag() async {
@@ -235,9 +245,11 @@ class _UserScreenState extends State<UserScreen>
       final playlists = await apiPlaylist.getPlaylistsByUser();
       final historyService = HistoryService();
       final history = await historyService.getHistory();
-
+      final repostService = RepostService();
       // Lấy danh sách nghệ sĩ đã follow
       final followedList = await _followService.getFollowList(_userId!);
+      final reposts = await repostService.fetchRepostsByUser(_userId!);
+      _userReposts = reposts.map((r) => r as dynamic).toList();
       final List<Map<String, dynamic>> followedArtistsDetails = [];
       for (var followedItem in followedList) {
         if (followedItem['targetType'] == 'artist') {
@@ -269,6 +281,7 @@ class _UserScreenState extends State<UserScreen>
           _recentArtists = artistMap.values.take(3).toList();
           _followedArtists = followedArtistsDetails;
           _userPlaylists = playlists;
+          _userReposts = reposts;
           _loadingData = false;
         });
       }
@@ -1116,6 +1129,58 @@ class _UserScreenState extends State<UserScreen>
                   ),
                 ),
               ),
+              if (!((_viewUserId != null) && (_isPrivateRemote == true)) && _userReposts.isNotEmpty)
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(
+                  isTablet ? 24 : 16,
+                  isTablet ? 32 : 24,
+                  isTablet ? 24 : 16,
+                  isTablet ? 16 : 12,
+                ),
+                sliver: SliverToBoxAdapter(
+                  child: Row( 
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Bài hát đã đăng lại',
+            style: TextStyle(
+              fontSize: isTablet ? 26 : 22,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
+          if (_userReposts.length > 5)
+            TextButton.icon(
+              onPressed: () {
+                if (_selfUserId != null) {
+                   Navigator.push(
+                    context,
+                    FadePageRoute(child: RepostListScreen(userId: _selfUserId!)),
+                  );
+                }
+              },
+              icon: const Icon(Icons.arrow_forward, size: 18),
+              label: const Text('Xem tất cả'),
+            ),
+        ],
+      ),
+    ),
+  ),
+            
+            if (!((_viewUserId != null) && (_isPrivateRemote == true)) && _userReposts.isNotEmpty)
+              SliverPadding(
+                padding: EdgeInsets.symmetric(horizontal: isTablet ? 24 : 16),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      if (index >= 5) return const SizedBox.shrink(); 
+                      final repost = _userReposts[index];
+                      return _buildRepostItem(repost, isTablet);
+                    },
+                    childCount: _userReposts.length > 5 ? 5 : _userReposts.length,
+                  ),
+                ),
+              ),
             SliverToBoxAdapter(child: SizedBox(height: isTablet ? 120 : 100)),
           ],
         ),
@@ -1333,4 +1398,78 @@ class _UserScreenState extends State<UserScreen>
       ),
     );
   }
+  Widget _buildRepostItem(repost, bool isTablet) {
+  final song = repost.songInfo;
+  final String repostDate = (repost.repostedAt != null) 
+      ? 'Reposted on ${repost.repostedAt.day}/${repost.repostedAt.month}' 
+      : 'Reposted';
+
+  return Container(
+    margin: EdgeInsets.only(bottom: isTablet ? 12 : 8),
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.surface,
+      borderRadius: BorderRadius.circular(12),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.05),
+          blurRadius: 8,
+          offset: const Offset(0, 2),
+        ),
+      ],
+    ),
+    child: ListTile(
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: isTablet ? 16 : 12,
+        vertical: isTablet ? 12 : 8,
+      ),
+      leading: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.network(
+          song.thumbnail.isNotEmpty ? song.thumbnail : 'default_thumbnail_url',
+          width: isTablet ? 64 : 56,
+          height: isTablet ? 64 : 56,
+          fit: BoxFit.cover,
+        ),
+      ),
+      title: Text(
+        song.title,
+        style: TextStyle(
+          fontSize: isTablet ? 18 : 16,
+          fontWeight: FontWeight.w600,
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            song.artist,
+            style: TextStyle(
+              fontSize: isTablet ? 15 : 13,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            repostDate,
+            style: TextStyle(
+              fontSize: isTablet ? 13 : 11,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+            ),
+          ),
+        ],
+      ),
+      trailing: Icon(
+        Icons.repeat,
+        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+        size: isTablet ? 28 : 24,
+      ),
+      onTap: () {
+        // Thêm logic phát bài hát Repost tại đây
+      },
+    ),
+  );
+}
 }

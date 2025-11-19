@@ -1,4 +1,5 @@
-import 'songs.dart';
+import 'songs.dart'; 
+import 'package:flutter/material.dart';
 
 class Repost {
   final String id;
@@ -16,23 +17,28 @@ class Repost {
   });
 
   factory Repost.fromJson(Map<String, dynamic> json) {
+    final Map<String, dynamic>? rawSongInfo = json['songInfo'];
+
+    if (rawSongInfo == null) {
+      debugPrint("Lỗi Repost.fromJson: Thiếu trường songInfo");
+      throw const FormatException('Repost data is incomplete (missing songInfo).');
+    }
+    final String songIdStr = json['songId']?.toString() ?? '';
+    final String repostedAtStr = json['repostedAt']?.toString() ?? '';
     return Repost(
       id: (json['_id'] ?? json['id'])?.toString() ?? '',
       userId: json['userId']?.toString() ?? '',
-      songId: json['songId']?.toString() ?? '',
-      repostedAt: DateTime.tryParse(json['repostedAt']?.toString() ?? '') ?? DateTime.now(),
-      
-      // Xử lý songInfo - Nó là một Map chứa thông tin cơ bản của bài hát
+      songId: songIdStr,
+      repostedAt: DateTime.tryParse(repostedAtStr) ?? DateTime.now(),
       songInfo: Songs.fromJson({
-        'id': json['songId'], // Sử dụng songId làm ID
-        'title': json['songInfo']['title'] ?? '',
-        'artist': json['songInfo']['artist'] ?? '',
-        'album': json['songInfo']['album'] ?? '',
-        'url': json['songInfo']['url'] ?? '',
-        'thumbnail': json['songInfo']['thumbnail'] ?? '',
-        // Các trường khác như mp3Url, lyric có thể là null hoặc chuỗi rỗng
-        'mp3Url': '',
-        'lyric': '',
+        'id': songIdStr,
+        'title': rawSongInfo['title'] ?? '',
+        'artist': rawSongInfo['artist'] ?? '',
+        'album': rawSongInfo['album'] ?? '',
+        'url': rawSongInfo['url'] ?? '', 
+        'thumbnail': rawSongInfo['thumbnail'] ?? '',
+        'mp3Url': rawSongInfo['mp3Url'] ?? '', 
+        'lyric': rawSongInfo['lyric'] ?? '',
       }),
     );
   }
