@@ -149,4 +149,17 @@ class FollowService {
       );
     }
   }
+
+  Future<int> fetchTotalFollow(String userId) async {
+    final url = Uri.parse('$baseUrl/total-follow/$userId');
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['total'];
+    } else {
+      throw Exception('Failed to load total follow: ${response.body}');
+    }
+  }
 }

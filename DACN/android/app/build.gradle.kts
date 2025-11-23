@@ -24,6 +24,7 @@ android {
 
     defaultConfig {
     applicationId = "com.example.music_login"
+    //minSdk = flutter.minSdkVersion
     minSdk = flutter.minSdkVersion
     targetSdk = flutter.targetSdkVersion
     versionCode = flutter.versionCode

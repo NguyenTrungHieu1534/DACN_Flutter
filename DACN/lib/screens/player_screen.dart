@@ -11,7 +11,13 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/foundation.dart';
 import '../widgets/comment_section.dart'; 
+import '../services/api_favsongs.dart';
+import '../services/api_playlist.dart';
+import '../services/api_repost.dart';
 import '../services/share_intent_service.dart';
+import '../services/api_songs.dart';
+import 'package:shared_preferences/shared_preferences.dart'; 
+ 
 import '../constants/deep_link_config.dart';
 
 
@@ -49,9 +55,10 @@ class _PlayerScreenState extends State<PlayerScreen>
   bool _isLoadingLyrics = true;
   String? _lyricsError;
   WebViewController? _webController;
-  
   late TabController _tabController; 
-
+  final FavoriteService favoriteService = FavoriteService();
+  final ApiPlaylist apiPlaylist = ApiPlaylist();
+  final RepostService repostService = RepostService();
   void _showPlaylistModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -84,6 +91,247 @@ class _PlayerScreenState extends State<PlayerScreen>
     );
   }
 
+Future<void> _showAddToPlaylistDialog(Songs song) async {
+    if (!mounted) return;
+    final localContext = context;
+
+    showDialog(
+      context: localContext,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final playlists = await apiPlaylist.getPlaylistsByUser();
+
+      if (!mounted) return;
+      Navigator.of(localContext, rootNavigator: true).pop();
+
+      if (!mounted) return;
+
+      final result = await showDialog<String>(
+        context: localContext,
+        builder: (_) {
+          return AlertDialog(
+            backgroundColor: Theme.of(localContext).dialogBackgroundColor,
+            title: Text(
+              'Thêm vào Playlist',
+              style: TextStyle(
+                color: Theme.of(localContext).textTheme.titleLarge?.color,
+              ),
+            ),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (playlists.isEmpty)
+                    const Text('Bạn chưa có playlist nào. Hãy tạo một cái mới!'),
+                  ...playlists.map((p) => ListTile(
+                        title: Text(p.name),
+                        onTap: () async {
+                          Navigator.of(localContext, rootNavigator: true).pop();
+                          await _addSongToExistingPlaylist(song, p.id);
+                        },
+                      )),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () =>
+                    Navigator.of(localContext, rootNavigator: true).pop(),
+                child: const Text('Hủy'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(localContext, rootNavigator: true)
+                    .pop('new_playlist'),
+                child: const Text('Tạo Playlist Mới'),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (!mounted) return;
+      if (result == 'new_playlist') {
+        await _handleCreateNewPlaylist(song);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.of(localContext, rootNavigator: true).pop();
+      if (!mounted) return;
+      ScaffoldMessenger.of(localContext).showSnackBar(
+        SnackBar(content: Text('Lỗi tải danh sách playlist: $e')),
+      );
+    }
+  }
+
+Future<void> _addSongToExistingPlaylist(Songs song, String playlistId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    if (token == null) return;
+
+    final success =
+        await ApiPlaylist.addSongToPlaylist(token, playlistId, song);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success
+              ? 'Đã thêm bài hát vào playlist!'
+              : 'Thêm bài hát thất bại.'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleCreateNewPlaylist(Songs song) async {
+    final nameController = TextEditingController();
+    final newPlaylistName = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).dialogBackgroundColor,
+        title: Text(
+          'Tạo Playlist Mới',
+          style:
+              TextStyle(color: Theme.of(context).textTheme.titleLarge?.color),
+        ),
+        content: TextField(
+          controller: nameController,
+          decoration: InputDecoration(
+            hintText: "Tên playlist",
+            hintStyle: TextStyle(
+                color: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.color
+                    ?.withOpacity(0.6)),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Theme.of(context).dividerColor),
+            ),
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Theme.of(context).primaryColor),
+            ),
+          ),
+          style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Hủy')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, nameController.text.trim()),
+            child: const Text('Tạo'),
+          ),
+        ],
+      ),
+    );
+
+    if (newPlaylistName != null && newPlaylistName.isNotEmpty) {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      if (token == null) return;
+
+      final newPlaylist =
+          await ApiPlaylist.createPlaylist(token, newPlaylistName, '');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(newPlaylist != null
+                  ? 'Đã tạo playlist "${newPlaylistName}"!'
+                  : 'Tạo playlist mới thất bại.')),
+        );
+      }
+      if (newPlaylist != null) {
+        _showAddToPlaylistDialog(song);
+      }
+    }
+  }
+
+Future<void> _showPlayerOptions(BuildContext buttonContext, Songs song) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('token');
+
+  // Lấy bài hát đang phát hiện tại
+  final audioProvider = Provider.of<AudioPlayerProvider>(context, listen: false);
+  final currentSong = audioProvider.currentPlaying;
+
+  if (currentSong == null) return;
+  final songWithFullData = currentSong.copyWith(thumbnail: song.thumbnail); // Đảm bảo có thumbnail
+
+  // 1. KIỂM TRA ĐĂNG NHẬP
+  if (token == null || token.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Vui lòng đăng nhập để sử dụng tính năng này 🔒'), duration: Duration(seconds: 2)));
+    // (Thêm logic điều hướng đến LoginScreen nếu cần)
+    return;
+  }
+  
+  // 2. HIỂN THỊ POPUP MENU
+  final result = await showMenu<String>(
+    context: buttonContext,
+    position: RelativeRect.fromRect(
+      const Rect.fromLTWH(1000, 0, 100, 100), // Vị trí tạm thời (sẽ được tự căn chỉnh bởi Flutter)
+      Offset.zero & MediaQuery.of(context).size,
+    ),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).cardColor : Colors.white,
+    items: [
+      // MỤC 1: Thêm vào Yêu thích
+      PopupMenuItem(
+        value: 'favorite',
+        child: Row(children: [const Icon(Icons.favorite_border, color: Colors.redAccent), const SizedBox(width: 10), Text('Thêm vào yêu thích')]),
+      ),
+      // MỤC 2: Thêm vào Playlist
+      PopupMenuItem(
+        value: 'playlist',
+        child: Row(children: [const Icon(Icons.playlist_add, color: Colors.blueAccent), const SizedBox(width: 10), Text('Thêm vào playlist khác')]),
+      ),
+      // MỤC 3: REPOST (Hiển thị trạng thái không đồng bộ)
+      await _buildRepostMenuItem(songWithFullData),
+    ],
+  );
+
+  // 3. XỬ LÝ KẾT QUẢ CHỌN
+  if (result == 'favorite') {
+    favoriteService.addFavorite(songWithFullData);
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã thêm vào yêu thích 💙'), duration: Duration(seconds: 1)));
+  } else if (result == 'playlist') {
+    _showAddToPlaylistDialog(songWithFullData);
+  } else if (result == 'repost_toggle') {
+    final bool currentlyReposted = await repostService.isSongReposted(songWithFullData.id);
+    try {
+      final newStatus = await repostService.toggleRepost(songWithFullData, currentlyReposted);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(newStatus ? 'Đã Repost lên Profile!' : 'Đã hủy Repost.'),
+          backgroundColor: newStatus ? Colors.green : Colors.grey,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi Repost: ${e.toString().replaceFirst('Exception: ', '')}')),
+      );
+    }
+  }
+}
+
+// HÀM HỖ TRỢ XÂY DỰNG MỤC REPOST BẤT ĐỒNG BỘ
+Future<PopupMenuItem<String>> _buildRepostMenuItem(Songs song) async {
+  final isReposted = await repostService.isSongReposted(song.id);
+  final String label = isReposted ? 'Hủy Repost' : 'Repost lên Profile';
+  final Color iconColor = isReposted ? Theme.of(context).colorScheme.primary : Colors.white70;
+
+  return PopupMenuItem<String>(
+    value: 'repost_toggle',
+    child: Row(
+      children: [
+        Icon(Icons.repeat, color: iconColor),
+        const SizedBox(width: 10),
+        Text(label),
+      ],
+    ),
+  );
+}
   // === PLAYLIST CONTENT === (Giữ nguyên)
   Widget _buildPlaylistContent(
     BuildContext context,
@@ -256,16 +504,14 @@ class _PlayerScreenState extends State<PlayerScreen>
     }
   }
 
-  // HÀM MỚI: Xây dựng phần Header (Ảnh bìa, Controls) để cuộn
   Widget _buildPlayerHeader(Songs song, AudioPlayerProvider player, BuildContext context) {
-    final displayImage = song.thumbnail ?? widget.imageUrl;
-    final displayTitle = song.title ?? widget.title ?? 'Unknown Title';
-    final displaySubtitle = song.artist ?? widget.subtitle ?? '';
-
+    final displayImage = song.thumbnail.isNotEmpty ? song.thumbnail : (widget.imageUrl ?? '');
+    final displayTitle = song.title.isNotEmpty ? song.title : (widget.title ?? 'Unknown Title');
+    final displaySubtitle = song.artist.isNotEmpty ? song.artist : (widget.subtitle ?? '');
+    final tagValue = widget.heroTag ?? (song.id.isNotEmpty ? song.id : displayImage);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // === A. TOP BAR ===
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           child: Row(
@@ -290,8 +536,16 @@ class _PlayerScreenState extends State<PlayerScreen>
                 onPressed: () => _shareSong(song),
               ),
               IconButton(
-                icon: const Icon(Icons.more_horiz, color: Colors.white),
-                onPressed: () {},
+                icon: const Icon(Icons.flag_outlined, color: Colors.white),
+                onPressed: () => _reportSong(song),
+              ),
+              Builder(
+                builder: (context) {
+                  return IconButton(
+                    icon: const Icon(Icons.more_horiz, color: Colors.white),
+                    onPressed: () => _showPlayerOptions(context, song), // GỌI HÀM MỚI
+                  );
+                },
               ),
             ],
           ),
@@ -299,9 +553,9 @@ class _PlayerScreenState extends State<PlayerScreen>
         const SizedBox(height: 10),
 
         // === B. COVER IMAGE ===
-        (displayImage != null && displayImage.isNotEmpty)
-            ? Hero(
-                tag: song.id ?? widget.heroTag ?? displayImage,
+    (displayImage.isNotEmpty)
+      ? Hero(
+        tag: tagValue,
                 child: Container(
                   width: MediaQuery.of(context).size.width * 0.7,
                   height: MediaQuery.of(context).size.width * 0.7,
@@ -521,7 +775,7 @@ class _PlayerScreenState extends State<PlayerScreen>
           body: Stack(
             children: [
               Positioned.fill(
-                child: (song.thumbnail != null && song.thumbnail.isNotEmpty)
+                child: (song.thumbnail.isNotEmpty)
                     ? Image.network(
                         song.thumbnail,
                         fit: BoxFit.cover,
@@ -746,6 +1000,81 @@ class _PlayerScreenState extends State<PlayerScreen>
         duration: Duration(seconds: 3),
       ),
     );
+  }
+
+  Future<void> _reportSong(Songs song) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token == null || token.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vui lòng đăng nhập để báo cáo bài hát.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    final List<String> reportReasons = [
+      'Nội dung không phù hợp',
+      'Vi phạm bản quyền',
+      'Chất lượng âm thanh kém',
+      'Thông tin bài hát sai',
+      'Lý do khác',
+    ];
+
+    if (!mounted) return;
+    final String? selectedReason = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Báo cáo bài hát'),
+          content: SizedBox(
+            width: double.minPositive,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: reportReasons.length,
+              itemBuilder: (BuildContext context, int index) {
+                return ListTile(
+                  title: Text(reportReasons[index]),
+                  onTap: () {
+                    Navigator.pop(context, reportReasons[index]);
+                  },
+                );
+              },
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Hủy'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+
+    if (selectedReason != null && selectedReason.isNotEmpty) {
+      try {
+        await SongService().reportSong(
+          songId: song.id,
+          reason: selectedReason,
+        );
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Bài hát đã được báo cáo thành công.')),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi khi báo cáo bài hát: $e')),
+        );
+      }
+    }
   }
 }
 class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {

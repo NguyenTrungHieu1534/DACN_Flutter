@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:jwt_decoder/jwt_decoder.dart';
 import '../models/songs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -54,12 +55,13 @@ class SongService {
       throw Exception(errorData['error'] ?? 'Không thể lấy URL bài hát');
     }
   }
+
   static Future<Songs?> fetchSongById(String songId) async {
     if (songId.isEmpty) return null;
 
     try {
-      final directUrl = Uri.parse(
-          'https://backend-dacn-9l4w.onrender.com/api/songs/$songId');
+      final directUrl =
+          Uri.parse('https://backend-dacn-9l4w.onrender.com/api/songs/$songId');
       final response = await http.get(directUrl);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -123,5 +125,39 @@ class SongService {
 //     return null;
 //   }
 // }
+  Future<void> reportSong({
+    required String songId,
+    required String reason,
+  }) async {
+    final url =
+        Uri.parse('https://backend-dacn-9l4w.onrender.com/api/songs/report');
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    if (token == null) return;
+    Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+    final String userId = decodedToken['_id'];
+    final body = jsonEncode({
+      'songid': songId,
+      'userId': userId,
+      'reason': reason,
+    });
 
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: body,
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        print('Success: ${data['message']}');
+      } else {
+        final data = jsonDecode(response.body);
+        print('Error: ${data['message']}');
+      }
+    } catch (e) {
+      print('Exception: $e');
+    }
+  }
 }
