@@ -595,9 +595,7 @@ class _UserScreenState extends State<UserScreen>
                                 height:
                                     MediaQuery.of(context).padding.top + 40),
                             GestureDetector(
-                              onTap: (((_viewUserId != null) && (_isPrivateRemote == true)))
-                                  ? null
-                                  : () => _showImagePicker(context),
+                              onTap: (_selfUserId == _userId) ? () => _showImagePicker(context) : null,
                               child: Hero(
                                 tag: 'user_avatar',
                                 child: Stack(
@@ -749,60 +747,62 @@ class _UserScreenState extends State<UserScreen>
                 ),
               ),
               actions: [
-                IconButton(
-                  icon: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      const Icon(Icons.notifications_outlined),
-                      if (_notificationCount > 0)
-                        Positioned(
-                          right: -4,
-                          top: -4,
-                          child: Container(
-                            padding: const EdgeInsets.all(2),
-                            decoration: BoxDecoration(
-                              color: Colors.red,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            constraints: const BoxConstraints(
-                              minWidth: 16,
-                              minHeight: 16,
-                            ),
-                            child: Text(
-                              '$_notificationCount',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
+                if (_selfUserId == _userId) ...[
+                  IconButton(
+                    icon: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        const Icon(Icons.notifications_outlined),
+                        if (_notificationCount > 0)
+                          Positioned(
+                            right: -4,
+                            top: -4,
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                              textAlign: TextAlign.center,
+                              constraints: const BoxConstraints(
+                                minWidth: 16,
+                                minHeight: 16,
+                              ),
+                              child: Text(
+                                '$_notificationCount',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
+                    tooltip: 'Notifications',
+                    onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) {
+                        return NotificationListScreen(onNotificationsCleared: () {
+                          setState(() => _notificationCount = 0);
+                        });
+                      })).then((_) => _loadNotificationCount());
+                    },
                   ),
-                  tooltip: 'Notifications',
-                  onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) {
-                      return NotificationListScreen(onNotificationsCleared: () {
-                        setState(() => _notificationCount = 0);
+                  IconButton(
+                    icon: const Icon(Icons.settings_outlined),
+                    tooltip: 'Settings',
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                      ).then((_) {
+                        if (!mounted) return;
+                        _loadLocalPrivacyFlag();
+                        _loadRemotePrivacyFlag();
                       });
-                    })).then((_) => _loadNotificationCount());
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.settings_outlined),
-                  tooltip: 'Settings',
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                    ).then((_) {
-                      if (!mounted) return;
-                      _loadLocalPrivacyFlag(); // still used for settings toggle state
-                      _loadRemotePrivacyFlag(); // refresh when returning
-                    });
-                  },
-                ),
+                    },
+                  ),
+                ],
               ],
             ),
             if (((_viewUserId != null) && (_isPrivateRemote == true)))
@@ -1057,12 +1057,14 @@ class _UserScreenState extends State<UserScreen>
                       ),
                       SizedBox(height: isTablet ? 24 : 16),
                       ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            FadePageRoute(child: const PlaylistScreen()),
-                          );
-                        },
+                        onPressed: (_viewUserId == null)
+                            ? () {
+                                Navigator.push(
+                                  context,
+                                  FadePageRoute(child: const PlaylistScreen()),
+                                );
+                              }
+                            : null,
                         icon: const Icon(Icons.add),
                         label: const Text('Create Playlist'),
                         style: ElevatedButton.styleFrom(

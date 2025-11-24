@@ -170,13 +170,20 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
       List<Songs> popularSongs, List<Album> albums) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final double extraBottomPadding =
+        MediaQuery.of(context).padding.bottom + 80;
 
     return CustomScrollView(
       slivers: [
         _buildSliverAppBar(context, photoUrl, isDark),
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.fromLTRB(
+              16,
+              16,
+              16,
+              extraBottomPadding,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
