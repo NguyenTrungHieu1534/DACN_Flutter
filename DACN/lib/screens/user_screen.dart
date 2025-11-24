@@ -67,9 +67,9 @@ class _UserScreenState extends State<UserScreen>
       curve: Curves.easeInOut,
     );
     _setupSocketListener();
-    _checkToken();
     _loadLocalPrivacyFlag();
-    _maybeViewOther();
+    // Tải thông tin người dùng đang đăng nhập và sau đó kiểm tra xem có đang xem người khác không.
+    _initializeUser();
   }
 
   @override
@@ -85,76 +85,104 @@ class _UserScreenState extends State<UserScreen>
     setState(() {
       _isPrivateLocal = val;
     });
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_token != null && _viewUserId == null) {
-      _loadUserData(); 
-    }
+    _loadRemotePrivacyFlag();
   }
 
   Future<void> _loadRemotePrivacyFlag() async {
-    if (_userId == null) return;
+    // Chỉ tải khi _userId đã được xác định và đây là profile của chính người dùng
+    if (_userId == null || _selfUserId != _userId) return;
+
     try {
       final remote = await UserService().getPrivacy(_userId!);
       if (!mounted) return;
       setState(() {
         _isPrivateRemote = remote;
       });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _isPrivateRemote = null;
-      });
+    } catch (e) {
+      debugPrint("Error loading remote privacy flag: $e");
+      if (mounted) {
+        setState(() => _isPrivateRemote = null);
+      }
     }
   }
 
-  Future<void> _maybeViewOther() async {
-    // If this screen was pushed with arguments containing viewUserId, load public profile
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final args = ModalRoute.of(context)?.settings.arguments;
-      if (args is Map && args['viewUserId'] != null) {
-        final viewId = args['viewUserId']?.toString();
-        if (viewId == null || viewId.isEmpty) return;
-        // If viewing self, ignore
-        if (_selfUserId != null && _selfUserId == viewId) return;
-        _viewUserId = viewId;
-        setState(() {
-          _loading = true;
-        });
-        final profile = await UserService().getPublicProfile(viewId);
-        if (!mounted) return;
-        if (profile == null) {
+  Future<void> _initializeUser() async {
+    try {
+      // Kiểm tra token để xác định người dùng đã đăng nhập hay chưa
+      await _checkToken();
+
+      // Lấy thông tin từ arguments để kiểm tra xem có đang xem profile người khác không
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final args = ModalRoute.of(context)?.settings.arguments;
+        if (args is Map && args['viewUserId'] != null) {
+          final viewId = args['viewUserId']?.toString();
+          if (viewId == null || viewId.isEmpty) return;
+
+          // Nếu đang xem chính mình, bỏ qua và để luồng mặc định xử lý
+          if (_selfUserId != null && _selfUserId == viewId) return;
+
+          _viewUserId = viewId;
           setState(() {
-            _loading = false;
-            _isPrivateRemote = null;
+            _loading = true;
           });
-          return;
-        }
-        // If masked/private
-        if (profile['isPrivate'] == true && (profile['masked'] == true || (_selfUserId != null && _selfUserId != viewId))) {
+
+          // Tải thông tin profile công khai của người dùng được xem
+          final profile = await UserService().getPublicProfile(viewId);
+          if (!mounted) return;
+
+          if (profile == null) {
+            setState(() {
+              _loading = false;
+              _isPrivateRemote = null;
+            });
+            return;
+          }
+
+          // Nếu profile bị ẩn hoặc bị che
+          if (profile['isPrivate'] == true && (profile['masked'] == true || (_selfUserId != null && _selfUserId != viewId))) {
+            setState(() {
+              _username = (profile['username'] ?? profile['name'] ?? 'Private').toString();
+              _avatar = '';
+              _bio = '';
+              _isPrivateRemote = true;
+              _loading = false;
+            });
+            return;
+          }
+
+          // Cập nhật thông tin người dùng được xem
           setState(() {
-            _username = (profile['username'] ?? profile['name'] ?? 'Private').toString();
-            _avatar = '';
-            _bio = '';
-            _isPrivateRemote = true;
+            _userId = profile['id']?.toString() ?? profile['_id']?.toString() ?? viewId;
+            _username = (profile['username'] ?? profile['name'] ?? 'User').toString();
+            _avatar = (profile['ava'] ?? profile['avatarUrl'] ?? profile['avatar'] ?? '').toString();
+            _bio = profile['bio']?.toString() ?? '';
+            _isPrivateRemote = profile['isPrivate'] == true;
+            _email = ''; // Không hiển thị email cho profile công khai
             _loading = false;
           });
-          return;
         }
+      });
+    } catch (e) {
+      debugPrint("Error initializing user: $e");
+      if (mounted) {
         setState(() {
-          _userId = profile['id']?.toString() ?? profile['_id']?.toString() ?? viewId;
-          _username = (profile['username'] ?? profile['name'] ?? 'User').toString();
-          _avatar = (profile['ava'] ?? profile['avatarUrl'] ?? profile['avatar'] ?? '').toString();
-          _bio = profile['bio']?.toString() ?? '';
-          _isPrivateRemote = profile['isPrivate'] == true;
-          _email = ''; // Do not show email for public profile of others
           _loading = false;
+          _isPrivateRemote = null;
         });
       }
-    });
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Logic này đã được chuyển vào _initializeUser để đảm bảo thứ tự thực thi đúng.
+    // Việc gọi _loadUserData ở đây có thể gây ra xung đột khi xem hồ sơ người khác.
+    /*
+    if (_token != null && _viewUserId == null) {
+      _loadUserData(); 
+    }
+    */
   }
 
   void _setupSocketListener() {
@@ -204,13 +232,12 @@ class _UserScreenState extends State<UserScreen>
         }
       });
 
-      if (_userId != null) {
-        _loadUserData();
-        _loadNotificationCount();
-        // refresh privacy from server
-        _loadRemotePrivacyFlag();
-        _fadeController.forward();
-      }
+      // Chỉ tải dữ liệu người dùng (playlist,...) nếu không có _viewUserId
+      // Việc tải dữ liệu sẽ được _initializeUser() điều phối
+      _loadNotificationCount();
+      // refresh privacy from server
+      _loadRemotePrivacyFlag();
+      _fadeController.forward();
     } catch (e) {
       setState(() => _loading = false);
     }
