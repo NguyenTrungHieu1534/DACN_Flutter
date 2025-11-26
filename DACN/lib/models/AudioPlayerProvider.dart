@@ -27,11 +27,11 @@ class AudioPlayerProvider extends ChangeNotifier {
           : null;
   final AudioHandler audioHandler;
   bool isPlaying = false;
-  
+
   final HistoryService _historyService = HistoryService();
   Duration _position = Duration.zero;
-  Duration _duration = Duration.zero; 
-  bool isDarkMode = false; 
+  Duration _duration = Duration.zero;
+  bool isDarkMode = false;
 
   AudioPlayerProvider({required this.audioHandler}) {
     _loadThemeSettings();
@@ -41,19 +41,21 @@ class AudioPlayerProvider extends ChangeNotifier {
       isPlaying = state.playing;
       if (state.processingState == AudioProcessingState.completed) {
         _position = Duration.zero;
-        nextSong(isAutoAdvance: true); 
+        nextSong(isAutoAdvance: true);
       } else if (state.processingState == AudioProcessingState.ready) {
         _position = state.position;
       }
       notifyListeners();
     });
     audioHandler.mediaItem.listen((item) {
-      debugPrint('[Provider] mediaItem: id=${item?.id}, duration=${item?.duration}');
+      debugPrint(
+          '[Provider] mediaItem: id=${item?.id}, duration=${item?.duration}');
       _duration = item?.duration ?? Duration.zero;
       notifyListeners();
     });
     audioHandler.playbackState.listen((state) {
-      if (state.playing || state.processingState == AudioProcessingState.ready) {
+      if (state.playing ||
+          state.processingState == AudioProcessingState.ready) {
         _position = state.position;
       }
       notifyListeners();
@@ -84,6 +86,7 @@ class AudioPlayerProvider extends ChangeNotifier {
     }
     notifyListeners();
   }
+
   MediaItem _createMediaItem(Songs song) {
     return MediaItem(
       id: song.id.toString(),
@@ -107,6 +110,7 @@ class AudioPlayerProvider extends ChangeNotifier {
       },
     );
   }
+
   Stream<Duration> get positionStream {
     return audioHandler.playbackState.map((state) => state.position).distinct();
   }
@@ -116,7 +120,9 @@ class AudioPlayerProvider extends ChangeNotifier {
   }
 
   Future<void> setNewPlaylist(List<Songs> newPlaylist, int startIndex) async {
-    if (newPlaylist.isEmpty || startIndex < 0 || startIndex >= newPlaylist.length) return;
+    if (newPlaylist.isEmpty ||
+        startIndex < 0 ||
+        startIndex >= newPlaylist.length) return;
 
     _currentPlaylist = newPlaylist;
     _currentIndex = startIndex;
@@ -124,12 +130,21 @@ class AudioPlayerProvider extends ChangeNotifier {
 
     await _playCurrentSong();
   }
+
   Future<void> _playCurrentSong() async {
     var selectedSong = currentPlaying;
     if (selectedSong == null) return;
     if (selectedSong.url.isEmpty && selectedSong.mp3Url.isEmpty) {
       try {
-        final songUrl = await SongService.fetchSongUrl(selectedSong.id);
+        var id = "";
+        if (selectedSong.songId.isEmpty) {
+          id = selectedSong.id;
+        }
+        if(selectedSong.id.isEmpty)
+        {
+          id = selectedSong.songId;
+        }
+        final songUrl = await SongService.fetchSongUrl(id);
         selectedSong = selectedSong.copyWith(url: songUrl);
         _currentPlaylist[_currentIndex] = selectedSong;
         notifyListeners();
@@ -144,7 +159,7 @@ class AudioPlayerProvider extends ChangeNotifier {
     try {
       final handler = audioHandler as MyAudioHandler;
       await handler.setMediaItem(mediaItem);
-      
+
       Uri? uriToPlay;
       if (selectedSong.mp3Url.isNotEmpty) {
         try {
@@ -165,7 +180,7 @@ class AudioPlayerProvider extends ChangeNotifier {
         throw Exception('Không có URL hợp lệ để phát nhạc');
       }
       await handler.setAudioSource(mediaItem, uriToPlay);
-      _position = Duration.zero; 
+      _position = Duration.zero;
       await handler.seek(Duration.zero);
       await handler.play();
       try {
@@ -178,11 +193,11 @@ class AudioPlayerProvider extends ChangeNotifier {
       } catch (e) {
         debugPrint('Lỗi khi thêm vào lịch sử: $e');
       }
-
     } catch (e) {
       debugPrint('Lỗi khi phát bài ${selectedSong.title}: $e');
     }
   }
+
   @override
   Future<void> playSong([Songs? song]) async {
     final selectedSong = song ?? currentPlaying;
@@ -196,9 +211,8 @@ class AudioPlayerProvider extends ChangeNotifier {
     if (currentPlaying?.id == selectedSong.id && isPlaying) {
       return;
     }
-    
-    await _playCurrentSong();
 
+    await _playCurrentSong();
   }
 
   void toggleShuffle() {
@@ -207,13 +221,13 @@ class AudioPlayerProvider extends ChangeNotifier {
   }
 
   void toggleRepeat() {
-    _repeatMode = RepeatMode.values[
-        (_repeatMode.index + 1) % RepeatMode.values.length];
+    _repeatMode =
+        RepeatMode.values[(_repeatMode.index + 1) % RepeatMode.values.length];
     _updateAudioHandlerRepeatMode();
-    
+
     notifyListeners();
   }
-  
+
   void _updateAudioHandlerRepeatMode() {
     if (_repeatMode == RepeatMode.repeatSong) {
       (audioHandler as MyAudioHandler).player.setLoopMode(LoopMode.one);
@@ -239,9 +253,8 @@ class AudioPlayerProvider extends ChangeNotifier {
       final random = Random();
       nextIndex = random.nextInt(_currentPlaylist.length);
       if (nextIndex == _currentIndex && _currentPlaylist.length > 1) {
-          nextIndex = (nextIndex + 1) % _currentPlaylist.length;
+        nextIndex = (nextIndex + 1) % _currentPlaylist.length;
       }
-
     } else {
       nextIndex = (_currentIndex + 1) % _currentPlaylist.length;
     }
@@ -250,9 +263,9 @@ class AudioPlayerProvider extends ChangeNotifier {
         _currentIndex = nextIndex;
         await stopSong();
         return;
-      } 
+      }
     }
-    
+
     _currentIndex = nextIndex;
     notifyListeners();
     await _playCurrentSong();
@@ -276,11 +289,12 @@ class AudioPlayerProvider extends ChangeNotifier {
         return;
       }
     }
-    
+
     _currentIndex = previousIndex;
     notifyListeners();
     await _playCurrentSong();
   }
+
   @override
   Future<void> pauseSong() async {
     await audioHandler.pause();

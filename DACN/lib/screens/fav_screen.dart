@@ -168,6 +168,27 @@ class _FavScreenState extends State<FavScreen> {
                             const SnackBar(content: Text('Đã xóa khỏi Yêu thích'), duration: Duration(seconds: 1)),
                           );
                         },
+                        onTap: () async {
+                          final audioProvider = Provider.of<AudioPlayerProvider>(context, listen: false);
+                          
+                          final songsToPlay = await Future.wait(favorites.map((fav) async {
+                            String thumbnailUrl = '';
+                            if (fav.album.isNotEmpty) {
+                              try {
+                                thumbnailUrl = await AlbumService.fetchAlbumCover(fav.album);
+                              } catch (e) {  }
+                            }
+                            return Songs(
+                              id: fav.songId,
+                              title: fav.title,
+                              artist: fav.artist,
+                              album: fav.album,
+                              thumbnail: thumbnailUrl,
+                              url: '', mp3Url: '',
+                            );
+                          }).toList());
+                          audioProvider.setNewPlaylist(songsToPlay, index);
+                        },
                       );
                     },
                     childCount: favorites.length,
@@ -185,11 +206,13 @@ class _FavoriteSongTile extends StatefulWidget {
   final FavoriteSong favoriteSong;
   final int index;
   final VoidCallback onRemoved;
+  final VoidCallback onTap;
 
   const _FavoriteSongTile({
     required this.favoriteSong,
     required this.index,
     required this.onRemoved,
+    required this.onTap,
   });
 
   @override
@@ -221,17 +244,6 @@ class _FavoriteSongTileState extends State<_FavoriteSongTile> {
 
   @override
   Widget build(BuildContext context) {
-    final audioProvider = Provider.of<AudioPlayerProvider>(context, listen: false);
-    final songToPlay = Songs(
-      id: widget.favoriteSong.songId,
-      title: widget.favoriteSong.title,
-      artist: widget.favoriteSong.artist,
-      album: widget.favoriteSong.album,
-      url: '',
-      mp3Url: '',
-      thumbnail: _thumbnailUrl ?? '',
-    );
-
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: Row(
@@ -256,11 +268,10 @@ class _FavoriteSongTileState extends State<_FavoriteSongTile> {
       ),
       title: Text(widget.favoriteSong.title, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: Text(widget.favoriteSong.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
-      onTap: () {
-        audioProvider.playSong(songToPlay);
-      },
+      onTap: widget.onTap,
       trailing: IconButton(
-        icon: const Icon(Icons.more_horiz),
+        icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent),
+        tooltip: 'Xóa khỏi Yêu thích',
         onPressed: () async {
           await FavoriteService().deleteFavoriteById(widget.favoriteSong.id.toString());
           widget.onRemoved();

@@ -7,7 +7,7 @@ class Songs {
   String thumbnail;
   final String mp3Url;
   final String lyric;
-
+  final String songId;
   Songs({
     required this.id,
     required this.title,
@@ -17,8 +17,9 @@ class Songs {
     required this.thumbnail,
     required this.mp3Url,
     this.lyric = '',
+    this.songId = '',
   });
-Songs copyWith({
+  Songs copyWith({
     String? id,
     String? title,
     String? artist,
@@ -27,6 +28,7 @@ Songs copyWith({
     String? thumbnail,
     String? mp3Url,
     String? lyric,
+    String? songId,
   }) {
     return Songs(
       id: id ?? this.id,
@@ -37,11 +39,14 @@ Songs copyWith({
       thumbnail: thumbnail ?? this.thumbnail,
       mp3Url: mp3Url ?? this.mp3Url,
       lyric: lyric ?? this.lyric,
+      songId: songId ?? this.songId,
     );
   }
+
   factory Songs.fromJson(Map<String, dynamic> json) {
     return Songs(
       id: (json['id'] ?? json['_id'])?.toString() ?? '',
+      songId: json['songId']?.toString() ?? '',
       title: json['title'] ?? '',
       album: json['album'] ?? '',
       artist: json['artist'] ?? '',

@@ -123,7 +123,15 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
           if (s.thumbnail.isEmpty) {
             final albumName = s.album ?? 'Unknown';
             final albumCover = await AlbumService.fetchAlbumCover(albumName);
-            return s.copyWith(thumbnail: albumCover);
+            return s.copyWith(
+              thumbnail: albumCover,
+              songId: s.songId,
+              title: s.title,
+              artist: s.artist,
+              url: s.url,
+              mp3Url: s.mp3Url,
+              album: s.album,
+            );
           }
           return s;
         }),
@@ -134,6 +142,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
       throw Exception('Failed to load songs: $e');
     }
   }
+
   Future<void> _showRenameDialog() async {
     final nameController = TextEditingController(text: _currentPlaylistName);
     final descController = TextEditingController(text: _currentPlaylistDesc);
@@ -192,6 +201,22 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
         _currentPlaylistName = updatedPlaylist.name;
         _currentPlaylistDesc = updatedPlaylist.description;
       });
+    }
+  }
+
+  void _playEntirePlaylist(List<Songs> songs,
+      {bool shuffle = false, int startIndex = 0}) {
+    if (songs.isEmpty) return;
+
+    final audioProvider =
+        Provider.of<AudioPlayerProvider>(context, listen: false);
+    List<Songs> playlistToPlay = List.from(songs);
+
+    if (shuffle) {
+      playlistToPlay.shuffle();
+      audioProvider.setNewPlaylist(playlistToPlay, 0);
+    } else {
+      audioProvider.setNewPlaylist(playlistToPlay, startIndex);
     }
   }
 
@@ -397,21 +422,52 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                                 horizontal: 16.0, vertical: 10),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.end,
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                // FloatingActionButton(
-                                //   heroTag: 'Play Playlist',
-                                //   onPressed: () =>
-                                //       _playEntirePlaylist(songs, context),
-                                //   shape: const CircleBorder(),
-                                //   child: const Icon(Icons.play_arrow_rounded,
-                                //       size: 28),
-                                //   backgroundColor:
-                                //       Theme.of(context).primaryColor,
-                                //   foregroundColor: Colors.white,
-                                // ),
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: () => _playEntirePlaylist(songs),
+                                    icon: const Icon(Icons.play_arrow_rounded),
+                                    label: const Text('Phát tất cả'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor:
+                                          Theme.of(context).primaryColor,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 14),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12)),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: () => _playEntirePlaylist(songs,
+                                        shuffle: true),
+                                    icon: const Icon(Icons.shuffle),
+                                    label: const Text('Trộn bài'),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor:
+                                          Theme.of(context).primaryColor,
+                                      side: BorderSide(
+                                          color:
+                                              Theme.of(context).primaryColor),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 14),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12)),
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
                           ),
+                          const SizedBox(
+                              height:
+                                  16), // Khoảng cách giữa nút và danh sách bài hát
                           ListView.separated(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
@@ -531,7 +587,8 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                                         Icons.play_arrow_rounded,
                                         color: Colors.blueAccent,
                                         size: 30),
-                                    onTap: () => audioProvider.playSong(song),
+                                    onTap: () => _playEntirePlaylist(songs,
+                                        startIndex: index),
                                   ),
                                 ),
                               );
