@@ -221,7 +221,14 @@ class _LibraryScreenState extends State<LibraryScreen> {
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                 sliver: SliverToBoxAdapter(
-                  child: _buildContent(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildContent2(),
+                      const SizedBox(height: 16),
+                      _buildContent(),
+                    ],
+                  ),
                 ),
               ),
           ],
@@ -298,7 +305,52 @@ class _LibraryScreenState extends State<LibraryScreen> {
         .toList();
 
     final List<Widget> contentWidgets = [];
+    if (_activeFilter == 'All' || _activeFilter == 'Liked') {
+      final favoriteSection = <Widget>[
+        LibrarySectionHeader(
+            title: 'Favorites Songs❤️',
+            onSeeAll: () => Navigator.push(
+                context, FadePageRoute(child: const FavScreen()))),
+        if (filteredFavorites.isNotEmpty)
+          FavoritesPreviewList(
+            favorites: filteredFavorites.take(3).toList(),
+            onDelete: (song) async {
+              final result =
+                  await _favService.deleteFavoriteById(song.id.toString());
+              if (mounted) {
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(SnackBar(content: Text(result)));
+              }
+              _loadFavorites();
+            },
+          )
+        else
+          const Text("You haven't liked any songs yet."),
+      ];
+      addSection(contentWidgets, favoriteSection);
+    }
+    return Column(children: contentWidgets);
+  }
 
+  Widget _buildContent2() {
+    if (_playlists.isEmpty && _favorites.isEmpty && _history.isEmpty) {
+      return LibraryEmptyState(onCreatePlaylist: _showCreatePlaylistDialog);
+    }
+
+    final searchQuery = _searchController.text.toLowerCase().trim();
+    final filteredPlaylists = _playlists
+        .where((p) => p.name.toLowerCase().contains(searchQuery))
+        .toList();
+    final filteredFavorites = _favorites
+        .where((f) => f.title.toLowerCase().contains(searchQuery))
+        .toList();
+    final filteredHistory = _history
+        .where((h) =>
+            h.title.toLowerCase().contains(searchQuery) ||
+            h.artist.toLowerCase().contains(searchQuery))
+        .toList();
+
+    final List<Widget> contentWidgets = [];
     if (_activeFilter == 'All' || _activeFilter == 'Playlists') {
       final playlistSection = <Widget>[
         const Align(
@@ -339,6 +391,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
         else
           const Text("You haven't created any playlists yet."),
       ];
+
       addSection(contentWidgets, playlistSection);
     }
 
@@ -360,31 +413,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
       ];
       addSection(contentWidgets, historySection);
     }
-    if (_activeFilter == 'All' || _activeFilter == 'Liked') {
-      final favoriteSection = <Widget>[
-        LibrarySectionHeader(
-            title: 'Favorites Songs❤️',
-            onSeeAll: () => Navigator.push(
-                context, FadePageRoute(child: const FavScreen()))),
-        if (filteredFavorites.isNotEmpty)
-          FavoritesPreviewList(
-            favorites: filteredFavorites.take(3).toList(),
-            onDelete: (song) async {
-              final result =
-                  await _favService.deleteFavoriteById(song.id.toString());
-              if (mounted) {
-                ScaffoldMessenger.of(context)
-                    .showSnackBar(SnackBar(content: Text(result)));
-              }
-              _loadFavorites();
-            },
-          )
-        else
-          const Text("You haven't liked any songs yet."),
-      ];
-      addSection(contentWidgets, favoriteSection);
-    }
-    return Column(children: contentWidgets);
+    return Align(
+      alignment: Alignment.topCenter,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: contentWidgets,
+      ),
+    );
   }
 
   Future<void> _showRenamePlaylistDialog(Playlist playlist) async {
