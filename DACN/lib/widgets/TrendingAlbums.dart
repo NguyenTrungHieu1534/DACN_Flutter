@@ -90,7 +90,6 @@ class TrendingAlbum extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        // ĐĨA VINYL — nằm dưới, thò ra bên phải
         Positioned(
           right: -65,
           top: 70,

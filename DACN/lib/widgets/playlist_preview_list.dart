@@ -15,14 +15,15 @@ class PlaylistPreviewList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
+    return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: playlists.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         final playlist = playlists[index];
         return Card(
-          margin: const EdgeInsets.only(bottom: 10),
+          margin: EdgeInsets.zero, // Loại bỏ margin của Card
           child: ListTile(
             leading: ClipRRect(
               borderRadius: BorderRadius.circular(8),

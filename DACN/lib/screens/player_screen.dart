@@ -712,18 +712,7 @@ Future<PopupMenuItem<String>> _buildRepostMenuItem(Songs song) async {
                           player.isPlaying ? Icons.pause : Icons.play_arrow),
                       color: Colors.black87,
                       iconSize: 54,
-                      onPressed: () async {
-                        if (player.currentPlaylist.isNotEmpty) {
-                          if (!player.isPlaying || player.currentIndex != 0) {
-                            await player.setNewPlaylist(
-                                player.currentPlaylist, 0);
-                          } else {
-                            await player.togglePlayPause();
-                          }
-                        } else {
-                          await player.togglePlayPause();
-                        }
-                      },
+                      onPressed: player.togglePlayPause,
                     ),
                   ),
                   // Nút NEXT

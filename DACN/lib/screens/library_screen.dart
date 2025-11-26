@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math';
 import 'package:music_login/screens/fav_screen.dart';
 import '../theme/app_theme.dart';
 import '/screens/playlist_screen.dart';
@@ -148,31 +149,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       ),
                       onChanged: (_) => setState(() {}),
                     ),
-                    const SizedBox(height: 12),
-                    // SingleChildScrollView(
-                    //   scrollDirection: Axis.horizontal,
-                    //   child: Row(
-                    //     children: ['All', 'Playlists', 'Liked', 'History'].map((f) {
-                    //       final bool selected = _activeFilter == f;
-                    //       return Padding(
-                    //         padding: const EdgeInsets.only(right: 8),
-                    //         child: ChoiceChip(
-                    //           label: Text(f),
-                    //           selected: selected,
-                    //           selectedColor: AppColors.oceanBlue.withOpacity(0.15),
-                    //           side: BorderSide(
-                    //             color: selected ? AppColors.oceanBlue : AppColors.oceanBlue.withOpacity(0.3),
-                    //           ),
-                    //           labelStyle: TextStyle(
-                    //             color: selected ? AppColors.oceanDeep : AppColors.oceanDeep.withOpacity(0.8),
-                    //             fontWeight: FontWeight.w600,
-                    //           ),
-                    //           onSelected: (_) => setState(() => _activeFilter = f),
-                    //         ),
-                    //       );
-                    //     }).toList(),
-                    //   ),
-                    // ),
                     const SizedBox(height: 16),
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
@@ -220,7 +196,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
                         ],
                       ),
                     ),
-
                     const SizedBox(height: 12),
                   ],
                 ),
@@ -244,7 +219,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
               )
             else
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                 sliver: SliverToBoxAdapter(
                   child: _buildContent(),
                 ),
@@ -299,6 +274,11 @@ class _LibraryScreenState extends State<LibraryScreen> {
     }
   }
 
+  void addSection(List<Widget> content, List<Widget> section) {
+    if (content.isNotEmpty) content.add(const SizedBox(height: 8));
+    content.addAll(section);
+  }
+
   Widget _buildContent() {
     if (_playlists.isEmpty && _favorites.isEmpty && _history.isEmpty) {
       return LibraryEmptyState(onCreatePlaylist: _showCreatePlaylistDialog);
@@ -317,17 +297,18 @@ class _LibraryScreenState extends State<LibraryScreen> {
             h.artist.toLowerCase().contains(searchQuery))
         .toList();
 
-    final List<Widget> content = [];
+    final List<Widget> contentWidgets = [];
+
     if (_activeFilter == 'All' || _activeFilter == 'Playlists') {
-      content.addAll([
+      final playlistSection = <Widget>[
         const Align(
           alignment: Alignment.centerLeft,
           child: Text(
             'Your playlists 🎶',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         if (filteredPlaylists.isNotEmpty)
           _showAsGrid
               ? PlaylistPreviewGrid(
@@ -343,7 +324,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   },
                 )
               : PlaylistPreviewList(
-                  filteredPlaylists.take(4).toList(),
+                  filteredPlaylists.sublist(
+                      0, min(4, filteredPlaylists.length)),
                   buildPlaylistMenu: (playlist) =>
                       _buildPlaylistMenu(playlist, useDarkIcon: false),
                   onTapPlaylist: (playlist) {
@@ -353,47 +335,56 @@ class _LibraryScreenState extends State<LibraryScreen> {
                           child: PlaylistDetailScreen(playlist: playlist)),
                     ).then((_) => _loadPlaylists());
                   },
-                ),
-        if (_activeFilter == 'All') const SizedBox(height: 1),
-      ]);
+                )
+        else
+          const Text("You haven't created any playlists yet."),
+      ];
+      addSection(contentWidgets, playlistSection);
+    }
+
+    if (_activeFilter == 'All' || _activeFilter == 'History') {
+      final historySection = <Widget>[
+        LibrarySectionHeader(
+          title: 'History ⏰',
+          onSeeAll: () => Navigator.push(
+            context,
+            FadePageRoute(child: const HistoryScreen()),
+          ),
+        ),
+        if (filteredHistory.isNotEmpty)
+          HistoryPreviewList(
+              history: filteredHistory.take(3).toList(),
+              formatDate: _formatDate)
+        else
+          const Text("Your listening history is empty."),
+      ];
+      addSection(contentWidgets, historySection);
     }
     if (_activeFilter == 'All' || _activeFilter == 'Liked') {
-      content.addAll([
+      final favoriteSection = <Widget>[
         LibrarySectionHeader(
             title: 'Favorites Songs❤️',
             onSeeAll: () => Navigator.push(
                 context, FadePageRoute(child: const FavScreen()))),
-        FavoritesPreviewList(
-          favorites: filteredFavorites.take(3).toList(),
-          onDelete: (song) async {
-            final result =
-                await _favService.deleteFavoriteById(song.id.toString());
-            if (mounted) {
-              ScaffoldMessenger.of(context)
-                  .showSnackBar(SnackBar(content: Text(result)));
-            }
-            _loadFavorites();
-          },
-        ),
-        if (_activeFilter == 'All') const SizedBox(height: 1),
-      ]);
+        if (filteredFavorites.isNotEmpty)
+          FavoritesPreviewList(
+            favorites: filteredFavorites.take(3).toList(),
+            onDelete: (song) async {
+              final result =
+                  await _favService.deleteFavoriteById(song.id.toString());
+              if (mounted) {
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(SnackBar(content: Text(result)));
+              }
+              _loadFavorites();
+            },
+          )
+        else
+          const Text("You haven't liked any songs yet."),
+      ];
+      addSection(contentWidgets, favoriteSection);
     }
-    if (_activeFilter == 'All' || _activeFilter == 'History') {
-      content.addAll([
-        const Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            'History ⏰',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-          ),
-        ),
-        const SizedBox(height: 12),
-        HistoryPreviewList(
-            history: filteredHistory.take(3).toList(), formatDate: _formatDate),
-      ]);
-    }
-
-    return Column(children: content);
+    return Column(children: contentWidgets);
   }
 
   Future<void> _showRenamePlaylistDialog(Playlist playlist) async {
