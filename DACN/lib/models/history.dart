@@ -3,12 +3,16 @@ class HistorySong {
   final String title;
   final String artist;
   final String songId;
+  final String album;
+  final String thumbnail;
   final DateTime playedAt;
 
   HistorySong({
     required this.username,
     required this.title,
     required this.artist,
+    required this.album,
+    required this.thumbnail,
     required this.songId,
     required this.playedAt,
   });
@@ -19,6 +23,8 @@ class HistorySong {
       title: json['title'] ?? '',
       artist: json['artist'] ?? '',
       songId: json['songId'] ?? '',
+      album: json['album'] ?? '',
+      thumbnail: json['thumbnail'] ?? '',
       playedAt: json['played_at'] != null
           ? DateTime.parse(json['played_at'])
           : DateTime.now(),
@@ -31,6 +37,8 @@ class HistorySong {
       'title': title,
       'artist': artist,
       'songId': songId,
+      'album': album,
+      'thumbnail': thumbnail,
       'played_at': playedAt.toIso8601String(),
     };
   }

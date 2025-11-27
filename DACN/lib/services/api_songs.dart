@@ -75,9 +75,7 @@ class SongService {
           }
         }
       }
-    } catch (_) {
-      // ignore and fallback
-    }
+    } catch (_) {}
 
     try {
       final songs = await fetchSongs();
@@ -158,6 +156,18 @@ class SongService {
       }
     } catch (e) {
       print('Exception: $e');
+    }
+  }
+
+  static Future<Songs> fetchSongDetailsById(String songId) async {
+    final response = await http.get(
+      Uri.parse('https://backend-dacn-9l4w.onrender.com/api/songsin4/$songId'),
+    );
+
+    if (response.statusCode == 200) {
+      return Songs.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Không thể tải chi tiết bài hát');
     }
   }
 }
