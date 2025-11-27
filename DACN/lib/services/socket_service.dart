@@ -19,7 +19,6 @@ class SocketService {
   final Map<String, List<Function(dynamic)>> _eventHandlers = {};
 
   void connect(String userId) {
-    // Nếu đã connect, không kết nối lại
     if (_socket != null && _socket!.connected) return;
 
     _socket = IO.io(

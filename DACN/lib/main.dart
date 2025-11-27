@@ -34,6 +34,7 @@ import 'dart:convert';
 import 'package:music_login/services/api_songs.dart';
 import 'models/songs.dart';
 import 'constants/deep_link_config.dart';
+import '../services/socket_service.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<_MainNavigationState> mainNavigationKey =
@@ -48,7 +49,7 @@ Future<void> main() async {
       androidNotificationChannelId: 'com.example.app.channel.audio',
       androidNotificationChannelName: 'Wave Music',
       androidShowNotificationBadge: true,
-      androidNotificationIcon: 'mipmap/ic_launcher', // Icon app
+      androidNotificationIcon: 'mipmap/ic_launcher',
     ),
   );
   final session = await AudioSession.instance;
@@ -58,6 +59,13 @@ Future<void> main() async {
   await prefs.setString('fcmToken', FCMtoken.toString());
   // print(" FCM Token: $FCMtoken");
   await session.configure(const AudioSessionConfiguration.music());
+  final token = prefs.getString('token');
+  if (token != null) {
+    Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+    final String userId = decodedToken['_id'];
+
+    SocketService().connect(userId);
+  }
 
   runApp(
     MultiProvider(
@@ -140,7 +148,7 @@ class _WaveMusicAppState extends State<WaveMusicApp> {
       debugPrint('No song found for deep link id: $trackId');
       return;
     }
-    
+
     final currentTabNavigator =
         mainNavigationKey.currentState?.currentNavigatorState;
 
@@ -236,7 +244,8 @@ class _AuthCheckState extends State<AuthCheck> {
 
         final token = snapshot.data;
         if (token != null && token.isNotEmpty && !JwtDecoder.isExpired(token)) {
-          WidgetsBinding.instance.addPostFrameCallback((_) => widget.onAuthenticated());
+          WidgetsBinding.instance
+              .addPostFrameCallback((_) => widget.onAuthenticated());
           return MainNavigation(key: widget.mainNavigationKey);
         } else {
           return const LoginScreen();
@@ -321,7 +330,8 @@ class _MainNavigationState extends State<MainNavigation>
             ),
             bottomNavigationBar: BuildNaviBot(
               currentIndex: _currentIndex,
-              hasInternet: hasInternet, // This seems to be a typo in the original code, should be hasInternet
+              hasInternet:
+                  hasInternet, // This seems to be a typo in the original code, should be hasInternet
               onRetry: () async {
                 final ok = await InternetConnectionChecker().hasConnection;
                 if (!mounted) return;
