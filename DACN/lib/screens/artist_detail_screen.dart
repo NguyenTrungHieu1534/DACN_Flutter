@@ -416,8 +416,6 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                   ),
 
                 const SizedBox(height: 10),
-
-                // Albums Section
                 _buildSectionHeader(context, 'Albums'),
                 const SizedBox(height: 10),
                 if (albums.isEmpty)
@@ -495,7 +493,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    '1.2M Listeners', // Dữ liệu giả
+                    '1.2M Listeners',
                     style: TextStyle(
                       color: Theme.of(context)
                           .textTheme
@@ -625,7 +623,6 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                             },
             color: isDark ? const Color(0xFF2E2E2E) : Colors.white,
             itemBuilder: (context) => [
-              // Thêm vào yêu thích
               PopupMenuItem<String>(
                 value: 'favorite',
                 child: Row(
@@ -636,7 +633,6 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                   ],
                 ),
               ),
-              // Thêm vào playlist
               PopupMenuItem<String>(
                 value: 'playlist',
                 child: Row(
@@ -647,7 +643,6 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                   ],
                 ),
               ),
-              // Repost/Hủy Repost
               PopupMenuItem<String>(
                 value: 'repost_toggle',
                 child: isRepostCheckLoading
@@ -667,7 +662,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                           Icon(
                             Icons.repeat,
                             color: currentlyReposted
-                                ? theme.primaryColor // Màu nổi bật khi đã repost
+                                ? theme.primaryColor
                                 : Colors.grey.shade600,
                           ),
                           const SizedBox(width: 10),
