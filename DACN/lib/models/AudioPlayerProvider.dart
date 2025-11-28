@@ -25,7 +25,7 @@ class AudioPlayerProvider extends ChangeNotifier {
       (_currentIndex >= 0 && _currentIndex < _currentPlaylist.length)
           ? _currentPlaylist[_currentIndex]
           : null;
-  final AudioHandler audioHandler;
+  final AudioHandler? audioHandler;
   bool isPlaying = false;
 
   final HistoryService _historyService = HistoryService();
@@ -33,9 +33,10 @@ class AudioPlayerProvider extends ChangeNotifier {
   Duration _duration = Duration.zero;
   bool isDarkMode = false;
 
-  AudioPlayerProvider({required this.audioHandler}) {
+  AudioPlayerProvider({this.audioHandler}) {
     _loadThemeSettings();
-    audioHandler.playbackState.listen((state) {
+
+    audioHandler?.playbackState.listen((state) {
       debugPrint(
           '[Provider] playbackState: playing=${state.playing}, processing=${state.processingState}, position=${state.position.inMilliseconds}');
       isPlaying = state.playing;
@@ -47,13 +48,15 @@ class AudioPlayerProvider extends ChangeNotifier {
       }
       notifyListeners();
     });
-    audioHandler.mediaItem.listen((item) {
+
+    audioHandler?.mediaItem.listen((item) {
       debugPrint(
           '[Provider] mediaItem: id=${item?.id}, duration=${item?.duration}');
       _duration = item?.duration ?? Duration.zero;
       notifyListeners();
     });
-    audioHandler.playbackState.listen((state) {
+
+    audioHandler?.playbackState.listen((state) {
       if (state.playing ||
           state.processingState == AudioProcessingState.ready) {
         _position = state.position;
@@ -80,10 +83,12 @@ class AudioPlayerProvider extends ChangeNotifier {
 
   void _updateTheme(bool isDark) {
     isDarkMode = isDark;
+
     if (currentPlaying != null) {
       final mediaItem = _createMediaItem(currentPlaying!);
-      audioHandler.addQueueItem(mediaItem);
+      audioHandler?.addQueueItem(mediaItem);
     }
+
     notifyListeners();
   }
 
@@ -112,11 +117,15 @@ class AudioPlayerProvider extends ChangeNotifier {
   }
 
   Stream<Duration> get positionStream {
-    return audioHandler.playbackState.map((state) => state.position).distinct();
+    return audioHandler?.playbackState
+            .map((state) => state.position)
+            .distinct() ??
+        Stream.value(Duration.zero); // fallback nếu audioHandler null
   }
 
   Stream<Duration?> get durationStream {
-    return audioHandler.mediaItem.map((item) => item?.duration).distinct();
+    return audioHandler?.mediaItem.map((item) => item?.duration).distinct() ??
+        Stream.value(null); // fallback nếu audioHandler null
   }
 
   Future<void> setNewPlaylist(List<Songs> newPlaylist, int startIndex) async {
@@ -140,8 +149,7 @@ class AudioPlayerProvider extends ChangeNotifier {
         if (selectedSong.songId.isEmpty) {
           id = selectedSong.id;
         }
-        if(selectedSong.id.isEmpty)
-        {
+        if (selectedSong.id.isEmpty) {
           id = selectedSong.songId;
         }
         final songUrl = await SongService.fetchSongUrl(id);
@@ -238,7 +246,7 @@ class AudioPlayerProvider extends ChangeNotifier {
     }
   }
 
-  void nextSong({bool isAutoAdvance = false}) async {
+  Future<void> nextSong({bool isAutoAdvance = false}) async {
     if (_currentPlaylist.isEmpty) return;
 
     int nextIndex = _currentIndex;
@@ -271,7 +279,7 @@ class AudioPlayerProvider extends ChangeNotifier {
     await _playCurrentSong();
   }
 
-  void previousSong() async {
+  Future<void> previousSong() async {
     if (_currentPlaylist.isEmpty) return;
     if (_position.inSeconds > 3) {
       await seek(Duration.zero);
@@ -297,7 +305,9 @@ class AudioPlayerProvider extends ChangeNotifier {
 
   @override
   Future<void> pauseSong() async {
-    await audioHandler.pause();
+    await audioHandler?.pause();
+    isPlaying = false;
+    notifyListeners();
   }
 
   @override
@@ -306,9 +316,11 @@ class AudioPlayerProvider extends ChangeNotifier {
       await pauseSong();
     } else if (currentPlaying != null) {
       if (_position > Duration.zero) {
-        await audioHandler.seek(_position);
+        await audioHandler?.seek(_position);
       }
-      await audioHandler.play();
+      await audioHandler?.play();
+      isPlaying = true;
+      notifyListeners();
     }
   }
 
@@ -316,12 +328,12 @@ class AudioPlayerProvider extends ChangeNotifier {
   Future<void> seek(Duration position) async {
     _position = position;
     notifyListeners();
-    await audioHandler.seek(position);
+    await audioHandler?.seek(position);
   }
 
   @override
   Future<void> stopSong() async {
-    await audioHandler.stop();
+    await audioHandler?.stop();
     isPlaying = false;
     _position = Duration.zero;
     notifyListeners();

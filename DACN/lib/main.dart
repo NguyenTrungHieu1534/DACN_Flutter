@@ -41,9 +41,8 @@ final GlobalKey<_MainNavigationState> mainNavigationKey =
     GlobalKey<_MainNavigationState>();
 
 Future<void> main() async {
-  late final AudioHandler audioHandler;
   WidgetsFlutterBinding.ensureInitialized();
-  audioHandler = await AudioService.init(
+  final audioHandler = await AudioService.init(
     builder: () => MyAudioHandler(),
     config: const AudioServiceConfig(
       androidNotificationChannelId: 'com.example.app.channel.audio',
@@ -52,27 +51,24 @@ Future<void> main() async {
       androidNotificationIcon: 'mipmap/ic_launcher',
     ),
   );
+  final audioProvider = AudioPlayerProvider(audioHandler: audioHandler);
+  (audioHandler as MyAudioHandler).attachProvider(audioProvider);
   final session = await AudioSession.instance;
   await Firebase.initializeApp();
   String? FCMtoken = await FirebaseMessaging.instance.getToken();
   final prefs = await SharedPreferences.getInstance();
   await prefs.setString('fcmToken', FCMtoken.toString());
-  // print(" FCM Token: $FCMtoken");
   await session.configure(const AudioSessionConfiguration.music());
   final token = prefs.getString('token');
   if (token != null) {
     Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
     final String userId = decodedToken['_id'];
-
     SocketService().connect(userId);
   }
-
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => AudioPlayerProvider(audioHandler: audioHandler),
-        ),
+        ChangeNotifierProvider.value(value: audioProvider),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
       child: const WaveMusicApp(),
@@ -110,7 +106,6 @@ class _WaveMusicAppState extends State<WaveMusicApp> {
 
     _linkSubscription = _appLinks.uriLinkStream.listen(
       (uri) {
-        // If the app is already running, we can navigate immediately.
         if (mainNavigationKey.currentState != null) {
           unawaited(_handleIncomingUri(uri));
         }

@@ -4,6 +4,7 @@ import 'package:music_login/services/api_artist.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/comment.dart';
 import '../services/api_songs.dart';
+
 class CommentService {
   static const String _baseUrl = 'https://backend-dacn-9l4w.onrender.com';
 
@@ -48,23 +49,27 @@ class CommentService {
       return Comment.fromJson(jsonDecode(response.body));
     } else {
       String errorMessage = 'Lỗi không xác định (${response.statusCode})';
-      
+
       try {
         final errorBody = jsonDecode(response.body);
         errorMessage = errorBody['message'] ?? errorMessage;
       } catch (e) {
         if (response.body.contains('<!DOCTYPE html>')) {
-          errorMessage = 'Lỗi kết nối Server hoặc Server gặp lỗi nội bộ (HTML response).';
+          errorMessage =
+              'Lỗi kết nối Server hoặc Server gặp lỗi nội bộ (HTML response).';
         } else {
-          errorMessage = 'Lỗi phản hồi không mong muốn (${response.statusCode}).';
+          errorMessage =
+              'Lỗi phản hồi không mong muốn (${response.statusCode}).';
         }
       }
       throw Exception(errorMessage);
     }
   }
-  Future<Map<String, List<dynamic>>> fetchCommentsByArtist(String artistName) async {
+
+  Future<Map<String, List<dynamic>>> fetchCommentsByArtist(
+      String artistName) async {
     final Map<String, List<dynamic>> result = {};
-    final ArtistService artistservice =  ArtistService();
+    final ArtistService artistservice = ArtistService();
     try {
       final songs = await artistservice.fetchSongsByArtist(artistName);
 

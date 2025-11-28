@@ -1,9 +1,13 @@
 import 'package:audio_service/audio_service.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:just_audio/just_audio.dart';
+import '../models/AudioPlayerProvider.dart';
+import 'dart:developer';
 
 class MyAudioHandler extends BaseAudioHandler {
   final AudioPlayer _player = AudioPlayer();
-
+  AudioPlayerProvider audioPlayerProvider = AudioPlayerProvider();
+  @override
   MyAudioHandler() {
     _player.playerStateStream.listen((playerState) {
       _broadcastState(playerState);
@@ -15,16 +19,16 @@ class MyAudioHandler extends BaseAudioHandler {
       }
     });
     _player.positionStream.listen((position) {
-  final oldState = playbackState.value;
-  playbackState.add(PlaybackState(
-    controls: oldState.controls,
-    systemActions: oldState.systemActions,
-    androidCompactActionIndices: oldState.androidCompactActionIndices,
-    processingState: oldState.processingState,
-    playing: oldState.playing,
-    updatePosition: position,
-  ));
-});
+      final oldState = playbackState.value;
+      playbackState.add(PlaybackState(
+        controls: oldState.controls,
+        systemActions: oldState.systemActions,
+        androidCompactActionIndices: oldState.androidCompactActionIndices,
+        processingState: oldState.processingState,
+        playing: oldState.playing,
+        updatePosition: position,
+      ));
+    });
   }
 
   AudioPlayer get player => _player;
@@ -32,12 +36,14 @@ class MyAudioHandler extends BaseAudioHandler {
   @override
   Future<void> play() async {
     await _player.play();
+    debugPrint("play");
     _broadcastState(_player.playerState);
   }
 
   @override
   Future<void> pause() async {
     await _player.pause();
+    debugPrint("pause");
     _broadcastState(_player.playerState);
   }
 
@@ -64,6 +70,23 @@ class MyAudioHandler extends BaseAudioHandler {
   Future<void> setAudioSource(MediaItem item, Uri uriToPlay) async {
     mediaItem.add(item);
     await _player.setAudioSource(AudioSource.uri(uriToPlay));
+  }
+
+  void attachProvider(AudioPlayerProvider provider) {
+    audioPlayerProvider = provider;
+  }
+
+  @override
+  Future<void> skipToNext() async {
+    debugPrint("onSkipToPrevious");
+    await audioPlayerProvider.nextSong();
+  }
+
+  @override
+  Future<void> skipToPrevious() async {
+    debugPrint("onSkipToPrevious");
+    await audioPlayerProvider.previousSong();
+    _broadcastState(_player.playerState);
   }
 
   void _broadcastState(PlayerState playerState) {
