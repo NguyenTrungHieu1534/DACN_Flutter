@@ -551,7 +551,6 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                           ],
                                         ),
                                       ),
-                                      // BẮT ĐẦU VỊ TRÍ SỬA ĐỔI NÚT 3 CHẤM
                                       Builder(
                                         builder: (context) {
                                           final songWithThumbnail = song.copyWith(
@@ -572,7 +571,6 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                                   : AppColors.oceanBlue,
                                             ),
                                             onSelected: (value) async {
-                                              // LOGIC KIỂM TRA ĐĂNG NHẬP (Giữ nguyên)
                                               final prefs = await SharedPreferences.getInstance();
                                               final token = prefs.getString('token');
 
@@ -584,8 +582,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                                 });
                                                 return;
                                               }
-                                              
-                                              // XỬ LÝ CÁC HÀNH ĐỘNG
+                                  
                                               if (value == 'favorite') {
                                                 favoriteService.addFavorite(songWithThumbnail);
                                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã thêm vào yêu thích 💙'), duration: Duration(seconds: 1)));
@@ -594,7 +591,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                                 _showAddToPlaylistDialog(songWithThumbnail);
                                                 
                                               } else if (value == 'repost_toggle') {
-                                                // XỬ LÝ REPOST/HỦY REPOST TRỰC TIẾP
+                                    
                                                 final bool currentlyReposted = await repostService.isSongReposted(songWithThumbnail.id);
                                                 try {
                                                   final newStatus = await repostService.toggleRepost(songWithThumbnail, currentlyReposted);
@@ -604,8 +601,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                                       backgroundColor: newStatus ? Colors.green : Colors.grey,
                                                     ),
                                                   );
-                                                  // Cần gọi setState để buộc ListViewBuilder xây dựng lại và cập nhật trạng thái Repost
-                                                  setState(() {}); 
+                                                 
                                                 } catch (e) {
                                                      ScaffoldMessenger.of(context).showSnackBar(
                                                     SnackBar(content: Text('Lỗi Repost: ${e.toString().replaceFirst('Exception: ', '')}')),
@@ -614,22 +610,20 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                               }
                                             },
                                             itemBuilder: (context) {
-                                              // SỬ DỤNG FUTUREBUILDER ĐỂ LẤY TRẠNG THÁI REPOST KHI MENU MỞ
-
+                                              
                                               return [
-                                                // Thêm các mục đã có (Yêu thích, Playlist)
+                                       
                                                 PopupMenuItem(
                                                   value: 'favorite',
-                                                  // XÓA const trong Row/SizedBox
+                                           
                                                   child: Row(children: [const Icon(Icons.favorite_border, color: Colors.redAccent), const SizedBox(width: 10), Text('Thêm vào yêu thích', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color))]),
                                                 ),
                                                 PopupMenuItem(
                                                   value: 'playlist',
-                                                  // XÓA const trong Row/SizedBox
+                                            
                                                   child: Row(children: [Icon(Icons.playlist_add, color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor : AppColors.oceanBlue), const SizedBox(width: 10), Text('Thêm vào playlist khác', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color))]),
                                                 ),
                                                 
-                                                // ⭐️ MỤC MỚI: REPOST (hiển thị trạng thái với FutureBuilder bên trong PopupMenuItem)
                                                 PopupMenuItem<String>(
                                                   value: 'repost_toggle',
                                                   child: FutureBuilder<bool>(

@@ -7,10 +7,14 @@ import '../models/album.dart';
 import '../models/songs.dart';
 import '../services/api_artist.dart';
 import '../services/api_album.dart';
+import '../services/api_favsongs.dart';
+import '../services/api_playlist.dart';
+import '../services/api_repost.dart';
 import '../services/api_follow.dart';
 import '../models/AudioPlayerProvider.dart';
 import '../widgets/shimmer_widgets.dart';
 import 'album_detail_screen.dart';
+import '../screens/login_screen.dart';
 import 'dart:convert';
 
 class ArtistDetailScreen extends StatefulWidget {
@@ -29,7 +33,9 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
   bool _isFollowing = false;
   bool _isFollowStatusLoading = true;
   String? _artistId;
-
+  final FavoriteService favoriteService = FavoriteService();
+  final RepostService repostService = RepostService();
+  final ApiPlaylist apiPlaylist = ApiPlaylist();
   @override
   void initState() {
     super.initState();
@@ -141,6 +147,163 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
     if (success && mounted) _checkFollowStatus(_artistId!);
   }
 
+  Future<void> _showAddToPlaylistDialog(Songs song) async {
+    if (!mounted) return;
+    final localContext = context;
+
+    showDialog(
+      context: localContext,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final playlists = await apiPlaylist.getPlaylistsByUser();
+
+      if (!mounted) return;
+      Navigator.of(localContext, rootNavigator: true).pop();
+
+      if (!mounted) return;
+
+      final result = await showDialog<String>(
+        context: localContext,
+        builder: (_) {
+          return AlertDialog(
+            backgroundColor: Theme.of(localContext).dialogBackgroundColor,
+            title: Text(
+              'Thêm vào Playlist',
+              style: TextStyle(
+                color: Theme.of(localContext).textTheme.titleLarge?.color,
+              ),
+            ),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (playlists.isEmpty)
+                    const Text('Bạn chưa có playlist nào. Hãy tạo một cái mới!'),
+                  ...playlists.map((p) => ListTile(
+                        title: Text(p.name),
+                        onTap: () async {
+                          Navigator.of(localContext, rootNavigator: true).pop();
+                          await _addSongToExistingPlaylist(song, p.id);
+                        },
+                      )),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () =>
+                    Navigator.of(localContext, rootNavigator: true).pop(),
+                child: const Text('Hủy'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(localContext, rootNavigator: true)
+                    .pop('new_playlist'),
+                child: const Text('Tạo Playlist Mới'),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (!mounted) return;
+      if (result == 'new_playlist') {
+        await _handleCreateNewPlaylist(song);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.of(localContext, rootNavigator: true).pop();
+      if (!mounted) return;
+      ScaffoldMessenger.of(localContext).showSnackBar(
+        SnackBar(content: Text('Lỗi tải danh sách playlist: $e')),
+      );
+    }
+  }
+
+  Future<void> _addSongToExistingPlaylist(Songs song, String playlistId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    if (token == null) return;
+
+    final success =
+        await ApiPlaylist.addSongToPlaylist(token, playlistId, song);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success
+              ? 'Đã thêm bài hát vào playlist!'
+              : 'Thêm bài hát thất bại.'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleCreateNewPlaylist(Songs song) async {
+    final nameController = TextEditingController();
+    final newPlaylistName = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).dialogBackgroundColor,
+        title: Text(
+          'Tạo Playlist Mới',
+          style:
+              TextStyle(color: Theme.of(context).textTheme.titleLarge?.color),
+        ),
+        content: TextField(
+          controller: nameController,
+          decoration: InputDecoration(
+            hintText: "Tên playlist",
+            hintStyle: TextStyle(
+                color: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.color
+                    ?.withOpacity(0.6)),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Theme.of(context).dividerColor),
+            ),
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Theme.of(context).primaryColor),
+            ),
+          ),
+          style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context), child: const Text('Hủy')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, nameController.text.trim()),
+            child: const Text('Tạo'),
+          ),
+        ],
+      ),
+    );
+
+    if (newPlaylistName != null && newPlaylistName.isNotEmpty) {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      if (token == null) return;
+
+      final newPlaylist =
+          await ApiPlaylist.createPlaylist(token, newPlaylistName, '');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(newPlaylist != null
+                  ? 'Đã tạo playlist "$newPlaylistName"!'
+                  : 'Tạo playlist mới thất bại.')),
+        );
+      }
+      if (newPlaylist != null) {
+        _showAddToPlaylistDialog(song);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -248,7 +411,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                     itemCount: popularSongs.length,
                     itemBuilder: (context, index) {
                       return _buildSongTile(
-                          context, popularSongs[index], index + 1, photoUrl);
+                          context, popularSongs[index], index + 1, photoUrl,popularSongs);
                     },
                   ),
 
@@ -361,9 +524,15 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
   }
 
   Widget _buildSongTile(
-      BuildContext context, Songs song, int rank, String artistPhotoUrl) {
+      BuildContext context, Songs song, int rank, String artistPhotoUrl,List<Songs> playlist) {
     final audioProvider =
         Provider.of<AudioPlayerProvider>(context, listen: false);
+        final songWithThumbnail = song.copyWith(
+      thumbnail: song.thumbnail.isNotEmpty ? song.thumbnail : artistPhotoUrl,
+    );
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final color = isDark ? Colors.white : Colors.black;
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
       leading: Row(
@@ -403,12 +572,131 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(fontWeight: FontWeight.w600),
       ),
-      trailing: const Icon(Icons.more_vert),
+
+      trailing: FutureBuilder<bool>(
+        future: repostService.isSongReposted(songWithThumbnail.id),
+        builder: (context, snapshot) {
+          final currentlyReposted = snapshot.data ?? false;
+          final isRepostCheckLoading = snapshot.connectionState == ConnectionState.waiting;
+
+          return PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert_rounded),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            onSelected: (value) async {
+                                              final prefs = await SharedPreferences.getInstance();
+                                              final token = prefs.getString('token');
+
+                                              if (token == null || token.isEmpty) {
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                    const SnackBar(content: Text('Vui lòng đăng nhập để sử dụng tính năng này 🔒'), duration: Duration(seconds: 2)));
+                                                Future.delayed(const Duration(seconds: 1), () {
+                                                  Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+                                                });
+                                                return;
+                                              }
+                                  
+                                              if (value == 'favorite') {
+                                                favoriteService.addFavorite(songWithThumbnail);
+                                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã thêm vào yêu thích 💙'), duration: Duration(seconds: 1)));
+                                                
+                                              } else if (value == 'playlist') {
+                                                _showAddToPlaylistDialog(songWithThumbnail);
+                                                
+                                              } else if (value == 'repost_toggle') {
+                                    
+                                                final bool currentlyReposted = await repostService.isSongReposted(songWithThumbnail.id);
+                                                try {
+                                                  final newStatus = await repostService.toggleRepost(songWithThumbnail, currentlyReposted);
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    SnackBar(
+                                                      content: Text(newStatus ? 'Đã Repost lên Profile!' : 'Đã hủy Repost.'),
+                                                      backgroundColor: newStatus ? Colors.green : Colors.grey,
+                                                    ),
+                                                  );
+                                                 
+                                                } catch (e) {
+                                                     ScaffoldMessenger.of(context).showSnackBar(
+                                                    SnackBar(content: Text('Lỗi Repost: ${e.toString().replaceFirst('Exception: ', '')}')),
+                                                  );
+                                                }
+                                              }
+                                            },
+            color: isDark ? const Color(0xFF2E2E2E) : Colors.white,
+            itemBuilder: (context) => [
+              // Thêm vào yêu thích
+              PopupMenuItem<String>(
+                value: 'favorite',
+                child: Row(
+                  children: [
+                    Icon(Icons.favorite_border, color: Colors.red),
+                    const SizedBox(width: 10),
+                    Text('Thêm vào yêu thích', style: TextStyle(color: color)),
+                  ],
+                ),
+              ),
+              // Thêm vào playlist
+              PopupMenuItem<String>(
+                value: 'playlist',
+                child: Row(
+                  children: [
+                    Icon(Icons.playlist_add, color: color),
+                    const SizedBox(width: 10),
+                    Text('Thêm vào playlist khác', style: TextStyle(color: color)),
+                  ],
+                ),
+              ),
+              // Repost/Hủy Repost
+              PopupMenuItem<String>(
+                value: 'repost_toggle',
+                child: isRepostCheckLoading
+                    ? const Row(
+                        children: [
+                          SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          SizedBox(width: 10),
+                          Text('Đang tải trạng thái...'),
+                        ],
+                      )
+                    : Row(
+                        children: [
+                          Icon(
+                            Icons.repeat,
+                            color: currentlyReposted
+                                ? theme.primaryColor // Màu nổi bật khi đã repost
+                                : Colors.grey.shade600,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            currentlyReposted ? 'Hủy Repost' : 'Repost lên Profile',
+                            style: TextStyle(
+                              color: currentlyReposted
+                                  ? theme.primaryColor
+                                  : color,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ],
+          );
+        },
+      ),
       onTap: () {
         if (song.thumbnail.isEmpty) {
           song.thumbnail = artistPhotoUrl;
         }
-        audioProvider.playSong(song);
+        final indexToPlay = playlist.indexOf(song);
+        if (indexToPlay != -1) {
+          Provider.of<AudioPlayerProvider>(context, listen: false)
+              .setNewPlaylist(playlist, indexToPlay);
+        } else {
+          audioProvider.playSong(song);
+        }
       },
     );
   }
