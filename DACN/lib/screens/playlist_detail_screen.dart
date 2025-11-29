@@ -465,9 +465,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                               ],
                             ),
                           ),
-                          const SizedBox(
-                              height:
-                                  16), // Khoảng cách giữa nút và danh sách bài hát
+                          const SizedBox(height: 16),
                           ListView.separated(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
@@ -480,17 +478,17 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                               return Dismissible(
                                 key: ValueKey(song.id),
                                 direction: DismissDirection.endToStart,
-                                onDismissed: (direction) async {
+                                confirmDismiss: (direction) async {
                                   final prefs =
                                       await SharedPreferences.getInstance();
                                   final token = prefs.getString('token');
-                                  if (token == null) return;
+                                  if (token == null) return false;
 
                                   final success =
                                       await ApiPlaylist.removeSongFromPlaylist(
                                     token,
                                     widget.playlist.id,
-                                    song.id,
+                                    song.songId,
                                   );
 
                                   if (mounted) {
@@ -503,11 +501,13 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                                             success ? Colors.green : Colors.red,
                                       ),
                                     );
-                                    if (success) {
-                                      setState(() {
-                                        songs.removeAt(index);
-                                      });
-                                    }
+                                  }
+
+                                  return success;
+                                },
+                                onDismissed: (direction) {
+                                  if (mounted) {
+                                    setState(() => songs.removeAt(index));
                                   }
                                 },
                                 background: Container(
