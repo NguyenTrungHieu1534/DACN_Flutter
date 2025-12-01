@@ -34,85 +34,99 @@ class _SearchPageState extends State<SearchScreen> {
   final int _minQueryLength = 3;
 
   void handleSearch(String query) async {
-if (query.trim().isEmpty) return;
+    if (query.trim().isEmpty) return;
 
- if (!mounted) return;
-setState(() {
-isLoading = true;
+    if (!mounted) return;
+    setState(() {
+    isLoading = true;
+    });
+    try {
+    final data = await songService.searchSongs(query);
+    final users = await _userService.searchUsers(query); 
+    if (query != _activeQuery) {
+        return; 
+    }
+    final List<Songs> songs = [];
+    final List<Map<String, dynamic>> artists = [];
+    final List<Map<String, dynamic>> albumsData = [];
+    for (final item in data) {
+    if (item is Map<String, dynamic>) {
+    final type = item['type'];
+    if (type == 'song' || item.containsKey('mp3Url')) {
+    songs.add(Songs.fromJson(item));
+    } else if (type == 'album' || (item.containsKey('name') && item.containsKey('artist') && !item.containsKey('mp3Url'))) {
+    albumsData.add(item);
+    } else if (type == 'artist' || item.containsKey('followerCount')) {
 
-history.remove(query);
-history.insert(0, query);
-});
-try {
- final data = await songService.searchSongs(query);
-final users = await _userService.searchUsers(query); 
- 
- final List<Songs> songs = [];
- final List<Map<String, dynamic>> artists = [];
-final List<Map<String, dynamic>> albumsData = [];
-for (final item in data) {
- if (item is Map<String, dynamic>) {
- final type = item['type'];
- if (type == 'song' || item.containsKey('mp3Url')) {
- songs.add(Songs.fromJson(item));
- } else if (type == 'album' || (item.containsKey('name') && item.containsKey('artist'))) {
- albumsData.add(item);
-} else if (type == 'artist' || item.containsKey('followerCount')) {
+    artists.add(item);
+    }
+    }
+    }
+          
+      final Map<String, String> albumCoverCache = {};
+            
+      final updatedSongs = await Future.wait(
+      songs.map((song) async {
+        if (song.thumbnail.isNotEmpty) return song;
+        final albumName = song.album;
+        if (albumName.isEmpty) return song; 
 
- artists.add(item);
-}
-}
- }
-      
-final Map<String, String> albumCoverCache = {};
-      
- final updatedSongs = await Future.wait(
- songs.map((song) async {
-if (song.thumbnail.isNotEmpty) return song;
-final albumName = song.album;
- if (albumName.isEmpty) return song; 
+        if (!albumCoverCache.containsKey(albumName)) {
+          albumCoverCache[albumName] = await AlbumService.fetchAlbumCover(albumName);
+        }   
+        return song.copyWith(thumbnail: albumCoverCache[albumName]);
+      }),
+    );
+    final updatedAlbums = await Future.wait(
+      albumsData.map((album) async {
+        final albumName = album['name'];
+        final imageUrl = album['image'] as String?;
+    if (imageUrl != null && imageUrl.isNotEmpty) return album;
 
-if (!albumCoverCache.containsKey(albumName)) {
- albumCoverCache[albumName] = await AlbumService.fetchAlbumCover(albumName);
- }
- return song.copyWith(thumbnail: albumCoverCache[albumName]);
- }),
- );
- final updatedAlbums = await Future.wait(
- albumsData.map((album) async {
- final albumName = album['name'];
- final imageUrl = album['image'] as String?;
- if (imageUrl != null && imageUrl.isNotEmpty) return album;
- if (!albumCoverCache.containsKey(albumName)) {
- albumCoverCache[albumName] = await AlbumService.fetchAlbumCover(albumName);
- }
- return {
- ...album,
-'image': albumCoverCache[albumName],
- };
- }),
+    if (!albumCoverCache.containsKey(albumName)) {
+      albumCoverCache[albumName] = await AlbumService.fetchAlbumCover(albumName);
+    }
+    return {
+    ...album,
+    'image': albumCoverCache[albumName],
+    };
+  }),
 );
- if (!mounted) return;
- setState(() {
- songResults = updatedSongs;
+        if (query != _activeQuery) {
+            return; 
+        }
+    if (!mounted) return;
+    setState(() {
+        songResults = updatedSongs;
 
-artistResults = artists.isNotEmpty ? artists : _deriveArtistsFromSongs(updatedSongs);
- albumResults = updatedAlbums.isNotEmpty ? updatedAlbums : _deriveAlbumsFromSongs(updatedSongs);
- userResults = users;
- isLoading = false;
- });
- } catch (e) {
- print("Search error: $e");
-if (!mounted) return;
- setState(() {
- songResults = [];
- artistResults = [];
- albumResults = [];
- userResults = [];
- isLoading = false;
- });
- }
- }
+        artistResults = artists.isNotEmpty ? artists : _deriveArtistsFromSongs(updatedSongs);
+        albumResults = updatedAlbums.isNotEmpty ? updatedAlbums : _deriveAlbumsFromSongs(updatedSongs);
+        userResults = users;
+        isLoading = false;
+    });
+    } catch (e) {
+    print("Search error: $e");
+    if (!mounted) return;
+        setState(() {
+        songResults = [];
+        artistResults = [];
+        albumResults = [];
+        userResults = [];
+        isLoading = false;
+    });
+    }
+    }
+
+void _onSearchSubmitted(String query) {
+  final trimmedQuery = query.trim();
+  if (trimmedQuery.isEmpty) return;
+    setState(() {
+      history.remove(trimmedQuery);
+      history.insert(0, trimmedQuery);
+    });
+  handleSearch(trimmedQuery);
+  }
+
 
   void _onQueryChanged(String value) {
  final trimmedValue = value.trim();
@@ -204,7 +218,7 @@ if (!mounted) return;
               child: TextField(
                 controller: searchController,
                 onChanged: _onQueryChanged,
-                onSubmitted: handleSearch,
+                onSubmitted: _onSearchSubmitted,
                 textInputAction: TextInputAction.search,
                 decoration: InputDecoration(
                   hintText: 'Search songs, artists, albums...',                  
