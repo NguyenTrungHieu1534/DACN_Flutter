@@ -34,35 +34,50 @@ class _SearchPageState extends State<SearchScreen> {
   final int _minQueryLength = 3;
 
   void handleSearch(String query) async {
-    if (query.trim().isEmpty) return;
-
+    final lowerQuery = query.trim().toLowerCase();
+    if (lowerQuery.isEmpty) return;
     if (!mounted) return;
-    setState(() {
-    isLoading = true;
-    });
+      setState(() {
+      isLoading = true;
+      });
     try {
     final data = await songService.searchSongs(query);
     final users = await _userService.searchUsers(query); 
     if (query != _activeQuery) {
         return; 
     }
-    final List<Songs> songs = [];
-    final List<Map<String, dynamic>> artists = [];
-    final List<Map<String, dynamic>> albumsData = [];
-    for (final item in data) {
-    if (item is Map<String, dynamic>) {
-    final type = item['type'];
-    if (type == 'song' || item.containsKey('mp3Url')) {
-    songs.add(Songs.fromJson(item));
-    } else if (type == 'album' || (item.containsKey('name') && item.containsKey('artist') && !item.containsKey('mp3Url'))) {
-    albumsData.add(item);
-    } else if (type == 'artist' || item.containsKey('followerCount')) {
+    final List<Songs> rawsongs = [];
+    final List<Map<String, dynamic>> rawartists = [];
+    final List<Map<String, dynamic>> rawalbumsData = [];
 
-    artists.add(item);
-    }
-    }
+    for (final item in data) {
+      if (item is Map<String, dynamic>) {
+        final type = item['type'];
+        if (type == 'song' || item.containsKey('mp3Url')) {
+          rawsongs.add(Songs.fromJson(item));
+        } else if (type == 'album' || (item.containsKey('name') && item.containsKey('artist') && !item.containsKey('mp3Url'))) {
+          rawalbumsData.add(item);
+        } else if (type == 'artist' || item.containsKey('followerCount')) {
+          rawartists.add(item);
+        }
+      }
     }
           
+    final List<Songs> songs = rawsongs.where((song) {
+      final titleMatch = song.title.toLowerCase().contains(lowerQuery);
+      final artistMatch = song.artist.toLowerCase().contains(lowerQuery);
+      return titleMatch || artistMatch;
+    }).toList();
+    final List<Map<String, dynamic>> albumsData = rawalbumsData.where((album) {
+      final albumName = album['name'] as String? ?? '';
+      final artistName = album['artist'] as String? ?? '';
+      return albumName.toLowerCase().contains(lowerQuery) || artistName.toLowerCase().contains(lowerQuery);
+    }).toList();
+    final List<Map<String, dynamic>> artists = rawartists.where((artist) {
+      final artistName = artist['name'] as String? ?? '';
+      return artistName.toLowerCase().contains(lowerQuery);
+    }).toList();
+
       final Map<String, String> albumCoverCache = {};
             
       final updatedSongs = await Future.wait(
@@ -99,8 +114,8 @@ class _SearchPageState extends State<SearchScreen> {
     setState(() {
         songResults = updatedSongs;
 
-        artistResults = artists.isNotEmpty ? artists : _deriveArtistsFromSongs(updatedSongs);
-        albumResults = updatedAlbums.isNotEmpty ? updatedAlbums : _deriveAlbumsFromSongs(updatedSongs);
+        artistResults = artists.isNotEmpty ? artists : _deriveArtistsFromSongs(updatedSongs, _activeQuery);
+        albumResults = updatedAlbums.isNotEmpty ? updatedAlbums : _deriveAlbumsFromSongs(updatedSongs, _activeQuery);
         userResults = users;
         isLoading = false;
     });
@@ -159,12 +174,14 @@ void _onSearchSubmitted(String query) {
  });
  }
 
-  List<Map<String, dynamic>> _deriveArtistsFromSongs(List<Songs> songs) {
+  List<Map<String, dynamic>> _deriveArtistsFromSongs(List<Songs> songs, String query) {
     final seen = <String>{};
     final List<Map<String, dynamic>> derived = [];
+    final lowerQuery = query.toLowerCase().trim();
     for (final s in songs) {
       final name = (s.artist).trim();
       if (name.isEmpty) continue;
+      if (!name.toLowerCase().contains(lowerQuery)) continue;
       if (seen.add(name.toLowerCase())) {
         derived.add({'name': name});
       }
@@ -174,13 +191,16 @@ void _onSearchSubmitted(String query) {
     return derived;
   }
 
-  List<Map<String, dynamic>> _deriveAlbumsFromSongs(List<Songs> songs) {
+  List<Map<String, dynamic>> _deriveAlbumsFromSongs(List<Songs> songs,String query) {
     final seen = <String>{};
     final List<Map<String, dynamic>> derived = [];
+    final lowerQuery = query.toLowerCase().trim();
     for (final s in songs) {
       final albumName = (s.album).trim();
       if (albumName.isEmpty) continue;
       final key = albumName.toLowerCase();
+      if (!albumName.toLowerCase().contains(lowerQuery)) continue;
+
       if (seen.add(key)) {
         derived.add({
           'name': albumName,
