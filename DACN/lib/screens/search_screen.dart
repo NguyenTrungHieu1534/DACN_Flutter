@@ -26,105 +26,124 @@ class _SearchPageState extends State<SearchScreen> {
   List<String> history = ["Love", "Rap", "Chill"];
   bool isLoading = false;
   String selectedFilter = "All";
+  String _activeQuery = '';
   final SongService songService = SongService();
   final TextEditingController searchController = TextEditingController();
   Timer? _debounce;
   final UserService _userService = UserService();
+  final int _minQueryLength = 3;
 
   void handleSearch(String query) async {
-    if (query.trim().isEmpty) return;
+if (query.trim().isEmpty) return;
 
-    if (!mounted) return;
-    setState(() {
-      isLoading = true;
-      history.remove(query);
-      history.insert(0, query);
-    });
+ if (!mounted) return;
+setState(() {
+isLoading = true;
 
-    try {
-      final data = await songService.searchSongs(query);
-      final users = await _userService.searchUsers(query);
-      final List<Songs> songs = [];
-      final List<Map<String, dynamic>> artists = [];
-      final List<Map<String, dynamic>> albumsData = [];
+history.remove(query);
+history.insert(0, query);
+});
+try {
+ final data = await songService.searchSongs(query);
+final users = await _userService.searchUsers(query); 
+ 
+ final List<Songs> songs = [];
+ final List<Map<String, dynamic>> artists = [];
+final List<Map<String, dynamic>> albumsData = [];
+for (final item in data) {
+ if (item is Map<String, dynamic>) {
+ final type = item['type'];
+ if (type == 'song' || item.containsKey('mp3Url')) {
+ songs.add(Songs.fromJson(item));
+ } else if (type == 'album' || (item.containsKey('name') && item.containsKey('artist'))) {
+ albumsData.add(item);
+} else if (type == 'artist' || item.containsKey('followerCount')) {
 
-      if (!mounted) return;
-      for (final item in data) {
-        if (item is Map<String, dynamic>) {
-          final type = item['type'];
-          if (type == 'song' || item.containsKey('title')) {
-            songs.add(Songs.fromJson(item));
-          } else if (type == 'album' || (item.containsKey('name') && item.containsKey('artist'))) {
-            albumsData.add(item);
-          } else if (type == 'artist' || item.containsKey('name')) {
-            artists.add(item);
-          }
-        }
-      }
+ artists.add(item);
+}
+}
+ }
+      
+final Map<String, String> albumCoverCache = {};
+      
+ final updatedSongs = await Future.wait(
+ songs.map((song) async {
+if (song.thumbnail.isNotEmpty) return song;
+final albumName = song.album;
+ if (albumName.isEmpty) return song; 
 
-      final Map<String, String?> albumCoverCache = {};
-      final updatedSongs = await Future.wait(
-        songs.map((song) async {
-          if (song.thumbnail.isNotEmpty) return song;
+if (!albumCoverCache.containsKey(albumName)) {
+ albumCoverCache[albumName] = await AlbumService.fetchAlbumCover(albumName);
+ }
+ return song.copyWith(thumbnail: albumCoverCache[albumName]);
+ }),
+ );
+ final updatedAlbums = await Future.wait(
+ albumsData.map((album) async {
+ final albumName = album['name'];
+ final imageUrl = album['image'] as String?;
+ if (imageUrl != null && imageUrl.isNotEmpty) return album;
+ if (!albumCoverCache.containsKey(albumName)) {
+ albumCoverCache[albumName] = await AlbumService.fetchAlbumCover(albumName);
+ }
+ return {
+ ...album,
+'image': albumCoverCache[albumName],
+ };
+ }),
+);
+ if (!mounted) return;
+ setState(() {
+ songResults = updatedSongs;
 
-          final albumName = song.album;
-          if (!albumCoverCache.containsKey(albumName)) {
-            albumCoverCache[albumName] = await AlbumService.fetchAlbumCover(albumName);
-          }
-          return song.copyWith(thumbnail: albumCoverCache[albumName]);
-        }),
-      );
-
-      final updatedAlbums = await Future.wait(
-        albumsData.map((album) async {
-          final albumName = album['name'];
-          if (!albumCoverCache.containsKey(albumName)) {
-            albumCoverCache[albumName] = await AlbumService.fetchAlbumCover(albumName);
-          }
-          return {
-            ...album,
-            'image': albumCoverCache[albumName],
-          };
-        }),
-      );
-
-      if (!mounted) return;
-      setState(() {
-        songResults = updatedSongs;
-        artistResults = artists.isNotEmpty ? artists : _deriveArtistsFromSongs(updatedSongs);
-        albumResults = updatedAlbums.isNotEmpty ? updatedAlbums : _deriveAlbumsFromSongs(updatedSongs);
-        userResults = users;
-        isLoading = false;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        songResults = [];
-        artistResults = [];
-        albumResults = [];
-        userResults = [];
-        isLoading = false;
-      });
-    }
-  }
+artistResults = artists.isNotEmpty ? artists : _deriveArtistsFromSongs(updatedSongs);
+ albumResults = updatedAlbums.isNotEmpty ? updatedAlbums : _deriveAlbumsFromSongs(updatedSongs);
+ userResults = users;
+ isLoading = false;
+ });
+ } catch (e) {
+ print("Search error: $e");
+if (!mounted) return;
+ setState(() {
+ songResults = [];
+ artistResults = [];
+ albumResults = [];
+ userResults = [];
+ isLoading = false;
+ });
+ }
+ }
 
   void _onQueryChanged(String value) {
-    _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 250), () {
-      if (!mounted) return;
-      if (value.trim().isNotEmpty) {
-        handleSearch(value.trim());
-      } else {
-        if (!mounted) return;
-        setState(() {
-          songResults = [];
-          artistResults = [];
-          albumResults = [];
-          userResults = [];
-        });
-      }
-    });
-  }
+ final trimmedValue = value.trim();
+ _debounce?.cancel();
+ 
+ final bool isShortOrEmpty = trimmedValue.isEmpty || trimmedValue.length < _minQueryLength;
+
+ if (isShortOrEmpty) {
+ if (!mounted) return;
+ setState(() {
+ songResults = [];
+ artistResults = [];
+ albumResults = [];
+ userResults = [];
+ _activeQuery = '';
+ });
+ return;
+ }
+
+ if (!mounted) return;
+ setState(() {
+ _activeQuery = trimmedValue;
+ if (selectedFilter != 'All') { 
+ selectedFilter = 'All';
+ }
+ });
+ _debounce = Timer(const Duration(milliseconds: 250), () {
+ if (!mounted) return;
+ handleSearch(trimmedValue); 
+ });
+ }
 
   List<Map<String, dynamic>> _deriveArtistsFromSongs(List<Songs> songs) {
     final seen = <String>{};
