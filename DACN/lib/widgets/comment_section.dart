@@ -1,11 +1,11 @@
-// widgets/comment_section.dart (Áp dụng xử lý lỗi an toàn)
+
 import 'package:flutter/material.dart';
 import '../models/comment.dart';
 import '../services/api_comment.dart';
 import '../services/socket_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'dart:developer'; // Thêm để debug tốt hơn
+import 'dart:developer';
 
 class CommentSection extends StatefulWidget {
   final String songId;
@@ -46,7 +46,7 @@ class _CommentSectionState extends State<CommentSection> {
         _comments = comments;
       });
     } catch (e) {
-      log("Error fetching comments: $e", name: "CommentSection"); // Dùng log
+      log("Error fetching comments: $e", name: "CommentSection");
     } finally {
       setState(() => _isLoading = false);
     }
@@ -82,8 +82,6 @@ class _CommentSectionState extends State<CommentSection> {
       await _fetchComments();
     } catch (e) {
       String displayError;
-
-      // Tách biệt việc tạo chuỗi lỗi để đảm bảo không bị lỗi runtime
       try {
         if (e is Exception) {
           displayError = e.toString().replaceFirst('Exception: ', '');
@@ -92,7 +90,6 @@ class _CommentSectionState extends State<CommentSection> {
         } else if (e is String) {
           displayError = e;
         } else {
-          // Trường hợp lỗi khó lường (như lỗi type string/int ẩn)
           displayError = 'Lỗi Runtime không xác định (Type: ${e.runtimeType})';
         }
       } catch (_) {
@@ -100,9 +97,6 @@ class _CommentSectionState extends State<CommentSection> {
       }
 
       log("Error adding comment: $e", name: "CommentSection - FINAL FIX");
-
-      // 💡 HÃY XEM CHÚ Ý NÀY TRÊN CONSOLE CỦA BẠN:
-      // Nó sẽ in ra RuntimeType của đối tượng lỗi, điều này là chìa khóa để debug sâu hơn.
       log("LỖI GỐC CÓ DẠNG: ${e.runtimeType}", name: "DEBUG KEY");
 
       if (mounted) {
@@ -118,7 +112,6 @@ class _CommentSectionState extends State<CommentSection> {
 
   @override
   Widget build(BuildContext context) {
-    // Widget Input comment (Giữ nguyên)
     final inputWidget = Padding(
       padding: const EdgeInsets.all(8.0),
       child: Row(
@@ -152,8 +145,6 @@ class _CommentSectionState extends State<CommentSection> {
         ],
       ),
     );
-
-    // Widget danh sách comment (Giữ nguyên)
     final listWidget = _isLoading
         ? const Center(child: CircularProgressIndicator(color: Colors.white70))
         : _comments.isEmpty
