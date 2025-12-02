@@ -37,20 +37,29 @@ class _SearchPageState extends State<SearchScreen> {
     final lowerQuery = query.trim().toLowerCase();
     if (lowerQuery.isEmpty) return;
     if (!mounted) return;
-      setState(() {
+    setState(() {
       isLoading = true;
-      });
+    });
+    List<dynamic> rawSongsData = [];
+    List<Map<String, dynamic>> usersData = [];
     try {
-    final data = await songService.searchSongs(query);
-    final users = await _userService.searchUsers(query); 
-    if (query != _activeQuery) {
-        return; 
+      rawSongsData = await songService.searchSongs(query);
+    } catch (e) {
+      print('Search Songs API failed: $e');
+    }
+    try {
+      usersData = await _userService.searchUsers(query);
+    } catch (e) {
+      print('Search Users API failed: $e');
+    }
+    if (query != _activeQuery || !mounted) {
+      return;
     }
     final List<Songs> rawsongs = [];
     final List<Map<String, dynamic>> rawartists = [];
     final List<Map<String, dynamic>> rawalbumsData = [];
 
-    for (final item in data) {
+    for (final item in rawSongsData) {
       if (item is Map<String, dynamic>) {
         final type = item['type'];
         if (type == 'song' || item.containsKey('mp3Url')) {
@@ -62,7 +71,6 @@ class _SearchPageState extends State<SearchScreen> {
         }
       }
     }
-          
     final List<Songs> songs = rawsongs.where((song) {
       final titleMatch = song.title.toLowerCase().contains(lowerQuery);
       final artistMatch = song.artist.toLowerCase().contains(lowerQuery);
@@ -77,60 +85,52 @@ class _SearchPageState extends State<SearchScreen> {
       final artistName = artist['name'] as String? ?? '';
       return artistName.toLowerCase().contains(lowerQuery);
     }).toList();
-
-      final Map<String, String> albumCoverCache = {};
-            
-      final updatedSongs = await Future.wait(
+    final List<Map<String, dynamic>> filteredUsers = usersData.where((user) {
+      final userRole = user['role'] as String? ?? 'user'; 
+      return userRole.toLowerCase() == 'user';
+    }).toList();
+    final Map<String, String> albumCoverCache = {};
+    final updatedSongs = await Future.wait(
       songs.map((song) async {
         if (song.thumbnail.isNotEmpty) return song;
-        final albumName = song.album;
-        if (albumName.isEmpty) return song; 
-
-        if (!albumCoverCache.containsKey(albumName)) {
-          albumCoverCache[albumName] = await AlbumService.fetchAlbumCover(albumName);
-        }   
-        return song.copyWith(thumbnail: albumCoverCache[albumName]);
-      }),
-    );
-    final updatedAlbums = await Future.wait(
-      albumsData.map((album) async {
-        final albumName = album['name'];
-        final imageUrl = album['image'] as String?;
-    if (imageUrl != null && imageUrl.isNotEmpty) return album;
-
+    final albumName = song.album;
+    if (albumName.isEmpty) return song; 
     if (!albumCoverCache.containsKey(albumName)) {
       albumCoverCache[albumName] = await AlbumService.fetchAlbumCover(albumName);
-    }
-    return {
-    ...album,
-    'image': albumCoverCache[albumName],
-    };
-  }),
-);
-        if (query != _activeQuery) {
-            return; 
-        }
-    if (!mounted) return;
-    setState(() {
-        songResults = updatedSongs;
+    } 
+    return song.copyWith(thumbnail: albumCoverCache[albumName]);
+      }),
+    );
+  
+  final updatedAlbums = await Future.wait(
+    albumsData.map((album) async {
+      final albumName = album['name'];
+ final imageUrl = album['image'] as String?;
+ if (imageUrl != null && imageUrl.isNotEmpty) return album;
 
-        artistResults = artists.isNotEmpty ? artists : _deriveArtistsFromSongs(updatedSongs, _activeQuery);
-        albumResults = updatedAlbums.isNotEmpty ? updatedAlbums : _deriveAlbumsFromSongs(updatedSongs, _activeQuery);
-        userResults = users;
-        isLoading = false;
-    });
-    } catch (e) {
-    print("Search error: $e");
-    if (!mounted) return;
-        setState(() {
-        songResults = [];
-        artistResults = [];
-        albumResults = [];
-        userResults = [];
-        isLoading = false;
-    });
-    }
-    }
+ if (!albumCoverCache.containsKey(albumName)) {
+ albumCoverCache[albumName] = await AlbumService.fetchAlbumCover(albumName);
+ }
+ return {
+ ...album,
+'image': albumCoverCache[albumName],
+ };
+    }),
+  );
+
+  if (query != _activeQuery || !mounted) {
+    return;
+  }
+
+  // 8. CẬP NHẬT GIAO DIỆN
+  setState(() {
+    songResults = updatedSongs;
+    artistResults = artists.isNotEmpty ? artists : _deriveArtistsFromSongs(updatedSongs, _activeQuery);
+    albumResults = updatedAlbums.isNotEmpty ? updatedAlbums : _deriveAlbumsFromSongs(updatedSongs, _activeQuery);
+    userResults = filteredUsers;
+    isLoading = false;
+  });
+}
 
 void _onSearchSubmitted(String query) {
   final trimmedQuery = query.trim();
@@ -277,7 +277,7 @@ void _onSearchSubmitted(String query) {
             Expanded(
               child: isLoading
                   ? _buildShimmerLoading()
-                  : (songResults.isEmpty && artistResults.isEmpty && albumResults.isEmpty)
+                  : (songResults.isEmpty && artistResults.isEmpty && albumResults.isEmpty && userResults.isEmpty)
                       ? _buildHistoryList()
                       : _buildSectionedResults(),
             )
