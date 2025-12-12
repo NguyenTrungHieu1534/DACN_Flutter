@@ -69,7 +69,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           }
           if (snapshot.hasError) {
             return Center(
-                child: Text("Lỗi tải dữ liệu 😢",
+                child: Text("Error loading data 😢",
                     style: TextStyle(color: theme.colorScheme.error)));
           }
           final history = snapshot.data ?? [];
@@ -85,7 +85,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 flexibleSpace: FlexibleSpaceBar(
                   centerTitle: true,
                   title: Text(
-                    'Lịch sử nghe',
+                    'Listening History',
                     style: TextStyle(
                       color: isDarkMode ? Colors.white : Colors.black,
                       fontWeight: FontWeight.bold,
@@ -118,7 +118,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 const SliverFillRemaining(
                   child: Center(
                     child: Text(
-                      'Lịch sử của bạn trống trơn ',
+                      'Your history is empty ',
                       style: TextStyle(fontSize: 16, color: Colors.grey),
                     ),
                   ),
@@ -201,7 +201,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                       content: Text(
-                                          'Không đủ thông tin để mở album.')),
+                                          'Not enough information to open album.')),
                                 );
                               }
                             },

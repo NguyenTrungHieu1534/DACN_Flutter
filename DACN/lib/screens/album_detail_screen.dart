@@ -89,7 +89,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
           return AlertDialog(
             backgroundColor: Theme.of(localContext).dialogBackgroundColor,
             title: Text(
-              'Thêm vào Playlist',
+              'Add to Playlist',
               style: TextStyle(
                 color: Theme.of(localContext).textTheme.titleLarge?.color,
               ),
@@ -100,7 +100,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (playlists.isEmpty)
-                    const Text('Bạn chưa có playlist nào. Hãy tạo một cái mới!'),
+                    const Text('You don''t have any playlists yet. Let''s create a new one!'),
                   ...playlists.map((p) => ListTile(
                         title: Text(p.name),
                         onTap: () async {
@@ -115,12 +115,12 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
               TextButton(
                 onPressed: () =>
                     Navigator.of(localContext, rootNavigator: true).pop(),
-                child: const Text('Hủy'),
+                child: const Text('Cancel'),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.of(localContext, rootNavigator: true)
                     .pop('new_playlist'),
-                child: const Text('Tạo Playlist Mới'),
+                child: const Text('Create New Playlist'),
               ),
             ],
           );
@@ -136,7 +136,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
       Navigator.of(localContext, rootNavigator: true).pop();
       if (!mounted) return;
       ScaffoldMessenger.of(localContext).showSnackBar(
-        SnackBar(content: Text('Lỗi tải danh sách playlist: $e')),
+        SnackBar(content: Text('Error loading playlists: $e')),
       );
     }
   }
@@ -152,8 +152,8 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(success
-              ? 'Đã thêm bài hát vào playlist!'
-              : 'Thêm bài hát thất bại.'),
+              ? 'Song added to playlist!'
+              : 'Failed to add song to playlist.'),
         ),
       );
     }
@@ -166,14 +166,14 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
       builder: (context) => AlertDialog(
         backgroundColor: Theme.of(context).dialogBackgroundColor,
         title: Text(
-          'Tạo Playlist Mới',
+          'Create New Playlist',
           style:
               TextStyle(color: Theme.of(context).textTheme.titleLarge?.color),
         ),
         content: TextField(
           controller: nameController,
           decoration: InputDecoration(
-            hintText: "Tên playlist",
+            hintText: "Playlist name",
             hintStyle: TextStyle(
                 color: Theme.of(context)
                     .textTheme
@@ -191,10 +191,10 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context), child: const Text('Hủy')),
+              onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, nameController.text.trim()),
-            child: const Text('Tạo'),
+            child: const Text('Create'),
           ),
         ],
       ),
@@ -212,8 +212,8 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text(newPlaylist != null
-                  ? 'Đã tạo playlist "$newPlaylistName"!'
-                  : 'Tạo playlist mới thất bại.')),
+                  ? 'Playlist "$newPlaylistName" created!'
+                  : 'Failed to create new playlist.')),
         );
       }
       if (newPlaylist != null) {
@@ -397,7 +397,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                 } else if (snapshot.hasError) {
                   return Center(
                     child: Text(
-                      'Lỗi: ${snapshot.error}',
+                      'Error: ${snapshot.error}',
                       style:
                           TextStyle(color: Theme.of(context).colorScheme.error),
                     ),
@@ -405,7 +405,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return Center(
                     child: Text(
-                      'Không có bài hát trong album này 😢',
+                      'No songs in this album 😢',
                       style: TextStyle(
                         color: Theme.of(context)
                             .textTheme
@@ -576,7 +576,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
 
                                               if (token == null || token.isEmpty) {
                                                 ScaffoldMessenger.of(context).showSnackBar(
-                                                    const SnackBar(content: Text('Vui lòng đăng nhập để sử dụng tính năng này 🔒'), duration: Duration(seconds: 2)));
+                                                    const SnackBar(content: Text('Please log in to use this feature 🔒'), duration: Duration(seconds: 2)));
                                                 Future.delayed(const Duration(seconds: 1), () {
                                                   Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
                                                 });
@@ -585,7 +585,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                   
                                               if (value == 'favorite') {
                                                 favoriteService.addFavorite(songWithThumbnail);
-                                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã thêm vào yêu thích 💙'), duration: Duration(seconds: 1)));
+                                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Added to favorites 💙'), duration: Duration(seconds: 1)));
                                                 
                                               } else if (value == 'playlist') {
                                                 _showAddToPlaylistDialog(songWithThumbnail);
@@ -597,14 +597,14 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                                   final newStatus = await repostService.toggleRepost(songWithThumbnail, currentlyReposted);
                                                   ScaffoldMessenger.of(context).showSnackBar(
                                                     SnackBar(
-                                                      content: Text(newStatus ? 'Đã Repost lên Profile!' : 'Đã hủy Repost.'),
+                                                      content: Text(newStatus ? 'Reposted to Profile!' : 'Repost cancelled.'),
                                                       backgroundColor: newStatus ? Colors.green : Colors.grey,
                                                     ),
                                                   );
                                                  
                                                 } catch (e) {
                                                      ScaffoldMessenger.of(context).showSnackBar(
-                                                    SnackBar(content: Text('Lỗi Repost: ${e.toString().replaceFirst('Exception: ', '')}')),
+                                                    SnackBar(content: Text('Repost Error: ${e.toString().replaceFirst('Exception: ', '')}')),
                                                   );
                                                 }
                                               }
@@ -616,12 +616,12 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                                 PopupMenuItem(
                                                   value: 'favorite',
                                            
-                                                  child: Row(children: [const Icon(Icons.favorite_border, color: Colors.redAccent), const SizedBox(width: 10), Text('Thêm vào yêu thích', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color))]),
+                                                  child: Row(children: [const Icon(Icons.favorite_border, color: Colors.redAccent), const SizedBox(width: 10), Text('Add to favorites', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color))]),
                                                 ),
                                                 PopupMenuItem(
                                                   value: 'playlist',
                                             
-                                                  child: Row(children: [Icon(Icons.playlist_add, color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor : AppColors.oceanBlue), const SizedBox(width: 10), Text('Thêm vào playlist khác', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color))]),
+                                                  child: Row(children: [Icon(Icons.playlist_add, color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColor : AppColors.oceanBlue), const SizedBox(width: 10), Text('Add to another playlist', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color))]),
                                                 ),
                                                 
                                                 PopupMenuItem<String>(
@@ -630,14 +630,14 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen>
                                                     future: repostService.isSongReposted(songWithThumbnail.id),
                                                     builder: (context, snapshot) {
                                                       final isReposted = snapshot.data ?? false;
-                                                      final String label = isReposted ? 'Hủy Repost' : 'Repost lên Profile';
+                                                      final String label = isReposted ? 'Cancel Repost' : 'Repost to Profile';
                                                       final Color iconColor = isReposted ? Theme.of(context).primaryColor : Colors.grey;
                                                       if (snapshot.connectionState == ConnectionState.waiting) {
                                                         return Row(
                                                           children: [
                                                             SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2.0)),
                                                             const SizedBox(width: 10),
-                                                            Text('Đang kiểm tra Repost...', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color?.withOpacity(0.5))),
+                                                            Text('Checking Repost status...', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color?.withOpacity(0.5))),
                                                           ],
                                                         );
                                                       }

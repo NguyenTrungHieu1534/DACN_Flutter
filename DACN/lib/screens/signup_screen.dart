@@ -48,7 +48,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         Navigator.pushReplacementNamed(context, '/login');
       }
     } else {
-      final message = response['message']?.toString() ?? 'Đăng ký thất bại!';
+      final message = response['message']?.toString() ?? 'Sign up failed!';
       setState(() => _errorMessage = message);
     }
   }
@@ -185,12 +185,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               TextFormField(
                                 controller: _usernameController,
                                 decoration: const InputDecoration(
-                                  labelText: 'Tên người dùng',
+                                  labelText: 'Username',
                                   prefixIcon: Icon(Icons.person_outline),
                                 ),
                                 validator: (value) {
                                   if (value == null || value.trim().isEmpty) {
-                                    return 'Vui lòng nhập tên';
+                                    return 'Please enter a username';
                                   }
                                   return null;
                                 },
@@ -205,10 +205,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 ),
                                 validator: (value) {
                                   if (value == null || value.trim().isEmpty) {
-                                    return 'Vui lòng nhập email';
+                                    return 'Please enter an email';
                                   }
                                   final email = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
-                                  if (!email.hasMatch(value.trim())) return 'Email không hợp lệ';
+                                  if (!email.hasMatch(value.trim())) return 'Invalid email';
                                   return null;
                                 },
                               ),
@@ -217,7 +217,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 controller: _passwordController,
                                 obscureText: _obscure,
                                 decoration: InputDecoration(
-                                  labelText: 'Mật khẩu',
+                                  labelText: 'Password',
                                   prefixIcon: const Icon(Icons.lock_outline),
                                   suffixIcon: IconButton(
                                     onPressed: () => setState(() => _obscure = !_obscure),
@@ -225,8 +225,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   ),
                                 ),
                                 validator: (value) {
-                                  if (value == null || value.isEmpty) return 'Vui lòng nhập mật khẩu';
-                                  if (value.length < 6) return 'Mật khẩu phải ít nhất 6 ký tự';
+                                  if (value == null || value.isEmpty) return 'Please enter a password';
+                                  if (value.length < 6) return 'Password must be at least 6 characters';
                                   return null;
                                 },
                               ),
@@ -253,17 +253,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                             valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                           ),
                                         )
-                                      : const Text('Tạo tài khoản'),
+                                      : const Text('Create account'),
                                 ),
                               ),
                               const SizedBox(height: 12),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Text('Đã có tài khoản?'),
+                                  const Text('Already have an account?'),
                                   TextButton(
                                     onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
-                                    child: const Text('Đăng nhập'),
+                                    child: const Text('Log in'),
                                   ),
                                 ],
                               ),

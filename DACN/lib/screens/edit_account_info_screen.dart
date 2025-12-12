@@ -43,10 +43,10 @@ class _EditAccountInfoScreenState extends State<EditAccountInfoScreen> {
           _isLoading = false;
         });
       } catch (e) {
-        _showError("Lỗi giải mã thông tin người dùng.");
+        _showError("Error decoding user information.");
       }
     } else {
-      _showError("Không tìm thấy thông tin đăng nhập.");
+      _showError("Login information not found.");
     }
   }
 
@@ -77,7 +77,7 @@ class _EditAccountInfoScreenState extends State<EditAccountInfoScreen> {
     final newUsername = _usernameController.text.trim();
     final newEmail = _emailController.text.trim();
     bool changed = false;
-    String finalMessage = "Không có gì thay đổi.";
+    String finalMessage = "Nothing changed.";
     if (newUsername != _initialUsername) {
       final result = await _userService.updateUsername(
         userId: _userId!,
@@ -127,7 +127,7 @@ class _EditAccountInfoScreenState extends State<EditAccountInfoScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Chỉnh sửa thông tin"),
+        title: const Text("Edit Information"),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -141,13 +141,13 @@ class _EditAccountInfoScreenState extends State<EditAccountInfoScreen> {
                     TextFormField(
                       controller: _usernameController,
                       decoration: const InputDecoration(
-                        labelText: 'Tên người dùng',
+                        labelText: 'Username',
                         prefixIcon: Icon(Icons.person_outline),
                         border: OutlineInputBorder(),
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'Tên người dùng không được để trống';
+                          return 'Username cannot be empty';
                         }
                         return null;
                       },
@@ -163,7 +163,7 @@ class _EditAccountInfoScreenState extends State<EditAccountInfoScreen> {
                       keyboardType: TextInputType.emailAddress,
                       validator: (value) {
                         if (value == null || !value.contains('@')) {
-                          return 'Vui lòng nhập email hợp lệ';
+                          return 'Please enter a valid email';
                         }
                         return null;
                       },
@@ -176,7 +176,7 @@ class _EditAccountInfoScreenState extends State<EditAccountInfoScreen> {
                           : const Icon(Icons.save_alt_outlined),
                       label: _isSaving
                           ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text('Lưu thay đổi'),
+                          : const Text('Save Changes'),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),

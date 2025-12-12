@@ -70,7 +70,7 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
           _notifications = [];
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Đã xóa tất cả thông báo')),
+          const SnackBar(content: Text('All notifications cleared')),
         );
       }
     }
@@ -80,12 +80,12 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Thông báo'),
+        title: const Text('Notifications'),
         actions: [
           if (_notifications.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.delete_sharp),
-              tooltip: 'Xóa tất cả',
+              tooltip: 'Clear all',
               onPressed: _clearNotifications,
             ),
         ],
@@ -95,7 +95,7 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
           : _notifications.isEmpty
               ? const Center(
                   child: Text(
-                    'Không có thông báo nào.',
+                    'No notifications.',
                     style: TextStyle(fontSize: 16),
                   ),
                 )

@@ -115,7 +115,7 @@ Future<void> _showAddToPlaylistDialog(Songs song) async {
           return AlertDialog(
             backgroundColor: Theme.of(localContext).dialogBackgroundColor,
             title: Text(
-              'Thêm vào Playlist',
+              'Add to Playlist',
               style: TextStyle(
                 color: Theme.of(localContext).textTheme.titleLarge?.color,
               ),
@@ -126,7 +126,7 @@ Future<void> _showAddToPlaylistDialog(Songs song) async {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (playlists.isEmpty)
-                    const Text('Bạn chưa có playlist nào. Hãy tạo một cái mới!'),
+                    const Text('You don''t have any playlists yet. Create a new one!'),
                   ...playlists.map((p) => ListTile(
                         title: Text(p.name),
                         onTap: () async {
@@ -141,12 +141,12 @@ Future<void> _showAddToPlaylistDialog(Songs song) async {
               TextButton(
                 onPressed: () =>
                     Navigator.of(localContext, rootNavigator: true).pop(),
-                child: const Text('Hủy'),
+                child: const Text('Cancel'),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.of(localContext, rootNavigator: true)
                     .pop('new_playlist'),
-                child: const Text('Tạo Playlist Mới'),
+                child: const Text('Create New Playlist',),
               ),
             ],
           );
@@ -162,7 +162,7 @@ Future<void> _showAddToPlaylistDialog(Songs song) async {
       Navigator.of(localContext, rootNavigator: true).pop();
       if (!mounted) return;
       ScaffoldMessenger.of(localContext).showSnackBar(
-        SnackBar(content: Text('Lỗi tải danh sách playlist: $e')),
+        SnackBar(content: Text('Error loading playlists: $e')),
       );
     }
   }
@@ -178,8 +178,8 @@ Future<void> _addSongToExistingPlaylist(Songs song, String playlistId) async {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(success
-              ? 'Đã thêm bài hát vào playlist!'
-              : 'Thêm bài hát thất bại.'),
+              ? 'Song added to playlist!'
+              : 'Failed to add song to playlist.'),
         ),
       );
     }
@@ -192,14 +192,14 @@ Future<void> _addSongToExistingPlaylist(Songs song, String playlistId) async {
       builder: (context) => AlertDialog(
         backgroundColor: Theme.of(context).dialogBackgroundColor,
         title: Text(
-          'Tạo Playlist Mới',
+          'Create New Playlist',
           style:
               TextStyle(color: Theme.of(context).textTheme.titleLarge?.color),
         ),
         content: TextField(
           controller: nameController,
           decoration: InputDecoration(
-            hintText: "Tên playlist",
+            hintText: "Playlist name",
             hintStyle: TextStyle(
                 color: Theme.of(context)
                     .textTheme
@@ -216,10 +216,10 @@ Future<void> _addSongToExistingPlaylist(Songs song, String playlistId) async {
           style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Hủy')),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, nameController.text.trim()),
-            child: const Text('Tạo'),
+            child: const Text('Create'),
           ),
         ],
       ),
@@ -237,8 +237,8 @@ Future<void> _addSongToExistingPlaylist(Songs song, String playlistId) async {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text(newPlaylist != null
-                  ? 'Đã tạo playlist "${newPlaylistName}"!'
-                  : 'Tạo playlist mới thất bại.')),
+                  ? 'Playlist "${newPlaylistName}" created!'
+                  : 'Failed to create new playlist.')),
         );
       }
       if (newPlaylist != null) {
@@ -261,7 +261,7 @@ Future<void> _showPlayerOptions(BuildContext buttonContext, Songs song) async {
   // 1. KIỂM TRA ĐĂNG NHẬP
   if (token == null || token.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Vui lòng đăng nhập để sử dụng tính năng này 🔒'), duration: Duration(seconds: 2)));
+      const SnackBar(content: Text('Please log in to use this feature 🔒'), duration: Duration(seconds: 2)));
     // (Thêm logic điều hướng đến LoginScreen nếu cần)
     return;
   }
@@ -279,12 +279,12 @@ Future<void> _showPlayerOptions(BuildContext buttonContext, Songs song) async {
       // MỤC 1: Thêm vào Yêu thích
       PopupMenuItem(
         value: 'favorite',
-        child: Row(children: [const Icon(Icons.favorite_border, color: Colors.redAccent), const SizedBox(width: 10), Text('Thêm vào yêu thích')]),
+        child: Row(children: [const Icon(Icons.favorite_border, color: Colors.redAccent), const SizedBox(width: 10), Text('Add to favorites')]),
       ),
       // MỤC 2: Thêm vào Playlist
       PopupMenuItem(
         value: 'playlist',
-        child: Row(children: [const Icon(Icons.playlist_add, color: Colors.blueAccent), const SizedBox(width: 10), Text('Thêm vào playlist khác')]),
+        child: Row(children: [const Icon(Icons.playlist_add, color: Colors.blueAccent), const SizedBox(width: 10), Text('Add to another playlist')]),
       ),
       // MỤC 3: REPOST (Hiển thị trạng thái không đồng bộ)
       await _buildRepostMenuItem(songWithFullData),
@@ -294,7 +294,7 @@ Future<void> _showPlayerOptions(BuildContext buttonContext, Songs song) async {
   // 3. XỬ LÝ KẾT QUẢ CHỌN
   if (result == 'favorite') {
     favoriteService.addFavorite(songWithFullData);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã thêm vào yêu thích 💙'), duration: Duration(seconds: 1)));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Added to favorites 💙'), duration: Duration(seconds: 1)));
   } else if (result == 'playlist') {
     _showAddToPlaylistDialog(songWithFullData);
   } else if (result == 'repost_toggle') {
@@ -303,13 +303,13 @@ Future<void> _showPlayerOptions(BuildContext buttonContext, Songs song) async {
       final newStatus = await repostService.toggleRepost(songWithFullData, currentlyReposted);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(newStatus ? 'Đã Repost lên Profile!' : 'Đã hủy Repost.'),
+          content: Text(newStatus ? 'Reposted to Profile!' : 'Repost cancelled.'),
           backgroundColor: newStatus ? Colors.green : Colors.grey,
         ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi Repost: ${e.toString().replaceFirst('Exception: ', '')}')),
+        SnackBar(content: Text('Repost Error: ${e.toString().replaceFirst('Exception: ', '')}')),
       );
     }
   }
@@ -1037,7 +1037,7 @@ Future<PopupMenuItem<String>> _buildRepostMenuItem(Songs song) async {
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Hủy'),
+              child: const Text('Cancel'),
               onPressed: () {
                 Navigator.of(context).pop();
               },

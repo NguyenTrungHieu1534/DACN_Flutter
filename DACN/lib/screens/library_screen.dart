@@ -87,7 +87,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       });
     } catch (e) {
       setState(() {
-        _error = 'Không thể tải playlist';
+        _error = 'Could not load playlists';
         _isLoading = false;
       });
     }
@@ -111,7 +111,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
         title: const Text('Library'),
         actions: [
           IconButton(
-            tooltip: 'Chuyển đổi layout',
+            tooltip: 'Toggle layout',
             onPressed: () async {
               setState(() => _showAsGrid = !_showAsGrid);
               final prefs = await SharedPreferences.getInstance();
@@ -486,18 +486,18 @@ class _LibraryScreenState extends State<LibraryScreen> {
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Xóa Playlist?'),
+        title: const Text('Delete Playlist?'),
         content: Text(
-            'Bạn có chắc chắn muốn xóa playlist "${playlist.name}" không? Hành động này không thể hoàn tác.'),
+            'Are you sure you want to delete playlist "${playlist.name}"? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Hủy'),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Xóa'),
+            child: const Text('Delete'),
           ),
         ],
       ),
@@ -514,8 +514,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(success
-                ? 'Đã xóa playlist "${playlist.name}"'
-                : 'Xóa playlist thất bại.'),
+                ? 'Deleted playlist "${playlist.name}"'
+                : 'Failed to delete playlist.'),
             backgroundColor: success ? Colors.green : Colors.red,
           ),
         );

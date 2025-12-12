@@ -127,7 +127,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
     final token = prefs.getString('token');
     if (token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bạn cần đăng nhập để theo dõi.')),
+        const SnackBar(content: Text('You need to log in to follow.')),
       );
       return;
     }
@@ -171,7 +171,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
           return AlertDialog(
             backgroundColor: Theme.of(localContext).dialogBackgroundColor,
             title: Text(
-              'Thêm vào Playlist',
+              'Add to Playlist',
               style: TextStyle(
                 color: Theme.of(localContext).textTheme.titleLarge?.color,
               ),
@@ -182,7 +182,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (playlists.isEmpty)
-                    const Text('Bạn chưa có playlist nào. Hãy tạo một cái mới!'),
+                    const Text('You don''t have any playlists yet. Let''s create a new one!'),
                   ...playlists.map((p) => ListTile(
                         title: Text(p.name),
                         onTap: () async {
@@ -197,12 +197,12 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
               TextButton(
                 onPressed: () =>
                     Navigator.of(localContext, rootNavigator: true).pop(),
-                child: const Text('Hủy'),
+                child: const Text('Cancel'),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.of(localContext, rootNavigator: true)
                     .pop('new_playlist'),
-                child: const Text('Tạo Playlist Mới'),
+                child: const Text('Create New Playlist'),
               ),
             ],
           );
@@ -218,7 +218,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
       Navigator.of(localContext, rootNavigator: true).pop();
       if (!mounted) return;
       ScaffoldMessenger.of(localContext).showSnackBar(
-        SnackBar(content: Text('Lỗi tải danh sách playlist: $e')),
+        SnackBar(content: Text('Error loading playlists: $e')),
       );
     }
   }
@@ -234,8 +234,8 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(success
-              ? 'Đã thêm bài hát vào playlist!'
-              : 'Thêm bài hát thất bại.'),
+              ? 'Song added to playlist!'
+              : 'Failed to add song to playlist.'),
         ),
       );
     }
@@ -248,14 +248,14 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: Theme.of(context).dialogBackgroundColor,
         title: Text(
-          'Tạo Playlist Mới',
+          'Create New Playlist',
           style:
               TextStyle(color: Theme.of(context).textTheme.titleLarge?.color),
         ),
         content: TextField(
           controller: nameController,
           decoration: InputDecoration(
-            hintText: "Tên playlist",
+            hintText: "Playlist name",
             hintStyle: TextStyle(
                 color: Theme.of(context)
                     .textTheme
@@ -273,10 +273,10 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context), child: const Text('Hủy')),
+              onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, nameController.text.trim()),
-            child: const Text('Tạo'),
+            child: const Text('Create'),
           ),
         ],
       ),
@@ -294,8 +294,8 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text(newPlaylist != null
-                  ? 'Đã tạo playlist "$newPlaylistName"!'
-                  : 'Tạo playlist mới thất bại.')),
+                  ? 'Playlist "$newPlaylistName" created!'
+                  : 'Failed to create new playlist.')),
         );
       }
       if (newPlaylist != null) {
@@ -315,7 +315,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
           }
           if (snapshot.hasError) {
             return Center(
-                child: Text('Lỗi tải dữ liệu nghệ sĩ: ${snapshot.error}'));
+                child: Text('Error loading artist data: ${snapshot.error}'));
           }
 
           final songs = snapshot.data?['songs'] as List<Songs>? ?? [];
@@ -403,7 +403,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                 _buildSectionHeader(context, 'Popular Songs'),
                 const SizedBox(height: 8),
                 if (popularSongs.isEmpty)
-                  const Text('Không có bài hát nổi bật.')
+                  const Text('No featured songs.')
                 else
                   ListView.builder(
                     shrinkWrap: true,
@@ -419,7 +419,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                 _buildSectionHeader(context, 'Albums'),
                 const SizedBox(height: 10),
                 if (albums.isEmpty)
-                  const Text('Không tìm thấy album nào.')
+                  const Text('No albums found.')
                 else
                   _buildAlbumList(context, albums),
               ],
@@ -588,7 +588,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
 
                                               if (token == null || token.isEmpty) {
                                                 ScaffoldMessenger.of(context).showSnackBar(
-                                                    const SnackBar(content: Text('Vui lòng đăng nhập để sử dụng tính năng này 🔒'), duration: Duration(seconds: 2)));
+                                                    const SnackBar(content: Text('Please log in to use this feature 🔒'), duration: Duration(seconds: 2)));
                                                 Future.delayed(const Duration(seconds: 1), () {
                                                   Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
                                                 });
@@ -597,7 +597,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                   
                                               if (value == 'favorite') {
                                                 favoriteService.addFavorite(songWithThumbnail);
-                                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã thêm vào yêu thích 💙'), duration: Duration(seconds: 1)));
+                                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Added to favorites 💙'), duration: Duration(seconds: 1)));
                                                 
                                               } else if (value == 'playlist') {
                                                 _showAddToPlaylistDialog(songWithThumbnail);
@@ -609,14 +609,14 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                                                   final newStatus = await repostService.toggleRepost(songWithThumbnail, currentlyReposted);
                                                   ScaffoldMessenger.of(context).showSnackBar(
                                                     SnackBar(
-                                                      content: Text(newStatus ? 'Đã Repost lên Profile!' : 'Đã hủy Repost.'),
+                                                      content: Text(newStatus ? 'Reposted to Profile!' : 'Repost cancelled.'),
                                                       backgroundColor: newStatus ? Colors.green : Colors.grey,
                                                     ),
                                                   );
                                                  
                                                 } catch (e) {
                                                      ScaffoldMessenger.of(context).showSnackBar(
-                                                    SnackBar(content: Text('Lỗi Repost: ${e.toString().replaceFirst('Exception: ', '')}')),
+                                                    SnackBar(content: Text('Repost Error: ${e.toString().replaceFirst('Exception: ', '')}')),
                                                   );
                                                 }
                                               }
@@ -629,7 +629,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                   children: [
                     Icon(Icons.favorite_border, color: Colors.red),
                     const SizedBox(width: 10),
-                    Text('Thêm vào yêu thích', style: TextStyle(color: color)),
+                    Text('Add to favorites', style: TextStyle(color: color)),
                   ],
                 ),
               ),
@@ -639,7 +639,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                   children: [
                     Icon(Icons.playlist_add, color: color),
                     const SizedBox(width: 10),
-                    Text('Thêm vào playlist khác', style: TextStyle(color: color)),
+                    Text('Add to another playlist', style: TextStyle(color: color)),
                   ],
                 ),
               ),
@@ -654,7 +654,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           ),
                           SizedBox(width: 10),
-                          Text('Đang tải trạng thái...'),
+                          Text('Loading status...'),
                         ],
                       )
                     : Row(
@@ -667,7 +667,7 @@ class _ArtistDetailScreenState extends State<ArtistDetailScreen> {
                           ),
                           const SizedBox(width: 10),
                           Text(
-                            currentlyReposted ? 'Hủy Repost' : 'Repost lên Profile',
+                            currentlyReposted ? 'Cancel Repost' : 'Repost to Profile',
                             style: TextStyle(
                               color: currentlyReposted
                                   ? theme.primaryColor

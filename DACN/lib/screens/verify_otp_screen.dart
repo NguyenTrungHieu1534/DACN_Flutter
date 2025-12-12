@@ -44,16 +44,16 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Xác minh OTP")),
+      appBar: AppBar(title: const Text("Verify OTP")),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            Text("Nhập mã OTP được gửi đến email: ${widget.email}"),
+            Text("Enter the OTP sent to email: ${widget.email}"),
             const SizedBox(height: 20),
             TextField(
               controller: _otpController,
-              decoration: const InputDecoration(labelText: 'Mã OTP'),
+              decoration: const InputDecoration(labelText: 'OTP Code'),
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 20),
@@ -61,7 +61,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
               onPressed: _loading ? null : _verifyOtp,
               child: _loading
                   ? CircularProgressIndicator(color: Theme.of(context).colorScheme.onPrimary)
-                  : const Text("Xác minh"),
+                  : const Text("Verify"),
             ),
           ],
         ),

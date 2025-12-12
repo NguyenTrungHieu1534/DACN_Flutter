@@ -124,7 +124,7 @@ class _ArtistDashboardScreenState extends State<ArtistDashboardScreen> {
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                    content: Text('Không thể lấy thông tin người dùng.')),
+                    content: Text('Could not get user information.')),
               );
             }
           },
@@ -319,7 +319,7 @@ class _ArtistDashboardScreenState extends State<ArtistDashboardScreen> {
             }
           },
           icon: const Icon(Icons.edit_document),
-          label: const Text('Quản lý tất cả bài hát'),
+          label: const Text('Manage all songs'),
           style: ElevatedButton.styleFrom(
             minimumSize: const Size(double.infinity, 48),
           ),

@@ -54,7 +54,7 @@ class _SuggestedPlaylistScreenState extends State<SuggestedPlaylistScreen> {
             return ListView.builder(
               itemCount: songs.length,
               itemBuilder: (context, index) {
-                final song = songs[index]; // mỗi bài hát
+                final song = songs[index]; // each song
                 return SongListItem(song: song);
               },
             );

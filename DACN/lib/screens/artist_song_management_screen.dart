@@ -55,7 +55,7 @@ class _ArtistSongManagementScreenState extends State<ArtistSongManagementScreen>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Không thể tải bài hát: $e')),
+          SnackBar(content: Text('Could not load songs: $e')),
         );
       }
     } finally {
@@ -68,8 +68,8 @@ class _ArtistSongManagementScreenState extends State<ArtistSongManagementScreen>
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(success
-              ? 'Đã ẩn bài hát.'
-              : 'Không thể ẩn bài hát.')));
+              ? 'Song hidden.'
+              : 'Could not hide song.')));
       if (success) _loadSongs();
     }
   }
@@ -79,8 +79,8 @@ class _ArtistSongManagementScreenState extends State<ArtistSongManagementScreen>
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(success
-              ? 'Đã bỏ ẩn bài hát.'
-              : 'Không thể bỏ ẩn bài hát.')));
+              ? 'Song unhidden.'
+              : 'Could not unhide song.')));
       if (success) _loadSongs();
     }
   }
@@ -90,7 +90,7 @@ class _ArtistSongManagementScreenState extends State<ArtistSongManagementScreen>
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(
-              success ? 'Đã xóa bài hát.' : 'Không thể xóa bài hát.')));
+              success ? 'Song deleted.' : 'Could not delete song.')));
       if (success) _loadSongs();
     }
   }
@@ -99,12 +99,12 @@ class _ArtistSongManagementScreenState extends State<ArtistSongManagementScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Quản lý bài hát'),
+        title: const Text('Song Management'),
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(text: 'Đang hiển thị'),
-            Tab(text: 'Đã ẩn'),
+            Tab(text: 'Visible'),
+            Tab(text: 'Hidden'),
           ],
         ),
       ),
@@ -124,7 +124,7 @@ class _ArtistSongManagementScreenState extends State<ArtistSongManagementScreen>
     if (songs.isEmpty) {
       return Center(
         child: Text(
-            'Không có bài hát nào trong danh sách này.',
+            'No songs in this list.',
             style: Theme.of(context).textTheme.bodyMedium),
       );
     }
@@ -159,16 +159,16 @@ class _ArtistSongManagementScreenState extends State<ArtistSongManagementScreen>
                   if (isVisible)
                     const PopupMenuItem<String>(
                       value: 'hide',
-                      child: Text('Ẩn bài hát'),
+                      child: Text('Hide Song'),
                     )
                   else
                     const PopupMenuItem<String>(
                       value: 'unhide',
-                      child: Text('Bỏ ẩn'),
+                      child: Text('Unhide'),
                     ),
                   const PopupMenuItem<String>(
                     value: 'delete',
-                    child: Text('Xóa vĩnh viễn', style: TextStyle(color: Colors.red)),
+                    child: Text('Delete Permanently', style: TextStyle(color: Colors.red)),
                   ),
                 ],
               ),
@@ -184,19 +184,19 @@ class _ArtistSongManagementScreenState extends State<ArtistSongManagementScreen>
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Xác nhận xóa'),
+          title: const Text('Confirm Deletion'),
           content: const Text(
-              'Bạn có chắc chắn muốn xóa vĩnh viễn bài hát này không? Hành động này không thể hoàn tác.'),
+              'Are you sure you want to permanently delete this song? This action cannot be undone.'),
           actions: <Widget>[
             TextButton(
-              child: const Text('Hủy'),
+              child: const Text('Cancel'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
               style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Xóa'),
+              child: const Text('Delete'),
               onPressed: () {
                 Navigator.of(context).pop();
                 _deleteSong(songId);

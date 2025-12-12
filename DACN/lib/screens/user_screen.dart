@@ -68,7 +68,7 @@ class _UserScreenState extends State<UserScreen>
     );
     _setupSocketListener();
     _loadLocalPrivacyFlag();
-    // Tải thông tin người dùng đang đăng nhập và sau đó kiểm tra xem có đang xem người khác không.
+    // Load logged-in user information and then check if another user's profile is being viewed.
     _initializeUser();
   }
 
@@ -108,17 +108,17 @@ class _UserScreenState extends State<UserScreen>
 
   Future<void> _initializeUser() async {
     try {
-      // Kiểm tra token để xác định người dùng đã đăng nhập hay chưa
+      // Check token to determine if the user is logged in.
       await _checkToken();
 
-      // Lấy thông tin từ arguments để kiểm tra xem có đang xem profile người khác không
+      // Get information from arguments to check if another user's profile is being viewed.
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         final args = ModalRoute.of(context)?.settings.arguments;
         if (args is Map && args['viewUserId'] != null) {
           final viewId = args['viewUserId']?.toString();
           if (viewId == null || viewId.isEmpty) return;
 
-          // Nếu đang xem chính mình, bỏ qua và để luồng mặc định xử lý
+          // If viewing own profile, skip and let default flow handle it.
           if (_selfUserId != null && _selfUserId == viewId) return;
 
           _viewUserId = viewId;
@@ -126,7 +126,7 @@ class _UserScreenState extends State<UserScreen>
             _loading = true;
           });
 
-          // Tải thông tin profile công khai của người dùng được xem
+          // Load public profile information of the viewed user.
           final profile = await UserService().getPublicProfile(viewId);
           if (!mounted) return;
 
@@ -138,7 +138,7 @@ class _UserScreenState extends State<UserScreen>
             return;
           }
 
-          // Nếu profile bị ẩn hoặc bị che
+          // If the profile is hidden or masked.
           if (profile['isPrivate'] == true && (profile['masked'] == true || (_selfUserId != null && _selfUserId != viewId))) {
             setState(() {
               _username = (profile['username'] ?? profile['name'] ?? 'Private').toString();
@@ -150,14 +150,14 @@ class _UserScreenState extends State<UserScreen>
             return;
           }
 
-          // Cập nhật thông tin người dùng được xem
+          // Update information of the viewed user.
           setState(() {
             _userId = profile['id']?.toString() ?? profile['_id']?.toString() ?? viewId;
             _username = (profile['username'] ?? profile['name'] ?? 'User').toString();
             _avatar = (profile['ava'] ?? profile['avatarUrl'] ?? profile['avatar'] ?? '').toString();
             _bio = profile['bio']?.toString() ?? '';
             _isPrivateRemote = profile['isPrivate'] == true;
-            _email = ''; // Không hiển thị email cho profile công khai
+            _email = ''; // Do not display email for public profiles
             _loading = false;
           });
         }
@@ -232,8 +232,8 @@ class _UserScreenState extends State<UserScreen>
         }
       });
 
-      // Chỉ tải dữ liệu người dùng (playlist,...) nếu không có _viewUserId
-      // Việc tải dữ liệu sẽ được _initializeUser() điều phối
+      // Only load user data (playlists,...) if _viewUserId is not present
+      // Data loading will be coordinated by _initializeUser().
       _loadNotificationCount();
       // refresh privacy from server
       _loadRemotePrivacyFlag();
@@ -273,7 +273,7 @@ class _UserScreenState extends State<UserScreen>
       final historyService = HistoryService();
       final history = await historyService.getHistory();
       final repostService = RepostService();
-      // Lấy danh sách nghệ sĩ đã follow
+      // Get list of followed artists
       final followedList = await _followService.getFollowList(_userId!);
       final reposts = await repostService.fetchRepostsByUser(_userId!);
       _userReposts = reposts.map((r) => r as dynamic).toList();
@@ -1171,7 +1171,7 @@ class _UserScreenState extends State<UserScreen>
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'Bài hát đã đăng lại',
+            'Reposted Songs',
             style: TextStyle(
               fontSize: isTablet ? 26 : 22,
               fontWeight: FontWeight.bold,
@@ -1189,7 +1189,7 @@ class _UserScreenState extends State<UserScreen>
                 }
               },
               icon: const Icon(Icons.arrow_forward, size: 18),
-              label: const Text('Xem tất cả'),
+              label: const Text('See all'),
             ),
         ],
       ),

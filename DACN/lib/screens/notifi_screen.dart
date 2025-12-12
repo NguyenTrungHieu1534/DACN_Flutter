@@ -7,7 +7,7 @@ class NotificationScreen extends StatefulWidget {
 
   const NotificationScreen({
     super.key,
-    this.message = "Tài khoản của bạn đã bị khóa vĩnh viễn bởi quản trị viên.",
+    this.message = "Your account has been permanently blocked by an administrator.",
   });
 
   @override

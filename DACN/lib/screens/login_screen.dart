@@ -228,7 +228,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                                 validator: (value) {
                                   if (value == null || value.trim().isEmpty) {
-                                    return 'Nhập email hoặc username';
+                                    return 'Enter email or username';
                                   }
                                   return null;
                                 },

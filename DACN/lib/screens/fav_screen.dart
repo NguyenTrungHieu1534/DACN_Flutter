@@ -72,7 +72,7 @@ class _FavScreenState extends State<FavScreen> {
           }
 
           if (snapshot.hasError) {
-            return Center(child: Text("Lỗi tải dữ liệu: ${snapshot.error}"));
+            return Center(child: Text("Error loading data: ${snapshot.error}"));
           }
 
           final favorites = snapshot.data ?? [];
@@ -88,7 +88,7 @@ class _FavScreenState extends State<FavScreen> {
                   titlePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   centerTitle: false,
                   title: Text(
-                    'Yêu Thích',
+                    'Favorites',
                     style: TextStyle(
                       color: Theme.of(context).textTheme.titleLarge?.color,
                       fontWeight: FontWeight.bold,
@@ -106,7 +106,7 @@ class _FavScreenState extends State<FavScreen> {
                           child: ElevatedButton.icon(
                             onPressed: () => _playAll(favorites),
                             icon: const Icon(Icons.play_arrow),
-                            label: const Text('Phát'),
+                            label: const Text('Play'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.oceanBlue,
                               foregroundColor: Colors.white,
@@ -119,7 +119,7 @@ class _FavScreenState extends State<FavScreen> {
                           child: OutlinedButton.icon(
                             onPressed: () => _playAll(favorites, shuffle: true),
                             icon: const Icon(Icons.shuffle),
-                            label: const Text('Trộn bài'),
+                            label: const Text('Shuffle'),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.oceanBlue,
                               side: const BorderSide(color: AppColors.oceanBlue),
@@ -140,12 +140,12 @@ class _FavScreenState extends State<FavScreen> {
                         const Icon(Icons.favorite_border, size: 64, color: Colors.grey),
                         const SizedBox(height: 16),
                         const Text(
-                          'Chưa có bài hát yêu thích',
+                          'No favorite songs yet',
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Nhấn ❤️ trên bài hát để thêm vào đây.',
+                          'Press ❤️ on a song to add it here.',
                           style: TextStyle(color: Colors.grey.shade600),
                         ),
                       ],
@@ -165,7 +165,7 @@ class _FavScreenState extends State<FavScreen> {
                             favorites.removeAt(index);
                           });
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Đã xóa khỏi Yêu thích'), duration: Duration(seconds: 1)),
+                            const SnackBar(content: Text('Removed from Favorites'), duration: Duration(seconds: 1)),
                           );
                         },
                         onTap: () async {
@@ -271,7 +271,7 @@ class _FavoriteSongTileState extends State<_FavoriteSongTile> {
       onTap: widget.onTap,
       trailing: IconButton(
         icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent),
-        tooltip: 'Xóa khỏi Yêu thích',
+        tooltip: 'Remove from Favorites',
         onPressed: () async {
           await FavoriteService().deleteFavoriteById(widget.favoriteSong.id.toString());
           widget.onRemoved();

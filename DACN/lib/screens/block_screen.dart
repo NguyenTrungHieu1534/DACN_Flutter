@@ -7,7 +7,7 @@ class BlockedScreen extends StatefulWidget {
 
   const BlockedScreen({
     super.key,
-    this.message = "Tài khoản của bạn đã bị khóa vĩnh viễn bởi quản trị viên.",
+    this.message = "Your account has been permanently blocked by an administrator.",
   });
 
   @override
@@ -51,7 +51,7 @@ class _BlockedScreenState extends State<BlockedScreen> {
                     ),
                     const SizedBox(height: 20),
                     const Text(
-                      "Tài khoản bị khóa",
+                      "Account Blocked",
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -74,7 +74,7 @@ class _BlockedScreenState extends State<BlockedScreen> {
                         Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
                       },
                       icon: const Icon(Icons.arrow_back),
-                      label: const Text("Quay về đăng nhập"),
+                      label: const Text("Back to Login"),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
                         foregroundColor: Colors.white,

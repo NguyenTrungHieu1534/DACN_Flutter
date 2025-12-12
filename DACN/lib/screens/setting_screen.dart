@@ -84,7 +84,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _isPrivate = value;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đã lưu cục bộ trạng thái Private')),
+        const SnackBar(content: Text('Privacy status saved locally')),
       );
       return;
     }
@@ -100,7 +100,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _savingPrivacy = false;
     });
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(res['message']?.toString() ?? 'Đã cập nhật')),
+      SnackBar(content: Text(res['message']?.toString() ?? 'Updated')),
     );
   }
 
@@ -250,11 +250,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       try {
                         final data = await UserService.askForArtist();
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(data ?? 'Có lỗi xảy ra')),
+                          SnackBar(content: Text(data ?? 'An error occurred')),
                         );
                       } catch (err) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Có lỗi xảy ra: $err')),
+                          SnackBar(content: Text('An error occurred: $err')),
                         );
                       }
                     },
@@ -298,8 +298,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     applicationVersion: "1.0.0",
                     applicationIcon: const Icon(Icons.music_note),
                     children: const [
-                      Text("Ứng dụng nghe nhạc miễn phí với chất lượng cao."),
-                      Text("\nPhát triển bởi Thông Tuấn Hiếu."),
+                      Text("Free high-quality music application."),
+                      Text("\nDeveloped by Thong Tuan Hieu."),
                     ],
                   );
                 },
@@ -320,19 +320,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   final confirmed = await showDialog<bool>(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: const Text('Xác nhận đăng xuất'),
+                      title: const Text('Confirm Logout'),
                       content:
-                          const Text('Bạn có chắc chắn muốn đăng xuất không?'),
+                          const Text('Are you sure you want to log out?'),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(context, false),
-                          child: const Text('Hủy'),
+                          child: const Text('Cancel'),
                         ),
                         TextButton(
                           onPressed: () => Navigator.pop(context, true),
                           style:
                               TextButton.styleFrom(foregroundColor: Colors.red),
-                          child: const Text('Đăng xuất'),
+                          child: const Text('Log Out'),
                         ),
                       ],
                     ),

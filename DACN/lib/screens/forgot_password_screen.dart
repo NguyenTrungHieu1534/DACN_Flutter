@@ -41,14 +41,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Quên mật khẩu")),
+      appBar: AppBar(title: const Text("Forgot Password")),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
             TextField(
               controller: _usernameController,
-              decoration: const InputDecoration(labelText: 'Tên đăng nhập'),
+              decoration: const InputDecoration(labelText: 'Username'),
             ),
             const SizedBox(height: 16),
             TextField(
@@ -60,7 +60,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               onPressed: _loading ? null : _sendOtp,
               child: _loading
                   ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text("Gửi mã OTP"),
+                  : const Text("Send OTP"),
             ),
           ],
         ),

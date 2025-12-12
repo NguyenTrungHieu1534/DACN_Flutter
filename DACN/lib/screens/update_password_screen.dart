@@ -41,10 +41,10 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
           _isLoadingUser = false;
         });
       } catch (e) {
-        _showError("Lỗi giải mã thông tin người dùng.");
+        _showError("Error decoding user information.");
       }
     } else {
-      _showError("Không tìm thấy thông tin đăng nhập.");
+      _showError("Login information not found.");
     }
   }
 
@@ -72,7 +72,7 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
     if (token == null) {
-      _showError("Token không tồn tại");
+      _showError("Token does not exist");
       return;
     }
     final deco = JwtDecoder.decode(token!);
@@ -104,7 +104,7 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Đổi mật khẩu"),
+        title: const Text("Change password"),
       ),
       body: _isLoadingUser
           ? const Center(child: CircularProgressIndicator())
@@ -119,7 +119,7 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                       controller: _oldPasswordController,
                       obscureText: _obscureOldPassword,
                       decoration: InputDecoration(
-                        labelText: 'Mật khẩu cũ',
+                        labelText: 'Old password',
                         prefixIcon: const Icon(Icons.lock_outline),
                         border: const OutlineInputBorder(),
                         suffixIcon: IconButton(
@@ -135,7 +135,7 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Vui lòng nhập mật khẩu cũ';
+                          return 'Please enter your old password';
                         }
                         return null;
                       },
@@ -145,7 +145,7 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                       controller: _newPasswordController,
                       obscureText: _obscureNewPassword,
                       decoration: InputDecoration(
-                        labelText: 'Mật khẩu mới',
+                        labelText: 'New password',
                         prefixIcon: const Icon(Icons.lock_outline),
                         border: const OutlineInputBorder(),
                         suffixIcon: IconButton(
@@ -161,13 +161,13 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Vui lòng nhập mật khẩu mới';
+                          return 'Please enter your new password';
                         }
                         if (value.length < 6) {
-                          return 'Mật khẩu phải có ít nhất 6 ký tự';
+                          return 'Password must be at least 6 characters';
                         }
                         if (value == _oldPasswordController.text) {
-                          return 'Mật khẩu mới không được trùng với mật khẩu cũ';
+                          return 'New password cannot be the same as old password';
                         }
                         return null;
                       },
@@ -177,7 +177,7 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                       controller: _confirmNewPasswordController,
                       obscureText: _obscureConfirmNewPassword,
                       decoration: InputDecoration(
-                        labelText: 'Xác nhận mật khẩu mới',
+                        labelText: 'Confirm new password',
                         prefixIcon: const Icon(Icons.lock_outline),
                         border: const OutlineInputBorder(),
                         suffixIcon: IconButton(
@@ -194,10 +194,10 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Vui lòng xác nhận mật khẩu mới';
+                          return 'Please confirm your new password';
                         }
                         if (value != _newPasswordController.text) {
-                          return 'Mật khẩu xác nhận không khớp';
+                          return 'Confirm password does not match';
                         }
                         return null;
                       },
@@ -210,7 +210,7 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                           : const Icon(Icons.save_alt_outlined),
                       label: _isUpdating
                           ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text('Đổi mật khẩu'),
+                          : const Text('Change Password'),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
