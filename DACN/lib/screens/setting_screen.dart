@@ -159,10 +159,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onChanged: (val) async {
                   final previous = _isPrivate ?? false;
                   await _togglePrivacy(val);
-                  // Revert switch if failed
                   if (!mounted) return;
-                  // We infer failure if still saving false and message shown as failure;
-                  // simpler: reload from server to reflect truth
                   await _loadPrivacy();
                 },
               ),

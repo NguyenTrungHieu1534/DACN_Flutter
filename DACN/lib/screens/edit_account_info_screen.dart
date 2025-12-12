@@ -118,7 +118,10 @@ class _EditAccountInfoScreenState extends State<EditAccountInfoScreen> {
 
     if (changed) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(finalMessage), backgroundColor: Colors.green),
+        SnackBar(
+            content: Text(
+                "$finalMessage Please log in again to apply changes everywhere."),
+            backgroundColor: Colors.green),
       );
     }
   }
